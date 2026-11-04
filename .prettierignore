@@ -1,0 +1,15 @@
+# Planning kit is preserved verbatim
+CLAUDE.md
+CLAUDE_STARTER_PROMPT.md
+CLAUDE_WORKFLOW.md
+PROJECT_BRIEF.md
+PR_ROADMAP.md
+docs/planning-kit-README.md
+.github/
+# Generated / external
+pnpm-lock.yaml
+apps/api/
+**/.next/
+**/node_modules/
+**/next-env.d.ts
+**/coverage/

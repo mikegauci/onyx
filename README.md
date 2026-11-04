@@ -1,61 +1,68 @@
-# Onyx Studio — Claude Opus 5.5 Planning Kit
+# Onyx
 
-## Agreed identity and domains
+Monorepo for **Onyx Studio** (public website, [onyx.mt](https://onyx.mt)) and **Onyx Platform**
+(multi-tenant business operations and AI automation SaaS, [app.onyx.mt](https://app.onyx.mt)).
 
-- **Onyx Studio** is the business, public brand and services website at **https://onyx.mt**.
-- **Onyx Platform** is the multi-tenant SaaS product at **https://app.onyx.mt**.
-- GitHub repository name: **onyx**. Keep one shared platform codebase.
-- Development uses **Claude Code only**, with **Claude Opus 5.5** as the requested coding model. These documents do not select a model or verify account availability; confirm the target in your Claude Code account before implementation.
-- Production AI remains provider-neutral (OpenAI and Anthropic); the coding model does not determine customer-facing models.
-- Domain assignments are agreed deployment targets, not confirmation that DNS or hosting has been configured.
+Planning and working rules: [`CLAUDE.md`](CLAUDE.md), [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md),
+[`PR_ROADMAP.md`](PR_ROADMAP.md), [`CLAUDE_WORKFLOW.md`](CLAUDE_WORKFLOW.md). Foundation decisions:
+[`docs/adr/0001-foundation-decisions.md`](docs/adr/0001-foundation-decisions.md). The original
+planning-kit README is kept at [`docs/planning-kit-README.md`](docs/planning-kit-README.md).
 
-**Ready for Claude Code.** This is an implementation *plan*, not a generated application and not 28 pull requests already opened on GitHub.
+## Layout
 
-## Recovery record — 4 November 2026
+| Path                | What                                     | Local URL             |
+| ------------------- | ---------------------------------------- | --------------------- |
+| `apps/site`         | Next.js — Onyx Studio website (onyx.mt)  | http://localhost:3000 |
+| `apps/platform`     | Next.js — Onyx Platform dashboard        | http://localhost:3001 |
+| `apps/api`          | FastAPI — all business logic (Python/uv) | http://localhost:8000 |
+| `packages/ui`       | Shared shadcn/ui components + theme      | —                     |
+| `packages/tsconfig` | Shared TypeScript + ESLint config        | —                     |
+| `infrastructure/`   | Docker Compose for local Postgres        | `localhost:54322`     |
 
-Recovered from the user's local `ai-automation-studio-claude-opus-5-5.zip` and updated using the confirmed decisions in the “Automate Retail Operations” conversation. The inaccessible updated sandbox ZIP was not retrieved; this is a reconstructed update of the recovered earlier kit, not a byte-for-byte copy of that later ZIP.
+## Prerequisites
 
-The original 28 detailed PR specifications, dependencies, acceptance criteria and release gates are retained. Updates apply Onyx branding/domains, Claude Code-only development, Pydantic AI as the default agent framework, and Pydantic Logfire observability. Original engineering estimates are retained as historical planning ranges and need reassessment against the updated scope and pinned versions. This recovery does not re-evaluate vendor capabilities or configure external services.
+| Tool                | Version                            | Notes                                                                                          |
+| ------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Node.js             | 24 LTS (`.nvmrc`)                  | e.g. `nvm use`                                                                                 |
+| pnpm                | 12.11.2 (pinned in `package.json`) | `corepack enable` or install pnpm 12                                                           |
+| uv                  | ≥ 0.13                             | Installs Python 3.13 automatically (`apps/api/.python-version`)                                |
+| GNU Make            | ≥ 3.81                             | Preinstalled on macOS                                                                          |
+| Docker + Compose v2 | any recent                         | Only for `make up`. On macOS, e.g. `brew install colima docker docker-compose && colima start` |
 
-The package contains **six main Markdown files** (including this README), plus the original bonus GitHub PR template. Extract the ZIP and copy the folder contents, including `.github`, into the `onyx` repository.
+`make check` and `make test` do **not** need Docker.
 
-## Files
+**OS notes:** developed on macOS (Intel and Apple Silicon both supported by the pinned
+dependencies). Linux works with the same tools. On Windows use WSL2.
 
-| File | Purpose |
-| [`README.md`](README.md) | Setup, recovery provenance and agreed identity. |
-|---|---|
-| [`CLAUDE.md`](CLAUDE.md) | Root project memory: conventions, architecture, tenant safety, coding/test rules and approval boundaries; auto-read by Claude Code. |
-| [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) | Requirements, implementation stages, architecture and definition of success. |
-| [`PR_ROADMAP.md`](PR_ROADMAP.md) | **28 detailed, sequential PR specs** with dependencies, estimates, acceptance and release gates. |
-| [`CLAUDE_WORKFLOW.md`](CLAUDE_WORKFLOW.md) | Claude Code Plan/implement/review process and output expectations. |
-| [`CLAUDE_STARTER_PROMPT.md`](CLAUDE_STARTER_PROMPT.md) | Copy-paste prompts for PR-001, future PRs and independent review. |
-| [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | Human-readable GitHub review checklist. |
-
-## Setup
-
-1. Create a **private GitHub repository** (e.g. `onyx`).
-2. Copy these files to the **repository root**, preserving `.github/PULL_REQUEST_TEMPLATE.md`.
-3. Commit the planning kit; protect `main`, and require checks/review for merges.
-4. Open **Claude Code**, choose **Claude Opus 5.5**, and verify the root `CLAUDE.md` is in the project.
-5. Use the first prompt from `CLAUDE_STARTER_PROMPT.md` in **Plan Mode**, approve the plan, then run the implementation prompt.
-6. Review PR-001 before starting PR-002; continue PR-by-PR.
+## Quick start
 
 ```bash
-# In an already-created local repository:
-git add CLAUDE.md PROJECT_BRIEF.md PR_ROADMAP.md \
-  CLAUDE_WORKFLOW.md CLAUDE_STARTER_PROMPT.md README.md .github/
-git commit -m "docs: add Onyx Studio planning kit for Claude Code"
-# Run `claude`, select Opus 5.5 via `/model`, then paste the first starter prompt.
+git clone https://github.com/mikegauci/onyx.git && cd onyx
+cp .env.example .env      # placeholders only; never commit .env
+make setup                # pnpm install + uv sync
+make up                   # optional: local Postgres (needs Docker)
+make dev                  # site :3000, platform :3001, API :8000
 ```
 
-### What a PR means here
+Then open http://localhost:3000, http://localhost:3001/dashboard (shows “API: ok”) and
+http://localhost:8000/health.
 
-`PR-001` through `PR-028` are *planned work items*, not real GitHub PR IDs. Neither Claude Code nor these Markdown files can create a GitHub PR without repository access/permission and the actual implementation branch.
+## Commands
 
-### Important distinction
+| Command      | Does                                                                     |
+| ------------ | ------------------------------------------------------------------------ |
+| `make setup` | Install JS (pnpm, frozen lockfile) and Python (uv, frozen lockfile) deps |
+| `make up`    | Start local Postgres 17 + pgvector and wait for its healthcheck          |
+| `make down`  | Stop local services (keeps the data volume)                              |
+| `make dev`   | Run all three apps with hot reload                                       |
+| `make check` | Prettier check, ESLint, TypeScript; ruff format/lint, mypy (strict)      |
+| `make test`  | Vitest (UI, site, platform) and pytest (API)                             |
+| `make fmt`   | Auto-format and auto-fix                                                 |
+| `make build` | Production build of both Next.js apps                                    |
+| `make clean` | Remove build outputs and caches                                          |
 
-Claude Opus 5.5 is the **coding agent** for building the software. Production customer-facing AI models remain configurable through the backend's provider abstraction. Do not bind the whole SaaS to an expensive reasoning model by default.
+## Configuration
 
-### Commercial rollout
-
-Begin with a **supervised** lighting-retailer pilot. Confirm the customer can approve quotes and that recommendations rely on authoritative catalogue data. Expand to inventory, Temporal workflows and subscriptions only after validating the first business process and risk controls.
+Environment variables are documented in [`.env.example`](.env.example). The API validates its
+settings at startup (`apps/api/app/core/config.py`); CORS origins must be listed explicitly.
+No secrets are committed to this repository.

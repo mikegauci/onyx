@@ -1,8 +1,10 @@
 import { Button } from "@onyx/ui/components/button";
 
-const PLATFORM_URL = process.env.NEXT_PUBLIC_PLATFORM_URL ?? "http://localhost:3001";
+import { siteEnv } from "@/lib/env";
 
 export default function HomePage() {
+  const { platformUrl } = siteEnv();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
       <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase">
@@ -17,7 +19,7 @@ export default function HomePage() {
       </p>
       <div>
         <Button asChild size="lg">
-          <a href={PLATFORM_URL}>Sign in to Onyx Platform</a>
+          <a href={platformUrl}>Sign in to Onyx Platform</a>
         </Button>
       </div>
     </main>

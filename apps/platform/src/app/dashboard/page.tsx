@@ -1,13 +1,12 @@
 import { getApiHealth } from "@/lib/api-health";
+import { platformEnv } from "@/lib/env";
 
 import { ApiStatus } from "./api-status";
 
 export const dynamic = "force-dynamic";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
 export default async function DashboardPage() {
-  const health = await getApiHealth(API_URL);
+  const health = await getApiHealth(platformEnv().apiUrl);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 px-6 py-16">

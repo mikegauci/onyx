@@ -8,6 +8,7 @@
 - [ ] Criterion 2 — evidence:
 
 ## Tests / verification evidence
+- [ ] CI (`ci` check) green:
 - [ ] Formatting/lint/typecheck (command + outcome):
 - [ ] Backend tests (command + outcome):
 - [ ] Frontend tests/E2E (command + outcome):

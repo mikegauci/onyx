@@ -10,7 +10,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 ### DF-001 — Design foundation
 
 - **Approved:** 2026-11-04, to land before PR-007.
-- **Scope:** `docs/design/ui-references.md`, design tokens in `packages/ui/src/styles/globals.css`, a WCAG contrast test, base shadcn components, Geist fonts, dark default for the site. No product features or dashboard routes.
+- **Scope:** `docs/design/ui-references.md`, design tokens in `packages/ui/src/styles/globals.css`, a WCAG contrast test, base shadcn components, Geist fonts, a System/Light/Dark theme toggle that defaults to the device preference (both apps). No product features or dashboard routes.
 
 ### SITE-001 — Build the Onyx Studio landing page
 

@@ -3,6 +3,9 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { ThemeProvider } from "@onyx/ui/components/theme-provider";
+import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,8 +16,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="min-h-screen antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-screen antialiased">
+        <ThemeProvider>
+          <ThemeToggle className="fixed top-4 right-4 z-50" />
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

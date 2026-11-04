@@ -127,8 +127,9 @@ Keep shadcn's own `--accent` (hover fill) neutral, and add `--brand` as a separa
 
 ### Theme defaults
 
-- Site: dark only for v1 (`class="dark"` on `<html>`).
-- Platform: light until PR-007 adds system-preference detection and a user toggle. Both themes are first-class and tested.
+- Both apps follow the device's light/dark preference by default (`prefers-color-scheme`), via `next-themes` (`ThemeProvider` in `packages/ui`).
+- A three-way toggle (System / Light / Dark, `ThemeToggle`) lets people override it; the choice is remembered in `localStorage` on that device. Owner decision, 2026-11-04.
+- Both themes are first-class: the contrast test covers both, and every screen must be checked in both.
 
 ### Key layout patterns (summary)
 

@@ -12,7 +12,7 @@ DB_ENV := set -a; . ./$(ENV_FILE); set +a;
 ALEMBIC := cd $(API_DIR) && uv run alembic
 
 .PHONY: help setup up down dev dev-web dev-api check check-web check-api test test-web test-api \
-	fmt build api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-revision
+	fmt build api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-grant db-revision
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -48,6 +48,10 @@ db-seed: ## Load the two fake test organisations (refuses in deployed environmen
 db-reset: ## Rebuild the local schema from scratch and reseed (destroys local data)
 	@$(DB_ENV) ./scripts/require-local-env.sh && cd $(API_DIR) && uv run alembic downgrade base \
 		&& uv run alembic upgrade head && uv run python -m app.core.db.seed
+
+db-grant: ## Local only: make db-grant email=you@x slug=lumen-lighting-test role=owner
+	@test -n "$(email)" -a -n "$(slug)" -a -n "$(role)" || { echo 'usage: make db-grant email=... slug=... role=owner|admin|member'; exit 1; }
+	@$(DB_ENV) ./scripts/require-local-env.sh && cd $(API_DIR) && uv run python -m app.core.db.dev_grant "$(email)" "$(slug)" "$(role)"
 
 db-revision: ## Autogenerate a migration: make db-revision m="describe change"
 	@test -n "$(m)" || { echo 'usage: make db-revision m="describe change"'; exit 1; }

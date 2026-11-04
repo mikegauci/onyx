@@ -5,7 +5,8 @@ their owning core area (`apps/api/app/core/{tenancy,modules,audit,outbox}/models
 `app/core/db/registry.py` imports them all so `Base.metadata` is complete.
 
 **Status:** applied to local Docker Postgres and CI only. Not applied to the `onyx` Supabase
-project; that happens when PR-004 needs it, with a backup first and owner approval.
+project (owner decision, PR-004: Supabase provides Auth only for now). Applying it there needs a
+backup first and owner approval.
 
 ## Entities
 
@@ -40,14 +41,39 @@ Conventions:
 
 ## Tenant isolation (current state)
 
+### Application role and identity policies (PR-004, migration `0002`)
+
+- Requests run as `onyx_app` (`NOLOGIN NOBYPASSRLS`), entered per transaction with
+  `SET LOCAL ROLE onyx_app`. The transaction also sets `app.current_auth_subject` (the verified
+  JWT `sub`) with `set_config(..., true)`. Both reset at commit/rollback, so pooled connections
+  never carry one user's context into another request (tested).
+- Policies (all `TO onyx_app`; Supabase's `anon`/`authenticated` roles get none):
+
+  | Table                                                  | Allowed for the caller                                                                                  |
+  | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+  | `users`                                                | read self and colleagues (shared organisation); insert/update self                                      |
+  | `organizations`, `organization_modules`, `memberships` | read where the caller is a member                                                                       |
+  | `memberships`                                          | insert self only, backed by an invitation they accepted                                                 |
+  | `invitations`                                          | read/create as owner/admin (owners alone invite owners); read/accept if addressed to the caller's email |
+  | `audit_entries`                                        | insert as a member of that organisation, as themselves; no read                                         |
+  | `outbox_events`                                        | nothing yet                                                                                             |
+
+- Helper functions `app_current_user_id()`, `app_membership_role(org)`, etc. are
+  `SECURITY DEFINER` with a fixed `search_path`, so policies can consult memberships without
+  recursion. Execute is granted to `onyx_app` only.
+- In deployed environments `ONYX_API_DATABASE_URL` must be a login role that is a member of
+  `onyx_app`, not a superuser and without `BYPASSRLS`. Locally the compose superuser connects
+  and drops to `onyx_app` per transaction.
+
+### Default deny
+
 - Row-level security is **enabled with no policies** on every table except `modules` and
   `alembic_version` (`RLS_EXEMPT_TABLES`). Any role other than the table owner therefore reads,
   inserts, updates and deletes nothing. Tests prove this with a throwaway non-owner role.
 - A guard test fails if a new public table lacks RLS and is not explicitly exempted.
 - The owner role (migrations, seeding) bypasses RLS because RLS is not `FORCE`d. It must never
   serve user requests.
-- **PR-005** adds the application role, per-tenant policies and transaction-local tenant context.
-  Until then the API has no database access path for requests.
+- **PR-005** adds per-tenant policies for business data and tenant-scoped repositories.
 
 ## Configuration
 
@@ -67,6 +93,10 @@ Conventions:
 | ----------------------- | ----------------------- | --------------------------------- | -------------------------------------------------------- |
 | Lumen Lighting (test)   | `lumen-lighting-test`   | crm, catalogue, inbox, quotations | Olivia (owner), Adam (admin), Mia (member), Sam (member) |
 | Harbour Catering (test) | `harbour-catering-test` | crm, inbox                        | Hugo (owner), Hana (admin), Max (member), Sam (admin)    |
+
+Seeded users get fake auth subjects (`seed_auth_subject(email)`) that only tests can sign
+tokens for. To use a seeded workspace with your real login locally, sign in once and run
+`make db-grant email=you@example.com slug=lumen-lighting-test role=owner`.
 
 Sam Consultant belongs to both organisations with different roles, for workspace-selection and
 cross-tenant tests. All emails use the reserved `.test` domain.

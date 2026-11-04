@@ -4,7 +4,7 @@ from alembic import command
 from sqlalchemy import Engine, create_engine, inspect, text
 
 from app.core.db.registry import RLS_EXEMPT_TABLES, Base
-from tests.db.conftest import TemporaryDatabase, alembic_config
+from tests.db_fixtures import TemporaryDatabase, alembic_config
 
 EXPECTED_TABLES = {
     "organizations",
@@ -14,6 +14,7 @@ EXPECTED_TABLES = {
     "organization_modules",
     "audit_entries",
     "outbox_events",
+    "invitations",
 }
 
 

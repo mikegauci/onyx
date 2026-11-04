@@ -14,6 +14,7 @@ TENANT_TABLES = (
     "organization_modules",
     "audit_entries",
     "outbox_events",
+    "invitations",
 )
 
 

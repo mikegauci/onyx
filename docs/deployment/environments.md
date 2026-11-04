@@ -72,6 +72,14 @@ if a required URL is missing or unsafe.
 | Site URL      | platform preview origin                   | `https://app.onyx.mt`               |
 | Redirect URLs | `<platform preview origin>/auth/callback` | `https://app.onyx.mt/auth/callback` |
 
+One Supabase project (`onyx`) issues logins for local and preview, so its Redirect URLs list
+also holds `http://localhost:3001/auth/callback`. Set these in the Supabase dashboard
+(Authentication → URL Configuration); the Supabase MCP cannot change auth settings.
+
+Required project settings: **Confirm email** on and **anonymous sign-ins** off. The API also
+rejects anonymous tokens and non-`authenticated` roles, and accepts only ES256/RS256 tokens
+signed by the project's JWKS (`/auth/v1/.well-known/jwks.json`).
+
 No wildcard redirect URLs. In-app `?next=` targets pass through `safeRedirect()`
 (`apps/platform/src/lib/safe-redirect.ts`), which only allows same-origin paths.
 

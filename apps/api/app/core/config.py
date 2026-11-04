@@ -30,6 +30,11 @@ class Settings(BaseSettings):
         default=None,
         description="SQLAlchemy URL for the application role (postgresql+psycopg://...).",
     )
+    supabase_url: str | None = Field(
+        default=None,
+        description="Supabase project URL (https://<ref>.supabase.co); issues the login tokens.",
+    )
+    jwt_audience: str = "authenticated"
     migration_database_url: SecretStr | None = Field(
         default=None,
         description="SQLAlchemy URL for the schema-owner role used only by Alembic and seeding.",
@@ -41,6 +46,35 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @field_validator("supabase_url", mode="before")
+    @classmethod
+    def _normalise_supabase_url(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = value.strip().rstrip("/")
+            return value or None
+        return value
+
+    @field_validator("supabase_url")
+    @classmethod
+    def _supabase_url_is_origin(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        parts = urlsplit(value)
+        local = (parts.hostname or "") in LOCAL_HOSTS
+        if parts.scheme not in ("https", "http") or (parts.scheme == "http" and not local):
+            raise ValueError("ONYX_API_SUPABASE_URL must be https (http only for localhost).")
+        if parts.path or parts.query or parts.fragment:
+            raise ValueError("ONYX_API_SUPABASE_URL is scheme://host[:port] only.")
+        return value
+
+    @property
+    def jwt_issuer(self) -> str | None:
+        return f"{self.supabase_url}/auth/v1" if self.supabase_url else None
+
+    @property
+    def jwks_url(self) -> str | None:
+        return f"{self.jwt_issuer}/.well-known/jwks.json" if self.jwt_issuer else None
 
     @field_validator("database_url", "migration_database_url", mode="before")
     @classmethod

@@ -6,9 +6,13 @@ API_DIR := apps/api
 COMPOSE := docker compose -f infrastructure/docker-compose.yml --env-file $(if $(wildcard .env),.env,.env.example)
 # Export variables from .env (if present) into recipes that start services.
 LOAD_ENV := set -a; [ -f .env ] && . ./.env; set +a;
+# Database recipes fall back to .env.example, whose local-only values are not secrets.
+ENV_FILE := $(if $(wildcard .env),.env,.env.example)
+DB_ENV := set -a; . ./$(ENV_FILE); set +a;
+ALEMBIC := cd $(API_DIR) && uv run alembic
 
 .PHONY: help setup up down dev dev-web dev-api check check-web check-api test test-web test-api \
-	fmt build api-image api-image-smoke clean
+	fmt build api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-revision
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -31,6 +35,23 @@ dev-web:
 
 dev-api:
 	@$(LOAD_ENV) cd $(API_DIR) && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+db-migrate: ## Apply all database migrations (alembic upgrade head)
+	@$(DB_ENV) $(ALEMBIC) upgrade head
+
+db-downgrade: ## Revert the most recent migration (local databases only)
+	@$(DB_ENV) ./scripts/require-local-env.sh && $(ALEMBIC) downgrade -1
+
+db-seed: ## Load the two fake test organisations (refuses in deployed environments)
+	@$(DB_ENV) cd $(API_DIR) && uv run python -m app.core.db.seed
+
+db-reset: ## Rebuild the local schema from scratch and reseed (destroys local data)
+	@$(DB_ENV) ./scripts/require-local-env.sh && cd $(API_DIR) && uv run alembic downgrade base \
+		&& uv run alembic upgrade head && uv run python -m app.core.db.seed
+
+db-revision: ## Autogenerate a migration: make db-revision m="describe change"
+	@test -n "$(m)" || { echo 'usage: make db-revision m="describe change"'; exit 1; }
+	@$(DB_ENV) $(ALEMBIC) revision --autogenerate -m "$(m)"
 
 check: check-web check-api ## Format check, lint and typecheck everything
 

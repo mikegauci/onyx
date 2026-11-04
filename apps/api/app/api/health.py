@@ -16,8 +16,14 @@ class HealthResponse(BaseModel):
     status: Literal["ok"]
     service: str
     version: str
+    environment: str
 
 
 @router.get("/health", response_model=HealthResponse)
 async def health(settings: SettingsDep) -> HealthResponse:
-    return HealthResponse(status="ok", service=settings.service_name, version=settings.version)
+    return HealthResponse(
+        status="ok",
+        service=settings.service_name,
+        version=settings.version,
+        environment=settings.environment,
+    )

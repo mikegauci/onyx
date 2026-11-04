@@ -46,5 +46,9 @@ requires such deviations to be recorded rather than applied silently.
 
 - `CLAUDE.md` "Codebase shape" is updated to the layout above.
 - PR-002 must carry the single-environment adjustment and its mitigations explicitly.
+- **Amendment (PR-002, 2026-11-04, owner-approved):** PR-002 does not deploy production. It adds
+  a non-production **preview** environment with no database: Vercel Preview deployments for both
+  Next.js apps and a free Render service `onyx-api-preview`. Vercel production builds are skipped
+  until the owner approves production. See `docs/deployment/environments.md`.
 - Adding a staging project later is additive (new Supabase project + env contract) and does
   not require restructuring.

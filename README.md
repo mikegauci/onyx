@@ -49,20 +49,28 @@ http://localhost:8000/health.
 
 ## Commands
 
-| Command      | Does                                                                     |
-| ------------ | ------------------------------------------------------------------------ |
-| `make setup` | Install JS (pnpm, frozen lockfile) and Python (uv, frozen lockfile) deps |
-| `make up`    | Start local Postgres 17 + pgvector and wait for its healthcheck          |
-| `make down`  | Stop local services (keeps the data volume)                              |
-| `make dev`   | Run all three apps with hot reload                                       |
-| `make check` | Prettier check, ESLint, TypeScript; ruff format/lint, mypy (strict)      |
-| `make test`  | Vitest (UI, site, platform) and pytest (API)                             |
-| `make fmt`   | Auto-format and auto-fix                                                 |
-| `make build` | Production build of both Next.js apps                                    |
-| `make clean` | Remove build outputs and caches                                          |
+| Command                | Does                                                                     |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `make setup`           | Install JS (pnpm, frozen lockfile) and Python (uv, frozen lockfile) deps |
+| `make up`              | Start local Postgres 17 + pgvector and wait for its healthcheck          |
+| `make down`            | Stop local services (keeps the data volume)                              |
+| `make dev`             | Run all three apps with hot reload                                       |
+| `make check`           | Prettier check, ESLint, TypeScript; ruff format/lint, mypy (strict)      |
+| `make test`            | Vitest (UI, site, platform) and pytest (API)                             |
+| `make fmt`             | Auto-format and auto-fix                                                 |
+| `make build`           | Production build of both Next.js apps                                    |
+| `make api-image-smoke` | Build the API Docker image and probe `/health` (needs Docker)            |
+| `make clean`           | Remove build outputs and caches                                          |
 
 ## Configuration
 
 Environment variables are documented in [`.env.example`](.env.example). The API validates its
 settings at startup (`apps/api/app/core/config.py`); CORS origins must be listed explicitly.
 No secrets are committed to this repository.
+
+## CI and deployment
+
+- GitHub Actions (`.github/workflows/ci.yml`) runs web checks/tests/build, API checks/tests and
+  the API container smoke on every PR; the aggregate `ci` check is required on `main`.
+- Environments, variables and secret naming: [`docs/deployment/environments.md`](docs/deployment/environments.md).
+- Production DNS plan (not applied): [`docs/deployment/dns-plan.md`](docs/deployment/dns-plan.md).

@@ -1,0 +1,25 @@
+# Render Blueprint for the Onyx Platform API (PR-002).
+# Only the non-production preview service is defined. A production service is added later,
+# with explicit owner approval (see docs/deployment/environments.md).
+services:
+  - type: web
+    name: onyx-api-preview
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: ./apps/api
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - apps/api/**
+    envVars:
+      - key: ONYX_API_ENVIRONMENT
+        value: preview
+      - key: ONYX_API_LOG_LEVEL
+        value: INFO
+      # Explicit https origins of the preview platform app (comma-separated, no wildcards).
+      - key: ONYX_API_CORS_ORIGINS
+        sync: false

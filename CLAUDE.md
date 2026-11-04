@@ -15,7 +15,7 @@
 
 1. `PROJECT_BRIEF.md` — product decisions, architecture, non-goals and release gates.
 2. `PR_ROADMAP.md` — all 28 PR specifications, dependencies and measurable acceptance criteria.
-3. `CLAUDE_WORKFLOW.md` — exact Plan → implement → verify → draft PR process.
+3. `CLAUDE_WORKFLOW.md` — exact Plan → implement → verify → PR → merge process.
 4. `CLAUDE_STARTER_PROMPT.md` — first task and reusable prompt.
 
 **These documents are the source of truth for work scope. If a requirement conflicts, explain it before implementing; do not silently redesign the product.**
@@ -36,7 +36,8 @@
 4. **Create a branch** for each PR, e.g. `feat/pr-001-bootstrap`. Never commit directly to `main`.
 5. **Implement the minimum complete slice** that passes the PR's acceptance criteria. If scope exceeds ~40 engineering hours, propose a smaller split while retaining traceability to the numbered PR.
 6. **Verify with executable evidence.** Run lint/typecheck/tests/build as appropriate. Never invent command output, test results, screenshots, deployments or PR URLs.
-7. **Prepare a draft PR** if the user has authorised it and the GitHub remote is configured; otherwise provide reproducible Git commands and a PR description. **Never merge or deploy production without explicit human approval.**
+7. **Open a PR and merge it** (owner policy, 2026-11-04). Open PRs ready for review, **not as drafts**. Once the PR's scope is done and `make check`, `make test` and the build pass, squash-merge it into `main`. When CI exists (PR-002), enable auto-merge instead, so the PR merges only after required checks pass. Never merge over a failing or skipped required check. If the GitHub remote or permissions are missing, provide reproducible Git commands and a PR description. **Never deploy production, change live DNS or provision billable resources without explicit human approval**; merging to `main` does not grant that.
+   - This policy supersedes the "draft PR" and "do not merge" wording in `CLAUDE_STARTER_PROMPT.md` and `PR_ROADMAP.md`, which are kept verbatim as the original planning kit.
 8. Never use unsafe permission bypass flags or grant broad machine access merely to bypass a prompt. Do not use credentials, paid APIs or cloud resources without owner approval.
 
 ## Preferred architecture

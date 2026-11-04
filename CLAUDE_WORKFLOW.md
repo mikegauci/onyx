@@ -15,8 +15,8 @@ The requested development model is **Claude Opus 5.5**. Confirm its availability
 3. **Plan Mode.** Ask Claude to read only the target PR/dependencies and inspect current code. Review its plan, migration impact, tests and rollback. Resolve blockers before edits.
 4. **Implement.** Switch to a mode allowing approved edits. Claude can generate code, tests, DB migration, fixtures and docs within scope. Do not enable bypass-permissions to avoid approval prompts.
 5. **Verify.** Require `make check` and relevant `make test`, additional integration/e2e cases, code diff review and an acceptance-to-evidence matrix. If commands aren't available until PR-001 creates them, Claude must make them available first.
-6. **Prepare draft PR.** If GitHub CLI/repository permissions are configured *and you explicitly authorised publishing*, Claude may push and open a draft PR. Otherwise it should give you commands plus PR title/body.
-7. **Human reviews/merges.** Review scope, tenant isolation, migration/release risk and tests. Merge only after your approval; update local `main`; then start the next PR.
+6. **Open the PR.** If GitHub CLI/repository permissions are configured, Claude pushes and opens a PR ready for review (not a draft). Otherwise it gives you commands plus PR title/body.
+7. **Merge.** Once scope is complete and local checks pass, Claude squash-merges the PR. When CI exists, Claude enables auto-merge and CI gates the merge; never merge over a failing required check. You can still review at any time, and saying "hold" stops a merge. Then update local `main` and start the next PR (owner policy, 2026-11-04).
 
 ## Session guidance
 
@@ -45,7 +45,7 @@ Security / tenant isolation: ...
 Schema migration + rollback: ...
 Environment/provider requirements: ...
 Known issues and follow-ups: ...
-PR URL: draft link if actually published; otherwise 'not published'
+PR URL: link if actually published; otherwise 'not published'. Merge state: merged / auto-merge enabled / not merged
 ```
 
 ## When the app needs production AI inference
@@ -54,4 +54,4 @@ The SaaS should use a provider abstraction. Choose its customer-facing models ba
 
 ## Documented user approvals
 
-Explicit user approval is needed for: production deployment, real customer-message sending, migrations against nonlocal databases, payment/refund actions, provisioning paid resources, branch merges, key rotation and irreversible data operations. If not approved, stop at mock/staging verification and report the limitation.
+Explicit user approval is needed for: production deployment, real customer-message sending, migrations against nonlocal databases, payment/refund actions, provisioning paid resources, key rotation and irreversible data operations. If not approved, stop at mock/staging verification and report the limitation.

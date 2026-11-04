@@ -22,8 +22,13 @@ deployment, a paid plan or a DNS change; each needs explicit owner approval.
   both previews; the production guard lives in `vercel.json` and the project's Ignored Build Step.
 - Cross-app preview URLs are **branch-scoped** Vercel env vars pointing at the other project's
   stable branch alias (`<project>-git-<branch>-mikegaucis-projects.vercel.app`, shortened with a
-  hash for long branch names). Add them per branch that needs end-to-end testing; the platform's
-  own `NEXT_PUBLIC_APP_URL` defaults to `VERCEL_BRANCH_URL`.
+  hash for long branch names). A preview-wide default (pointing at the PR-002 branch previews)
+  keeps every branch buildable; add branch-scoped overrides for end-to-end tests of a branch.
+  The platform's own `NEXT_PUBLIC_APP_URL` defaults to `VERCEL_BRANCH_URL`. Preview deployments
+  expire after 14 days (Vercel default), so defaults must be refreshed to a live preview.
+- `onyx-api-preview` allows CORS only from the origins listed in its `ONYX_API_CORS_ORIGINS`
+  (currently the PR-002 platform preview). Add an origin there to test a browser call from
+  another branch.
 - Preview data: fake only. No client data in any environment before the PR-018 pilot.
 
 ## Variables

@@ -4,12 +4,12 @@ from functools import lru_cache
 from typing import Annotated, Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Runtime configuration. Secrets never have defaults; none are needed in PR-001."""
+    """Runtime configuration. Secrets never have defaults."""
 
     model_config = SettingsConfigDict(
         env_prefix="ONYX_API_",
@@ -26,12 +26,27 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:3001"],
         description="Explicit browser origins allowed to call the API (comma-separated in env).",
     )
+    database_url: SecretStr | None = Field(
+        default=None,
+        description="SQLAlchemy URL for the application role (postgresql+psycopg://...).",
+    )
+    migration_database_url: SecretStr | None = Field(
+        default=None,
+        description="SQLAlchemy URL for the schema-owner role used only by Alembic and seeding.",
+    )
 
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("database_url", "migration_database_url", mode="before")
+    @classmethod
+    def _blank_url_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
         return value
 
     @field_validator("cors_origins")
@@ -45,6 +60,22 @@ class Settings(BaseSettings):
     def is_deployed(self) -> bool:
         """True for hosted environments (preview, production), which get strict validation."""
         return self.environment in DEPLOYED_ENVIRONMENTS
+
+    def require_database_url(self) -> str:
+        """The application database URL, or a clear error when it is not configured."""
+        if self.database_url is None:
+            raise MissingDatabaseUrlError("ONYX_API_DATABASE_URL is not set.")
+        return self.database_url.get_secret_value()
+
+    def require_migration_database_url(self) -> str:
+        """The schema-owner URL. Locally it falls back to the application URL."""
+        if self.migration_database_url is not None:
+            return self.migration_database_url.get_secret_value()
+        if self.is_deployed:
+            raise MissingDatabaseUrlError(
+                "ONYX_API_MIGRATION_DATABASE_URL must be set explicitly in a deployed environment."
+            )
+        return self.require_database_url()
 
     @model_validator(mode="after")
     def _validate_deployed_origins(self) -> Self:
@@ -62,6 +93,10 @@ class Settings(BaseSettings):
             if parts.path not in ("", "/") or parts.query or parts.fragment:
                 raise ValueError(f"A CORS origin is scheme://host[:port] only: {origin!r}")
         return self
+
+
+class MissingDatabaseUrlError(RuntimeError):
+    """Raised when database access is attempted without a configured URL."""
 
 
 DEPLOYED_ENVIRONMENTS = frozenset({"preview", "production"})

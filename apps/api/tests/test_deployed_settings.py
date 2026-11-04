@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.core.config import Settings
+from app.core.config import MissingDatabaseUrlError, Settings
 from app.main import create_app
 
 APP_ORIGIN = "https://app-preview.example.test"
@@ -80,3 +80,32 @@ def test_preflight_rejects_unlisted_origin(preview_client: TestClient) -> None:
 
 def test_health_reports_environment(preview_client: TestClient) -> None:
     assert preview_client.get("/health").json()["environment"] == "preview"
+
+
+def test_blank_database_urls_are_treated_as_unset() -> None:
+    settings = Settings(_env_file=None, database_url="", migration_database_url="  ")
+    assert settings.database_url is None
+    assert settings.migration_database_url is None
+
+
+def test_database_url_is_required_when_used() -> None:
+    with pytest.raises(MissingDatabaseUrlError):
+        Settings(_env_file=None).require_database_url()
+
+
+def test_migration_url_falls_back_locally_only() -> None:
+    url = "postgresql+psycopg://u:p@db.example.com/onyx"
+    assert Settings(_env_file=None, database_url=url).require_migration_database_url() == url
+    deployed = Settings(
+        _env_file=None,
+        environment="preview",
+        cors_origins=["https://app.example.com"],
+        database_url=url,
+    )
+    with pytest.raises(MissingDatabaseUrlError):
+        deployed.require_migration_database_url()
+
+
+def test_database_urls_are_not_exposed_in_repr() -> None:
+    settings = Settings(_env_file=None, database_url="postgresql+psycopg://u:hunter2@h/db")
+    assert "hunter2" not in repr(settings)

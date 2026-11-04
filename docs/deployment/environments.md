@@ -33,15 +33,17 @@ Rules: secrets never get defaults and are never committed (only `.env.example` p
 non-secret values. Every deployed URL must be an https origin on a non-local host; the build or
 the API refuses to start otherwise.
 
-| Variable                   | Service  | Secret | local                   | preview                                 | production (planned)  |
-| -------------------------- | -------- | ------ | ----------------------- | --------------------------------------- | --------------------- |
-| `NEXT_PUBLIC_PLATFORM_URL` | site     | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_SITE_URL`     | platform | no     | `http://localhost:3000` | site preview URL                        | `https://onyx.mt`     |
-| `NEXT_PUBLIC_APP_URL`      | platform | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_API_URL`      | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com` | `https://api.onyx.mt` |
-| `ONYX_API_ENVIRONMENT`     | api      | no     | `local`                 | `preview`                               | `production`          |
-| `ONYX_API_LOG_LEVEL`       | api      | no     | `INFO`                  | `INFO`                                  | `INFO`                |
-| `ONYX_API_CORS_ORIGINS`    | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit    | `https://app.onyx.mt` |
+| Variable                          | Service  | Secret | local                   | preview                                 | production (planned)  |
+| --------------------------------- | -------- | ------ | ----------------------- | --------------------------------------- | --------------------- |
+| `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
+| `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                        | `https://onyx.mt`     |
+| `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
+| `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com` | `https://api.onyx.mt` |
+| `ONYX_API_ENVIRONMENT`            | api      | no     | `local`                 | `preview`                               | `production`          |
+| `ONYX_API_LOG_LEVEL`              | api      | no     | `INFO`                  | `INFO`                                  | `INFO`                |
+| `ONYX_API_CORS_ORIGINS`           | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit    | `https://app.onyx.mt` |
+| `ONYX_API_DATABASE_URL`           | api      | yes    | compose Postgres        | not set yet (PR-004)                    | not set yet (PR-004)  |
+| `ONYX_API_MIGRATION_DATABASE_URL` | api      | yes    | falls back to above     | not set yet                             | not set yet           |
 
 `VERCEL_ENV` (set by Vercel) selects build-time validation: `preview`/`production` builds fail
 if a required URL is missing or unsafe.

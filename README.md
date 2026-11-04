@@ -41,6 +41,7 @@ git clone https://github.com/mikegauci/onyx.git && cd onyx
 cp .env.example .env      # placeholders only; never commit .env
 make setup                # pnpm install + uv sync
 make up                   # optional: local Postgres (needs Docker)
+make db-migrate db-seed   # optional: schema + two fake test organisations
 make dev                  # site :3000, platform :3001, API :8000
 ```
 
@@ -49,24 +50,33 @@ http://localhost:8000/health.
 
 ## Commands
 
-| Command                | Does                                                                     |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `make setup`           | Install JS (pnpm, frozen lockfile) and Python (uv, frozen lockfile) deps |
-| `make up`              | Start local Postgres 17 + pgvector and wait for its healthcheck          |
-| `make down`            | Stop local services (keeps the data volume)                              |
-| `make dev`             | Run all three apps with hot reload                                       |
-| `make check`           | Prettier check, ESLint, TypeScript; ruff format/lint, mypy (strict)      |
-| `make test`            | Vitest (UI, site, platform) and pytest (API)                             |
-| `make fmt`             | Auto-format and auto-fix                                                 |
-| `make build`           | Production build of both Next.js apps                                    |
-| `make api-image-smoke` | Build the API Docker image and probe `/health` (needs Docker)            |
-| `make clean`           | Remove build outputs and caches                                          |
+| Command                | Does                                                                          |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `make setup`           | Install JS (pnpm, frozen lockfile) and Python (uv, frozen lockfile) deps      |
+| `make up`              | Start local Postgres 17 + pgvector and wait for its healthcheck               |
+| `make down`            | Stop local services (keeps the data volume)                                   |
+| `make dev`             | Run all three apps with hot reload                                            |
+| `make check`           | Prettier check, ESLint, TypeScript; ruff format/lint, mypy (strict)           |
+| `make test`            | Vitest (UI, site, platform) and pytest (API; DB tests skip without `make up`) |
+| `make db-migrate`      | Apply Alembic migrations to the configured database                           |
+| `make db-seed`         | Load two fake test organisations (idempotent; refused when deployed)          |
+| `make db-reset`        | Downgrade to empty, migrate and reseed (local/test only; destroys data)       |
+| `make db-revision`     | Autogenerate a migration: `make db-revision m="describe change"`              |
+| `make fmt`             | Auto-format and auto-fix                                                      |
+| `make build`           | Production build of both Next.js apps                                         |
+| `make api-image-smoke` | Build the API Docker image and probe `/health` (needs Docker)                 |
+| `make clean`           | Remove build outputs and caches                                               |
 
 ## Configuration
 
 Environment variables are documented in [`.env.example`](.env.example). The API validates its
 settings at startup (`apps/api/app/core/config.py`); CORS origins must be listed explicitly.
 No secrets are committed to this repository.
+
+## Database
+
+Schema, tenancy model, seed fixtures and the migration/rollback runbook:
+[`docs/database/schema.md`](docs/database/schema.md).
 
 ## CI and deployment
 

@@ -8,54 +8,122 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Onyx design tokens. Rationale and references: docs/design/ui-references.md.
+ * Warm near-black neutrals (hue 60) with one "ember" brand accent.
+ * Every text/background pair is checked for WCAG contrast in globals.contrast.test.ts.
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.5rem;
+
+  --background: oklch(0.99 0.002 60);
+  --foreground: oklch(0.17 0.005 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --card-foreground: oklch(0.17 0.005 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.005 60);
+  --primary: oklch(0.17 0.005 60);
+  --primary-foreground: oklch(0.99 0.002 60);
+  --secondary: oklch(0.965 0.003 60);
+  --secondary-foreground: oklch(0.17 0.005 60);
+  --muted: oklch(0.965 0.003 60);
+  --muted-foreground: oklch(0.48 0.008 60);
+  --accent: oklch(0.955 0.004 60);
+  --accent-foreground: oklch(0.17 0.005 60);
+  --brand: oklch(0.55 0.17 42);
+  --brand-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.53 0.21 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.5 0.13 155);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.52 0.12 70);
+  --warning-foreground: oklch(0.99 0 0);
+  --info: oklch(0.5 0.13 240);
+  --info-foreground: oklch(0.99 0 0);
+  --border: oklch(0.91 0.004 60);
+  --input: oklch(0.62 0.006 60);
+  --ring: oklch(0.55 0.17 42);
+
+  --chart-1: oklch(0.55 0.17 42);
+  --chart-2: oklch(0.5 0.13 240);
+  --chart-3: oklch(0.55 0.1 185);
+  --chart-4: oklch(0.62 0.14 80);
+  --chart-5: oklch(0.45 0.02 260);
+
+  --sidebar: oklch(0.975 0.003 60);
+  --sidebar-foreground: oklch(0.17 0.005 60);
+  --sidebar-primary: oklch(0.17 0.005 60);
+  --sidebar-primary-foreground: oklch(0.99 0.002 60);
+  --sidebar-accent: oklch(0.94 0.004 60);
+  --sidebar-accent-foreground: oklch(0.17 0.005 60);
+  --sidebar-border: oklch(0.91 0.004 60);
+  --sidebar-ring: oklch(0.55 0.17 42);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 400ms;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: oklch(0.145 0.004 60);
+  --foreground: oklch(0.96 0.004 60);
+  --card: oklch(0.18 0.005 60);
+  --card-foreground: oklch(0.96 0.004 60);
+  --popover: oklch(0.18 0.005 60);
+  --popover-foreground: oklch(0.96 0.004 60);
+  --primary: oklch(0.96 0.004 60);
+  --primary-foreground: oklch(0.17 0.005 60);
+  --secondary: oklch(0.22 0.005 60);
+  --secondary-foreground: oklch(0.96 0.004 60);
+  --muted: oklch(0.22 0.005 60);
+  --muted-foreground: oklch(0.7 0.008 60);
+  --accent: oklch(0.24 0.006 60);
+  --accent-foreground: oklch(0.96 0.004 60);
+  --brand: oklch(0.74 0.16 52);
+  --brand-foreground: oklch(0.17 0.005 60);
+  --destructive: oklch(0.68 0.19 25);
+  --destructive-foreground: oklch(0.17 0.005 60);
+  --success: oklch(0.72 0.15 155);
+  --success-foreground: oklch(0.17 0.005 60);
+  --warning: oklch(0.8 0.15 85);
+  --warning-foreground: oklch(0.17 0.005 60);
+  --info: oklch(0.72 0.12 240);
+  --info-foreground: oklch(0.17 0.005 60);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(0.48 0.006 60);
+  --ring: oklch(0.74 0.16 52);
+
+  --chart-1: oklch(0.74 0.16 52);
+  --chart-2: oklch(0.72 0.12 240);
+  --chart-3: oklch(0.74 0.11 185);
+  --chart-4: oklch(0.82 0.14 85);
+  --chart-5: oklch(0.7 0.02 260);
+
+  --sidebar: oklch(0.165 0.005 60);
+  --sidebar-foreground: oklch(0.96 0.004 60);
+  --sidebar-primary: oklch(0.96 0.004 60);
+  --sidebar-primary-foreground: oklch(0.17 0.005 60);
+  --sidebar-accent: oklch(0.24 0.006 60);
+  --sidebar-accent-foreground: oklch(0.96 0.004 60);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.74 0.16 52);
 }
 
 @theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -64,17 +132,68 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Motion: Tailwind exposes this as the `ease-onyx` utility. Durations live in :root. */
+@theme {
+  --ease-onyx: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  /* Numbers line up in tables, prices and meters. */
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

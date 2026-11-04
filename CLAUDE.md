@@ -57,18 +57,22 @@ Avoid duplicating business logic between Next.js and FastAPI. Backend owns price
 ## Codebase shape (target; create incrementally)
 
 ```text
-frontend/                  # Next.js website/dashboard: separate public and authenticated routes
-backend/app/core/          # auth, tenant context, permissions, audit, billing
-backend/app/modules/       # crm, catalogue, quotations, orders, bookings
-backend/app/ai/            # providers, typed tools, eval fixtures, retrieval
-backend/app/integrations/  # adapters, webhooks, reconciliation
-backend/app/workflows/     # Temporal workflows and activities
-backend/app/extensions/    # industry-specific capabilities
-backend/tests/             # unit, integration, tenant isolation, agent evals
-infrastructure/            # Render blueprint, Docker, deployment config
+apps/site/                 # Next.js public Onyx Studio website (onyx.mt)
+apps/platform/             # Next.js Onyx Platform dashboard (app.onyx.mt); no business logic
+apps/api/app/core/         # auth, tenant context, permissions, audit, billing
+apps/api/app/modules/      # crm, catalogue, quotations, orders, bookings
+apps/api/app/ai/           # providers, typed tools, eval fixtures, retrieval
+apps/api/app/integrations/ # adapters, webhooks, reconciliation
+apps/api/app/workflows/    # Temporal workflows and activities
+apps/api/app/extensions/   # industry-specific capabilities
+apps/api/tests/            # unit, integration, tenant isolation, agent evals
+packages/ui/               # shared shadcn/ui components and Tailwind theme
+packages/tsconfig/         # shared TypeScript and ESLint configuration
+infrastructure/            # Docker Compose (local), Render blueprint, deployment config
+docs/adr/                  # architecture decision records
 ```
 
-Don't create every directory up front unless the selected PR requires it.
+The API (FastAPI) is deployed separately (api.onyx.mt). See `docs/adr/0001-foundation-decisions.md`. Don't create every directory up front unless the selected PR requires it.
 
 ## Language and domain standards
 

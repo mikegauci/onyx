@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Builds and caches
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Next.js generated (recreated by next typegen/dev/build)
+next-env.d.ts

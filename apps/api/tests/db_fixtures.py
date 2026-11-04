@@ -19,7 +19,7 @@ from sqlalchemy.exc import OperationalError
 from app.core.db.seed import seed
 
 DEFAULT_SERVER_URL = "postgresql+psycopg://onyx:onyx_local_only@127.0.0.1:54322/postgres"
-API_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+API_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def _server_url() -> str:

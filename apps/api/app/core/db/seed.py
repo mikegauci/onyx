@@ -23,6 +23,11 @@ def seed_id(name: str) -> uuid.UUID:
     return uuid.uuid5(SEED_NAMESPACE, name)
 
 
+def seed_auth_subject(email: str) -> uuid.UUID:
+    """Fake Supabase Auth subject for a seeded user. Only tests can mint tokens for it."""
+    return seed_id(f"auth:{email}")
+
+
 @dataclass(frozen=True)
 class SeedOrganization:
     slug: str
@@ -77,7 +82,12 @@ def seed(connection: Connection) -> None:
     for email, display_name in SEED_USERS.items():
         connection.execute(
             insert(User)
-            .values(id=seed_id(email), email=email, display_name=display_name)
+            .values(
+                id=seed_id(email),
+                auth_subject=seed_auth_subject(email),
+                email=email,
+                display_name=display_name,
+            )
             .on_conflict_do_nothing()
         )
     for org in SEED_ORGANIZATIONS:

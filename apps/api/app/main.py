@@ -1,18 +1,54 @@
 """FastAPI application factory."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.health import router as health_router
+from app.api.me import router as me_router
+from app.api.workspaces import router as workspaces_router
+from app.core.auth.tokens import TokenVerifier
 from app.core.config import Settings, get_settings
+from app.core.db.session import create_engine, create_session_factory
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def _default_verifier(settings: Settings) -> TokenVerifier | None:
+    if settings.jwks_url is None or settings.jwt_issuer is None:
+        return None
+    return TokenVerifier.for_jwks_url(
+        jwks_url=settings.jwks_url, issuer=settings.jwt_issuer, audience=settings.jwt_audience
+    )
+
+
+def create_app(
+    settings: Settings | None = None,
+    *,
+    token_verifier: TokenVerifier | None = None,
+    session_factory: async_sessionmaker[AsyncSession] | None = None,
+) -> FastAPI:
+    """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
     configure_logging(settings.log_level)
 
-    app = FastAPI(title="Onyx Platform API", version=settings.version)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        engine = None
+        app.state.token_verifier = token_verifier or _default_verifier(settings)
+        app.state.session_factory = session_factory
+        if session_factory is None and settings.database_url is not None:
+            engine = create_engine(settings)
+            app.state.session_factory = create_session_factory(engine)
+        try:
+            yield
+        finally:
+            if engine is not None:
+                await engine.dispose()
+
+    app = FastAPI(title="Onyx Platform API", version=settings.version, lifespan=lifespan)
     app.dependency_overrides[get_settings] = lambda: settings
 
     app.add_middleware(
@@ -26,6 +62,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(RequestIdMiddleware)
 
     app.include_router(health_router)
+    app.include_router(me_router)
+    app.include_router(workspaces_router)
     return app
 
 

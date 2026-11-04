@@ -6,10 +6,12 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "alembic==1.20.1",
+    "email-validator==2.3.0",
     "fastapi==0.162.0",
     "psycopg[binary]==3.3.8",
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
+    "pyjwt[crypto]==2.15.1",
     "sqlalchemy[asyncio]==2.1.8",
     "uvicorn[standard]==0.54.0",
 ]
@@ -35,6 +37,8 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "A", "C4", "SIM", "RUF", "ASY
 [tool.ruff.lint.per-file-ignores]
 # Tests build SQL from fixed table/role identifiers, never from input.
 "tests/**" = ["S101", "S608"]
+# Migrations build DDL from module-level constants, never from input.
+"migrations/**" = ["S608"]
 
 [tool.mypy]
 python_version = "3.13"

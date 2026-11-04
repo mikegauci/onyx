@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import CITEXT, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -76,3 +76,28 @@ class Membership(Base):
     )
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class Invitation(Base):
+    """An invitation to join an organisation. Only a SHA-256 hash of the token is stored."""
+
+    __tablename__ = "invitations"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(CITEXT, nullable=False)
+    role: Mapped[MembershipRole] = mapped_column(
+        str_enum(MembershipRole, "invitation_role"), nullable=False
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    invited_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    accepted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = created_at_column()

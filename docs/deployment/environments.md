@@ -16,6 +16,14 @@ deployment, a paid plan or a DNS change; each needs explicit owner approval.
 - Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` until the owner
   approves production. Merges to `main` therefore produce no Vercel deployment.
 - Render `onyx-api-preview` tracks `main` and auto-deploys on API changes.
+- Vercel projects (team `mikegaucis-projects`): `onyx-site` (root `apps/site`) and
+  `onyx-platform` (root `apps/platform`), Node 24, functions in `fra1`, Vercel Authentication on
+  previews (team default). Both have "skip unaffected projects" turned off so every push builds
+  both previews; the production guard lives in `vercel.json` and the project's Ignored Build Step.
+- Cross-app preview URLs are **branch-scoped** Vercel env vars pointing at the other project's
+  stable branch alias (`<project>-git-<branch>-mikegaucis-projects.vercel.app`, shortened with a
+  hash for long branch names). Add them per branch that needs end-to-end testing; the platform's
+  own `NEXT_PUBLIC_APP_URL` defaults to `VERCEL_BRANCH_URL`.
 - Preview data: fake only. No client data in any environment before the PR-018 pilot.
 
 ## Variables

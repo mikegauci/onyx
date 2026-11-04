@@ -15,9 +15,10 @@ export function platformEnv(env: NodeJS.ProcessEnv = process.env) {
       "http://localhost:3000",
       env.VERCEL_ENV,
     ),
+    // A preview deployment defaults to its own stable branch URL (set by Vercel).
     appUrl: publicUrl(
       "NEXT_PUBLIC_APP_URL",
-      env.NEXT_PUBLIC_APP_URL,
+      env.NEXT_PUBLIC_APP_URL || (env.VERCEL_BRANCH_URL && `https://${env.VERCEL_BRANCH_URL}`),
       "http://localhost:3001",
       env.VERCEL_ENV,
     ),

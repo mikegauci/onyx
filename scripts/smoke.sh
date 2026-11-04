@@ -24,11 +24,20 @@ refused="$(curl -sS -o /dev/null -D - -X OPTIONS "$API/health" -H "Origin: https
 grep -qi "^access-control-allow-origin" <<<"$refused" && fail "CORS allowed an unknown origin"
 echo "ok   CORS refuses https://evil.example"
 
+skipped=0
 for url in "$SITE" "$APP"; do
-  headers="$(curl -sS -o /dev/null -D - "${bypass[@]}" "$url")"
+  headers="$(curl -sS -o /dev/null -D - ${bypass[@]+"${bypass[@]}"} "$url")"
+  status="$(head -1 <<<"$headers" | awk '{print $2}')"
+  if [ "$status" = "401" ] || [ "$status" = "403" ] \
+    || { [ "$status" = "302" ] && grep -qi '^location: https://vercel.com/sso-api' <<<"$headers"; }; then
+    echo "skip $url is behind deployment protection (HTTP $status); set VERCEL_BYPASS to check it"
+    skipped=1
+    continue
+  fi
   for h in x-content-type-options x-frame-options referrer-policy; do
     grep -qi "^$h:" <<<"$headers" || fail "$url missing $h"
   done
   echo "ok   security headers on $url"
 done
+[ "$skipped" = 0 ] || { echo "smoke test passed with skipped checks"; exit 0; }
 echo "smoke test passed"

@@ -28,6 +28,11 @@ TENANT_TABLES = (
     "catalogue_variants",
     "catalogue_prices",
     "catalogue_stock_levels",
+    "inbox_channels",
+    "inbox_conversations",
+    "inbox_participants",
+    "inbox_messages",
+    "inbox_events",
 )
 
 

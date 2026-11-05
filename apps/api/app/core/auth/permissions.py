@@ -22,6 +22,9 @@ class Permission(enum.StrEnum):
     CATALOGUE_READ = "catalogue.read"
     CATALOGUE_IMPORT = "catalogue.import"
     CATALOGUE_MANAGE = "catalogue.manage"  # VAT rates, price lists, archiving products/SKUs
+    INBOX_READ = "inbox.read"
+    INBOX_WRITE = "inbox.write"  # log messages and notes; assign, status, handoff to staff
+    INBOX_MANAGE = "inbox.manage"  # channels; handing conversations to the assistant
 
 
 _MEMBER = frozenset(
@@ -30,6 +33,8 @@ _MEMBER = frozenset(
         Permission.CRM_READ,
         Permission.CRM_WRITE,
         Permission.CATALOGUE_READ,
+        Permission.INBOX_READ,
+        Permission.INBOX_WRITE,
     }
 )
 _ADMIN = _MEMBER | {
@@ -41,6 +46,7 @@ _ADMIN = _MEMBER | {
     Permission.CRM_ARCHIVE,
     Permission.CATALOGUE_IMPORT,
     Permission.CATALOGUE_MANAGE,
+    Permission.INBOX_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

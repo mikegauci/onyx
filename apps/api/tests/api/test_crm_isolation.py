@@ -224,12 +224,15 @@ def test_worker_role_has_no_crm_access_yet(owner_engine: Engine) -> None:
 
 
 def _set_crm(api: TestClient, as_: As, slug: str, enabled: bool) -> None:
-    response = api.put(
-        f"/v1/admin/organizations/{slug}/modules/crm",
-        json={"enabled": enabled},
-        headers=as_.seeded(PAT),
-    )
-    assert response.status_code == 200, response.text
+    # The inbox requires the CRM, so it is switched off first.
+    modules = ["crm"] if enabled else ["inbox", "crm"]
+    for module in modules:
+        response = api.put(
+            f"/v1/admin/organizations/{slug}/modules/{module}",
+            json={"enabled": enabled},
+            headers=as_.seeded(PAT),
+        )
+        assert response.status_code == 200, response.text
 
 
 @pytest.mark.parametrize("route", ALL_ROUTES, ids=lambda r: f"{r[0]} {r[1][:30]}")

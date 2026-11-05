@@ -14,10 +14,14 @@ test("a member records a call, assigns it, logs a reply and closes it", async ({
   await expect(page.getByRole("link", { name: "Chandelier quote follow-up" })).toBeVisible();
 
   await page.getByRole("link", { name: "New conversation" }).click();
-  await page.getByLabel("Subject").fill(subject);
-  await page.getByLabel("What the customer said").fill("Which sizes does the arc pendant come in?");
-  await page.getByLabel("Name").fill("Anna (e2e)");
-  await page.getByLabel("Phone").fill("+356 7900 0456");
+  // Wait for the form: the list's search box is also labelled with "subject" and "name".
+  await expect(page.getByRole("heading", { name: "New conversation" })).toBeVisible();
+  await page.getByLabel("Subject", { exact: true }).fill(subject);
+  await page
+    .getByLabel("What the customer said", { exact: true })
+    .fill("Which sizes does the arc pendant come in?");
+  await page.getByLabel("Name", { exact: true }).fill("Anna (e2e)");
+  await page.getByLabel("Phone", { exact: true }).fill("+356 7900 0456");
   await page.getByRole("button", { name: "Record conversation" }).click();
 
   await expect(page.getByRole("heading", { name: subject })).toBeVisible();

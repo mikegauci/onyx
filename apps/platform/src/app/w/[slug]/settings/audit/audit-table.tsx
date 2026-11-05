@@ -27,7 +27,10 @@ export function AuditTable({ entries, timezone }: { entries: Entry[]; timezone: 
     {
       id: "actor",
       header: "Who",
-      accessorFn: (e) => e.actor?.display_name ?? (e.actor ? "Former member" : "System"),
+      accessorFn: (e) =>
+        e.details.by === "platform_admin"
+          ? "Onyx staff"
+          : (e.actor?.display_name ?? (e.actor ? "Former member" : "System")),
     },
     {
       accessorKey: "action",

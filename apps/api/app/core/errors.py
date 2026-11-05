@@ -24,6 +24,7 @@ class ErrorCode(enum.StrEnum):
     BAD_REQUEST = "bad_request"
     UNAUTHENTICATED = "unauthenticated"
     PERMISSION_DENIED = "permission_denied"
+    MODULE_DISABLED = "module_disabled"
     NOT_FOUND = "not_found"
     METHOD_NOT_ALLOWED = "method_not_allowed"
     CONFLICT = "conflict"
@@ -87,6 +88,12 @@ class PermissionDeniedError(AppError):
     status_code = 403
     code = ErrorCode.PERMISSION_DENIED
     default_message = "You do not have permission to do this."
+
+
+class ModuleDisabledError(AppError):
+    status_code = 403
+    code = ErrorCode.MODULE_DISABLED
+    default_message = "This module is not enabled for this workspace."
 
 
 class NotFoundError(AppError):

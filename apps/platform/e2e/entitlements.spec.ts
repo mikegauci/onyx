@@ -8,7 +8,7 @@ async function restoreLumen() {
   const session = await (
     await fetch(`${E2E.authUrl}/__e2e/session?email=${encodeURIComponent(USERS.pat)}`)
   ).json();
-  for (const key of ["crm", "catalogue", "quotations"]) {
+  for (const key of ["crm", "catalogue", "inbox", "quotations"]) {
     const response = await fetch(
       `${E2E.apiUrl}/v1/admin/organizations/lumen-lighting-test/modules/${key}`,
       {
@@ -40,6 +40,11 @@ test("disabling CRM hides it and denies it for that tenant only", async ({ brows
 
   await adminPage.getByRole("button", { name: "Disable Quotations" }).click();
   await expect(adminPage.getByRole("button", { name: "Enable Quotations" })).toBeVisible();
+  // The inbox links conversations to CRM contacts, so it needs CRM too.
+  await adminPage.getByRole("button", { name: "Disable CRM" }).click();
+  await expect(adminPage.getByRole("alert").filter({ hasText: "inbox" })).toBeVisible();
+  await adminPage.getByRole("button", { name: "Disable Inbox" }).click();
+  await expect(adminPage.getByRole("button", { name: "Enable Inbox" })).toBeVisible();
   await adminPage.getByRole("button", { name: "Disable CRM" }).click();
   await expect(adminPage.getByRole("button", { name: "Enable CRM" })).toBeVisible();
 
@@ -48,7 +53,7 @@ test("disabling CRM hides it and denies it for that tenant only", async ({ brows
   const page = await owner.newPage();
   await page.goto(LUMEN);
   const nav = page.getByRole("navigation", { name: "Workspace" });
-  await expect(nav.getByRole("link", { name: "Inbox" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Catalogue" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "CRM" })).toHaveCount(0);
   await page.goto(`${LUMEN}/m/crm`);
   await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();

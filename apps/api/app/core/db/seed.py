@@ -7,7 +7,7 @@ run in a deployed environment. All names and addresses are fictitious (``.test``
 import sys
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import Connection, create_engine, inspect
@@ -19,6 +19,21 @@ from app.core.modules.models import OrganizationModule
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
 from app.modules.catalogue.models import Price, PriceList, Product, StockLevel, Variant, VatRate
 from app.modules.crm.models import Contact, Customer, CustomerKind, Lead, LeadSource, LeadStatus
+from app.modules.inbox.models import (
+    AuthorKind,
+    Channel,
+    ChannelKind,
+    Conversation,
+    ConversationStatus,
+    DeliveryStatus,
+    Event,
+    EventKind,
+    Handler,
+    Message,
+    MessageDirection,
+    Participant,
+    ParticipantKind,
+)
 
 # Fixed namespace so seeded ids are stable across runs and usable in tests.
 SEED_NAMESPACE = uuid.UUID("6f1c2a52-0b7e-4f7d-9a51-3c1f0e0d5a01")
@@ -247,6 +262,8 @@ def seed(connection: Connection) -> None:
     # Older revisions (used by migration tests) have no catalogue tables yet.
     if inspect(connection).has_table("catalogue_products"):
         seed_catalogue(connection)
+    if inspect(connection).has_table("inbox_conversations"):
+        seed_inbox(connection)
 
 
 def seed_catalogue(connection: Connection) -> None:
@@ -376,6 +393,180 @@ def seed_crm(connection: Connection) -> None:
                         )
                         .on_conflict_do_nothing()
                     )
+
+
+@dataclass(frozen=True)
+class SeedMessage:
+    direction: MessageDirection
+    body: str
+    minutes: int  # after SEED_AS_OF
+    author_email: str | None = None  # staff author; None for the customer
+
+
+@dataclass(frozen=True)
+class SeedConversation:
+    subject: str
+    channel: str
+    status: ConversationStatus
+    messages: tuple[SeedMessage, ...]
+    contact_email: str | None = None  # a seeded CRM contact
+    address: str | None = None  # an unknown sender instead
+    sender_name: str | None = None
+    lead_title: str | None = None
+    assignee_email: str | None = None
+
+
+# Inbox fixtures per organisation slug: channels (name, kind) and conversations.
+SEED_INBOX_CHANNELS: dict[str, tuple[tuple[str, ChannelKind], ...]] = {
+    "lumen-lighting-test": (
+        ("Shop phone", ChannelKind.MANUAL),
+        ("Shop email", ChannelKind.EMAIL),
+    ),
+    "harbour-catering-test": (("Office phone", ChannelKind.MANUAL),),
+}
+SEED_INBOX: dict[str, tuple[SeedConversation, ...]] = {
+    "lumen-lighting-test": (
+        SeedConversation(
+            subject="Chandelier quote follow-up",
+            channel="Shop phone",
+            status=ConversationStatus.WAITING_ON_CUSTOMER,
+            contact_email="clara.borg@seaview.example.test",
+            lead_title="Lobby chandelier replacement",
+            assignee_email="olivia.owner@lumen.example.test",
+            messages=(
+                SeedMessage(
+                    MessageDirection.INBOUND,
+                    "Clara called asking when the lobby chandelier quote will be ready.",
+                    0,
+                ),
+                SeedMessage(
+                    MessageDirection.OUTBOUND,
+                    "Told Clara the quote will follow by Friday once sizes are confirmed.",
+                    5,
+                    "olivia.owner@lumen.example.test",
+                ),
+            ),
+        ),
+        SeedConversation(
+            subject="Outdoor spike lights",
+            channel="Shop phone",
+            status=ConversationStatus.OPEN,
+            address="+35679000009",
+            sender_name="Walk-in caller",
+            messages=(
+                SeedMessage(
+                    MessageDirection.INBOUND,
+                    "Caller wants six garden spike lights and asked if they are in stock.",
+                    30,
+                ),
+            ),
+        ),
+    ),
+    "harbour-catering-test": (
+        SeedConversation(
+            subject="Menu tasting date",
+            channel="Office phone",
+            status=ConversationStatus.OPEN,
+            contact_email="nina.camilleri@valletta-events.example.test",
+            messages=(
+                SeedMessage(
+                    MessageDirection.INBOUND, "Nina asked to book a menu tasting next week.", 10
+                ),
+            ),
+        ),
+    ),
+}
+
+
+def seed_inbox(connection: Connection) -> None:
+    for slug, channels in SEED_INBOX_CHANNELS.items():
+        org_id = seed_id(slug)
+        for name, kind in channels:
+            connection.execute(
+                insert(Channel)
+                .values(
+                    id=seed_id(f"{slug}:channel:{name}"),
+                    organization_id=org_id,
+                    kind=kind,
+                    name=name,
+                )
+                .on_conflict_do_nothing()
+            )
+    for slug, conversations in SEED_INBOX.items():
+        org_id = seed_id(slug)
+        for conv in conversations:
+            conversation_id = seed_id(f"{slug}:conversation:{conv.subject}")
+            channel_id = seed_id(f"{slug}:channel:{conv.channel}")
+            contact_id = (
+                seed_id(f"{slug}:contact:{conv.contact_email}") if conv.contact_email else None
+            )
+            last = max(m.minutes for m in conv.messages)
+            connection.execute(
+                insert(Conversation)
+                .values(
+                    id=conversation_id,
+                    organization_id=org_id,
+                    channel_id=channel_id,
+                    subject=conv.subject,
+                    status=conv.status,
+                    handler=Handler.STAFF,
+                    assignee_user_id=seed_id(conv.assignee_email) if conv.assignee_email else None,
+                    contact_id=contact_id,
+                    lead_id=seed_id(f"{slug}:lead:{conv.lead_title}") if conv.lead_title else None,
+                    last_message_at=SEED_AS_OF + timedelta(minutes=last),
+                    status_changed_at=SEED_AS_OF + timedelta(minutes=last),
+                )
+                .on_conflict_do_nothing()
+            )
+            connection.execute(
+                insert(Event)
+                .values(
+                    id=seed_id(f"{slug}:conversation-event:{conv.subject}"),
+                    organization_id=org_id,
+                    conversation_id=conversation_id,
+                    kind=EventKind.CREATED,
+                    details={"channel_id": str(channel_id), "source": "seed"},
+                    occurred_at=SEED_AS_OF,
+                )
+                .on_conflict_do_nothing()
+            )
+            participant_id = seed_id(f"{slug}:participant:{conv.subject}")
+            connection.execute(
+                insert(Participant)
+                .values(
+                    id=participant_id,
+                    organization_id=org_id,
+                    conversation_id=conversation_id,
+                    kind=ParticipantKind.CONTACT if contact_id else ParticipantKind.EXTERNAL,
+                    contact_id=contact_id,
+                    display_name=conv.sender_name,
+                    address=conv.address or conv.contact_email,
+                )
+                .on_conflict_do_nothing()
+            )
+            for index, message in enumerate(conv.messages):
+                inbound = message.direction is MessageDirection.INBOUND
+                connection.execute(
+                    insert(Message)
+                    .values(
+                        id=seed_id(f"{slug}:message:{conv.subject}:{index}"),
+                        organization_id=org_id,
+                        conversation_id=conversation_id,
+                        channel_id=channel_id,
+                        direction=message.direction,
+                        author_kind=AuthorKind.CUSTOMER if inbound else AuthorKind.STAFF,
+                        author_user_id=seed_id(message.author_email)
+                        if message.author_email
+                        else None,
+                        participant_id=participant_id if inbound else None,
+                        body=message.body,
+                        delivery_status=DeliveryStatus.RECEIVED
+                        if inbound
+                        else DeliveryStatus.LOGGED,
+                        occurred_at=SEED_AS_OF + timedelta(minutes=message.minutes),
+                    )
+                    .on_conflict_do_nothing()
+                )
 
 
 def run(settings: Settings) -> None:

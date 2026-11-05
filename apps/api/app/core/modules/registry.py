@@ -29,7 +29,8 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
     for spec in (
         ModuleSpec(ModuleKey.CRM, "CRM"),
         ModuleSpec(ModuleKey.CATALOGUE, "Product catalogue"),
-        ModuleSpec(ModuleKey.INBOX, "Inbox"),
+        # Conversations link to CRM contacts and leads (PR-011).
+        ModuleSpec(ModuleKey.INBOX, "Inbox", frozenset({ModuleKey.CRM})),
         ModuleSpec(
             ModuleKey.QUOTATIONS,
             "Quotations",

@@ -82,6 +82,7 @@ def test_disabling_a_module_denies_it_for_that_tenant_only(
     api: TestClient, as_: As, owner_engine: Engine
 ) -> None:
     assert _toggle(api, as_, LUMEN, "quotations", False).status_code == 200
+    assert _toggle(api, as_, LUMEN, "inbox", False).status_code == 200
     response = _toggle(api, as_, LUMEN, "crm", False, **{"X-Request-ID": "req-crm-off"})
     assert response.status_code == 200
     assert {m["key"]: m["enabled"] for m in response.json()["modules"]}["crm"] is False
@@ -93,7 +94,11 @@ def test_disabling_a_module_denies_it_for_that_tenant_only(
     assert _status(api, as_, SAM, HARBOUR, "crm").status_code == 200
 
     actions = [(e["action"], e["details"]["module"]) for e in _audit(owner_engine, LUMEN_ID)]
-    assert actions == [("module.disabled", "quotations"), ("module.disabled", "crm")]
+    assert actions == [
+        ("module.disabled", "quotations"),
+        ("module.disabled", "inbox"),
+        ("module.disabled", "crm"),
+    ]
     last = _audit(owner_engine, LUMEN_ID)[-1]
     assert last["details"]["by"] == "platform_admin"
     assert last["request_id"] == "req-crm-off"
@@ -112,6 +117,7 @@ def test_unchanged_toggle_writes_no_audit(api: TestClient, as_: As, owner_engine
     ("slug", "key", "enabled", "hint"),
     [
         (LUMEN, "crm", False, "quotations"),  # quotations still needs crm
+        (HARBOUR, "crm", False, "inbox"),  # the inbox needs crm
         (HARBOUR, "quotations", True, "catalogue"),  # harbour lacks catalogue
         (HARBOUR, "orders", True, "quotations"),
     ],

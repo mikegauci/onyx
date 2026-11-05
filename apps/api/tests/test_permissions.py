@@ -20,6 +20,9 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.CATALOGUE_READ: {OWNER, ADMIN, MEMBER},
     Permission.CATALOGUE_IMPORT: {OWNER, ADMIN},
     Permission.CATALOGUE_MANAGE: {OWNER, ADMIN},
+    Permission.INBOX_READ: {OWNER, ADMIN, MEMBER},
+    Permission.INBOX_WRITE: {OWNER, ADMIN, MEMBER},
+    Permission.INBOX_MANAGE: {OWNER, ADMIN},
 }
 
 

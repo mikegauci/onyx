@@ -306,7 +306,10 @@ def upgrade() -> None:
     # ### end Alembic commands ###
 
     modules = sa.table(
-        "modules", sa.column("key", sa.String), sa.column("name"), sa.column("description")
+        "modules",
+        sa.column("key", sa.String),
+        sa.column("name", sa.String),
+        sa.column("description", sa.Text),
     )
     op.bulk_insert(
         modules,

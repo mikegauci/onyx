@@ -28,6 +28,7 @@ unhandled exceptions, returns:
 | 400  | `bad_request`        | Malformed request                                             |
 | 401  | `unauthenticated`    | Missing/invalid token (`WWW-Authenticate: Bearer`)            |
 | 403  | `permission_denied`  | Authenticated, but the role lacks the permission              |
+| 403  | `module_disabled`    | The module is not enabled for this workspace (PR-008)         |
 | 404  | `not_found`          | Missing, **or** a workspace you are not a member of           |
 | 405  | `method_not_allowed` | Wrong method                                                  |
 | 409  | `conflict`           | State conflict (already a member, email linked elsewhere)     |
@@ -59,6 +60,27 @@ returns the caller's `permissions` so the UI can hide actions; the backend check
 request regardless. Denials are logged (`permission`, `role`, `user_id`, `organization_id`,
 `request_id`) and the database policies remain the backstop (for example
 `organizations_update_admin`).
+
+## Module entitlements (PR-008)
+
+- **Registry** (`app/core/modules/registry.py`): `ModuleKey` and each module's requirements —
+  `quotations` needs `crm` + `catalogue`; `orders` needs `quotations`. A test keeps it equal to
+  the `modules` table.
+- **API enforcement**: module routes live on `module_router(key)` (prefix `/w/{slug}/{key}`),
+  which adds `require_module(key)` to every route: `403 module_disabled` unless enabled for the
+  bound tenant. A guard test fails for any `/v1/w/{slug}/<module>/…` route without it.
+  `GET /v1/w/{slug}/modules` lists the catalogue with this tenant's flags;
+  `GET /v1/w/{slug}/modules/{key}` returns a module's status (gated the same way).
+- **Database enforcement**: module-owned tenant tables use
+  `create_tenant_policies(table, module="crm")`, adding `app_module_enabled(organization_id,
+'crm')` to both roles' policies, so disabled-module rows are unreachable even in direct SQL.
+- **Who toggles**: platform admins only (owner decision, 2026-11-05), via
+  `PUT /v1/admin/organizations/{slug}/modules/{key}` `{enabled}`. Requirements are enforced
+  (`409 conflict` naming what to change first). The change runs through
+  `app_admin_set_module()` (SECURITY DEFINER, re-checks platform admin) and writes a
+  `module.enabled` / `module.disabled` entry to that tenant's audit log
+  (`details.by = "platform_admin"`, shown to the tenant as "Onyx staff"). Tenants see a
+  read-only list in Settings → Modules. Plans will drive entitlements from PR-026.
 
 ## Correlation and audit
 

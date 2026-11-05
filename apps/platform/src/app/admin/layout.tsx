@@ -35,7 +35,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       ]}
       user={{ displayName: me.user.display_name, email: me.user.email }}
       rootHref="/admin"
-      crumbLabels={{ "/admin": "Platform admin", "/admin/status": "API status" }}
+      crumbLabels={{
+        "/admin": "Platform admin",
+        "/admin/status": "API status",
+        "/admin/organizations": "Organisations",
+      }}
     >
       {children}
     </AppShell>

@@ -31,15 +31,25 @@ def tenant_policy_names(table: str) -> tuple[str, str]:
     return f"{table}_tenant_app", f"{table}_tenant_worker"
 
 
-def create_tenant_policies(table: str) -> list[str]:
-    """DDL enabling RLS on ``table`` and scoping it to the bound tenant for both roles."""
+def create_tenant_policies(table: str, *, module: str | None = None) -> list[str]:
+    """DDL enabling RLS on ``table`` and scoping it to the bound tenant for both roles.
+
+    With ``module``, rows are also invisible and unwritable while that module is disabled for
+    the tenant (PR-008), for both the app and the worker role.
+    """
     app_policy, worker_policy = tenant_policy_names(table)
+    app, worker = APP_TENANT_PREDICATE, WORKER_TENANT_PREDICATE
+    if module is not None:
+        if not module.isidentifier():
+            raise ValueError(f"Invalid module key: {module!r}")
+        gate = f" AND app_module_enabled(organization_id, '{module}')"
+        app, worker = app + gate, worker + gate
     return [
         f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY",
         f"CREATE POLICY {app_policy} ON {table} AS PERMISSIVE FOR ALL TO {APP_ROLE} "
-        f"USING ({APP_TENANT_PREDICATE}) WITH CHECK ({APP_TENANT_PREDICATE})",
+        f"USING ({app}) WITH CHECK ({app})",
         f"CREATE POLICY {worker_policy} ON {table} AS PERMISSIVE FOR ALL TO {WORKER_ROLE} "
-        f"USING ({WORKER_TENANT_PREDICATE}) WITH CHECK ({WORKER_TENANT_PREDICATE})",
+        f"USING ({worker}) WITH CHECK ({worker})",
     ]
 
 

@@ -3,11 +3,23 @@
 import type { components } from "@onyx/api-client";
 import { Badge } from "@onyx/ui/components/badge";
 import { type ColumnDef, DataTable } from "@onyx/ui/components/data-table";
+import Link from "next/link";
 
 type Org = components["schemas"]["OrganizationSummary"];
 
 const columns: ColumnDef<Org>[] = [
-  { accessorKey: "name", header: "Name" },
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => (
+      <Link
+        href={`/admin/organizations/${row.original.slug}`}
+        className="font-medium hover:underline"
+      >
+        {row.original.name}
+      </Link>
+    ),
+  },
   {
     accessorKey: "slug",
     header: "Slug",

@@ -139,6 +139,15 @@ Known limits:
   unreferenced object (never served). Reconciliation is a follow-up for the first real storage
   feature.
 
+### Module entitlements (PR-008, migration `0006`)
+
+- `app_module_enabled(org, key)` (SECURITY DEFINER, `onyx_app` + `onyx_worker`): used by
+  module-owned tables' policies via `create_tenant_policies(table, module=…)`.
+- `app_admin_set_module(slug, key, enabled, request_id)` (SECURITY DEFINER, `onyx_app`):
+  raises `42501` unless the caller is a platform admin; upserts `organization_modules` and
+  writes the tenant audit entry in the same transaction. Neither app role can write
+  `organization_modules` directly.
+
 ### Deployed role setup (owner action, before the first deployed database)
 
 ```sql

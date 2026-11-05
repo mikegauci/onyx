@@ -11,6 +11,10 @@
 
 > This is the shared repository-level operating guide for coding assistants. `CLAUDE.md` points here so the project rules have one source of truth. Keep this file at the repo root and commit it. Product scope, architecture, approval gates and the numbered PR roadmap remain unchanged.
 
+## Current continuation
+
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-009 is merged; PR-010 is the next recommended scope, subject to plan approval.
+
 ## Read these files first
 
 1. `PROJECT_BRIEF.md` — product decisions, architecture, non-goals and release gates.
@@ -104,6 +108,8 @@ The API (FastAPI) is deployed separately (api.onyx.mt). See `docs/adr/0001-found
 - Meter requests, model/provider, tokens, cost and failures per tenant; enforce safe budgets and manual support fallbacks. Never log full customer message bodies by default.
 
 ## Quality commands
+
+**Owner preference (5 November 2026):** run focused local checks for changed behavior, then use GitHub CI for the full test/build/browser matrix. Avoid repeating full local suites or polling unchanged results. Investigate actual failures and rerun only affected checks. Report pending CI honestly; required checks must still pass before merge.
 
 **PR-001 must establish a reproducible developer command interface:** `make up`, `make check`, `make test` (or documented equivalent). After it is merged, use commands that actually exist; inspect the Makefile/package scripts rather than guessing.
 

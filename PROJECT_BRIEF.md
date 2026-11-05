@@ -5,7 +5,7 @@
 - **Onyx Studio** is the business, public brand and services website at **https://onyx.mt**.
 - **Onyx Platform** is the multi-tenant SaaS product at **https://app.onyx.mt**.
 - GitHub repository name: **onyx**. Keep one shared platform codebase.
-- Development uses **Claude Code only**, with **Claude Opus 5.5** as the requested coding model. These documents do not select a model or verify account availability; confirm the target in your Claude Code account before implementation.
+- Development uses the coding assistant and model selected by the user. Shared instructions live in `AGENTS.md`; `CLAUDE.md` imports them for Claude Code. These documents do not select a model.
 - Production AI remains provider-neutral (OpenAI and Anthropic); the coding model does not determine customer-facing models.
 - Domain assignments are agreed deployment targets, not confirmation that DNS or hosting has been configured.
 
@@ -16,8 +16,8 @@
 
 ## Implementation ownership and AI model policy
 
-- **Engineering environment:** Claude Code with **Claude Opus 5.5** selected in the Claude Code model picker. This is the *development assistant*, not a mandatory runtime model for customer conversations.
-- **Project memory and guardrails:** root [`CLAUDE.md`](CLAUDE.md) (automatically read by Claude Code); task details in [`PR_ROADMAP.md`](PR_ROADMAP.md). Follow [`CLAUDE_WORKFLOW.md`](CLAUDE_WORKFLOW.md) when opening/reviewing PRs.
+- **Engineering environment:** the coding assistant/model selected by the user; Claude Code and Codex use the same repository rules. The development assistant does not determine runtime models for customer conversations.
+- **Project memory and guardrails:** root [`AGENTS.md`](AGENTS.md), imported by [`CLAUDE.md`](CLAUDE.md); task details in [`PR_ROADMAP.md`](PR_ROADMAP.md). Follow [`CLAUDE_WORKFLOW.md`](CLAUDE_WORKFLOW.md) when opening/reviewing PRs.
 - **Runtime LLM policy:** a provider adapter supporting Anthropic and OpenAI, with models selected per tenant/workload based on evaluations, latency, privacy and cost. Do not hardcode Opus 5.5 into customer-facing features just because it builds the software.
 - **Work sequencing:** one numbered, reviewable PR at a time. Complete and verify the acceptance criteria before starting the next PR. A human reviews before merge and production changes.
 

@@ -4,7 +4,7 @@ Reviewed on 5 November 2026 against `PR_ROADMAP.md` (PR-009), `PROJECT_BRIEF.md`
 `AGENTS.md` (the rules moved from `CLAUDE.md`) and `CLAUDE_WORKFLOW.md`.
 
 **Updated verdict: both implementation gaps identified in the review have been addressed
-within PR-009. Release review, required CI and publication/merge steps remain pending.**
+within PR-009. GitHub CI passed and PR #13 is merged.**
 Lead archiving completes CRUD using the same reversible removal approach as customers and
 contacts; status changes are serialized against concurrent transitions and archiving.
 
@@ -43,11 +43,15 @@ Paths beginning with `app/` or test names in this table refer to `apps/api/`.
 Both changes belong in PR-009: they complete existing CRM functionality rather than a later
 module's scope. The numbered roadmap is unchanged.
 
-## Remaining release work
+## Merged status
 
-The working branch is `feat/crm-customers-leads`. GitHub CI, the separate security review
-requested by the workflow, and applicable review/merge steps remain release gates.
-No remote CI result, human sign-off or production deployment is claimed by this report.
+PR-009 merged on 5 November 2026 in [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13),
+commit `05c483da9e39836ecd29514549df7ba9730befe9`.
+[GitHub CI run 42031145333](https://github.com/mikegauci/onyx/actions/runs/42031145333) passed
+all five jobs: API, API container, web, browser tests and aggregate `ci`. This includes the
+default production build and full browser suite, resolving the local-environment verification
+limitations below. No separate security-review artifact is recorded here; merge is not proof
+of one. No shared/production migration or deployment was performed by this work.
 
 ## Verification of the fixes
 

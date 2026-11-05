@@ -22,6 +22,7 @@ from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_l
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
 from app.modules.inbox.routes import router as inbox_router
+from app.modules.quotations.routes import router as quotations_router
 
 
 def _default_verifier(settings: Settings) -> TokenVerifier | None:
@@ -94,6 +95,7 @@ def create_app(
     v1.include_router(crm_router)
     v1.include_router(catalogue_router)
     v1.include_router(inbox_router)
+    v1.include_router(quotations_router)
     app.include_router(v1)
     return app
 

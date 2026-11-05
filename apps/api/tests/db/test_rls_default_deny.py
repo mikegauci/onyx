@@ -33,6 +33,11 @@ TENANT_TABLES = (
     "inbox_participants",
     "inbox_messages",
     "inbox_events",
+    "quotations_settings",
+    "quotations_counters",
+    "quotations_quotes",
+    "quotations_versions",
+    "quotations_lines",
 )
 
 

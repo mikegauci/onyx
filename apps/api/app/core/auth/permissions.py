@@ -25,6 +25,10 @@ class Permission(enum.StrEnum):
     INBOX_READ = "inbox.read"
     INBOX_WRITE = "inbox.write"  # log messages and notes; assign, status, handoff to staff
     INBOX_MANAGE = "inbox.manage"  # channels; handing conversations to the assistant
+    QUOTATIONS_READ = "quotations.read"
+    QUOTATIONS_WRITE = "quotations.write"  # draft, edit, revise, record outcome, cancel
+    QUOTATIONS_APPROVE = "quotations.approve"  # approve; discounts above the policy limit
+    QUOTATIONS_MANAGE = "quotations.manage"  # numbering, validity and discount policy
 
 
 _MEMBER = frozenset(
@@ -35,6 +39,8 @@ _MEMBER = frozenset(
         Permission.CATALOGUE_READ,
         Permission.INBOX_READ,
         Permission.INBOX_WRITE,
+        Permission.QUOTATIONS_READ,
+        Permission.QUOTATIONS_WRITE,
     }
 )
 _ADMIN = _MEMBER | {
@@ -47,6 +53,8 @@ _ADMIN = _MEMBER | {
     Permission.CATALOGUE_IMPORT,
     Permission.CATALOGUE_MANAGE,
     Permission.INBOX_MANAGE,
+    Permission.QUOTATIONS_APPROVE,
+    Permission.QUOTATIONS_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

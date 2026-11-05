@@ -13,7 +13,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.context import TenantContext
-from app.modules.crm.models import Contact, Lead
+from app.modules.crm.models import Contact, Customer, Lead
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,14 @@ class ContactSummary:
     full_name: str
     email: str | None
     phone: str | None
+    archived: bool
+    customer_id: uuid.UUID | None = None
+
+
+@dataclass(frozen=True)
+class CustomerSummary:
+    id: uuid.UUID
+    name: str
     archived: bool
 
 
@@ -40,6 +48,7 @@ def _contact(contact: Contact) -> ContactSummary:
         email=contact.email,
         phone=contact.phone,
         archived=contact.archived_at is not None,
+        customer_id=contact.customer_id,
     )
 
 
@@ -95,4 +104,19 @@ async def get_lead(
         title=lead.title,
         contact_id=lead.contact_id,
         archived=lead.archived_at is not None,
+    )
+
+
+async def get_customer(
+    db: AsyncSession, tenant: TenantContext, customer_id: uuid.UUID
+) -> CustomerSummary | None:
+    customer = await db.scalar(
+        select(Customer).where(
+            Customer.organization_id == tenant.organization_id, Customer.id == customer_id
+        )
+    )
+    if customer is None:
+        return None
+    return CustomerSummary(
+        id=customer.id, name=customer.name, archived=customer.archived_at is not None
     )

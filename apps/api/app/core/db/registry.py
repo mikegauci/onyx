@@ -7,12 +7,14 @@ from app.core.modules import models as module_models
 from app.core.outbox import models as outbox_models
 from app.core.storage import models as storage_models
 from app.core.tenancy import models as tenancy_models
+from app.modules.catalogue import models as catalogue_models
 from app.modules.crm import models as crm_models
 
 __all__ = [
     "Base",
     "admin_models",
     "audit_models",
+    "catalogue_models",
     "crm_models",
     "module_models",
     "outbox_models",

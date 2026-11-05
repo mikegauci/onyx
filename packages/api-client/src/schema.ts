@@ -141,6 +141,212 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/catalogue/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import products, SKUs, prices and stock from CSV (dry run by default) */
+        post: operations["import_catalogue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Import Runs */
+        get: operations["list_import_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/price-lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Price Lists */
+        get: operations["list_price_lists"];
+        put?: never;
+        /** Create Price List */
+        post: operations["create_price_list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/price-lists/{price_list_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Price List */
+        patch: operations["update_price_list"];
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Products */
+        get: operations["list_products"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/products/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Product */
+        get: operations["read_product"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/products/{product_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Product */
+        post: operations["archive_product"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/variants/by-sku/{sku}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exact SKU lookup (case-insensitive) */
+        get: operations["lookup_sku"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/variants/{variant_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Variant */
+        post: operations["archive_variant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/vat-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Vat Rates */
+        get: operations["list_vat_rates"];
+        put?: never;
+        /** Create Vat Rate */
+        post: operations["create_vat_rate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/vat-rates/{vat_rate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Vat Rate */
+        patch: operations["update_vat_rate"];
+        trace?: never;
+    };
+    "/v1/w/{slug}/catalogue/vat-rates/{vat_rate_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Vat Rate */
+        post: operations["archive_vat_rate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/crm/activities": {
         parameters: {
             query?: never;
@@ -489,11 +695,6 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
-        /** ArchiveRequest */
-        ArchiveRequest: {
-            /** Archived */
-            archived: boolean;
-        };
         /** AuditActor */
         AuditActor: {
             /** Display Name */
@@ -536,6 +737,53 @@ export interface components {
             items: components["schemas"]["AuditEntryOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** CatalogueImportRequest */
+        CatalogueImportRequest: {
+            /**
+             * Csv
+             * @description The CSV file's text (UTF-8)
+             */
+            csv: string;
+            /**
+             * Dry Run
+             * @description Validate and report without writing
+             * @default true
+             */
+            dry_run: boolean;
+            /** Filename */
+            filename?: string | null;
+            /**
+             * Price List Id
+             * @description Price list for price_eur; the default list when omitted
+             */
+            price_list_id?: string | null;
+            /**
+             * Source Exported At
+             * @description When the source system exported the file. Prices are valid from it; stock rows without their own time are as of it.
+             */
+            source_exported_at?: string | null;
+        };
+        /** CatalogueImportResult */
+        CatalogueImportResult: {
+            /**
+             * Already Imported
+             * @description The same file was already applied to this price list
+             * @default false
+             */
+            already_imported: boolean;
+            counts: components["schemas"]["ImportCounts"];
+            /** Dry Run */
+            dry_run: boolean;
+            /** Errors */
+            errors: components["schemas"]["ImportRowError"][];
+            /**
+             * Import Run Id
+             * @description Set once applied
+             */
+            import_run_id: string | null;
+            /** Total */
+            total: number;
         };
         /** ContactCreate */
         ContactCreate: {
@@ -756,6 +1004,69 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** ImportCounts */
+        ImportCounts: {
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /**
+             * Prices Older Ignored
+             * @default 0
+             */
+            prices_older_ignored: number;
+            /**
+             * Prices Recorded
+             * @default 0
+             */
+            prices_recorded: number;
+            /**
+             * Prices Unchanged
+             * @default 0
+             */
+            prices_unchanged: number;
+            /**
+             * Products Created
+             * @default 0
+             */
+            products_created: number;
+            /**
+             * Products Updated
+             * @default 0
+             */
+            products_updated: number;
+            /**
+             * Rows
+             * @default 0
+             */
+            rows: number;
+            /**
+             * Stock Older Ignored
+             * @default 0
+             */
+            stock_older_ignored: number;
+            /**
+             * Stock Recorded
+             * @default 0
+             */
+            stock_recorded: number;
+            /**
+             * Stock Unchanged
+             * @default 0
+             */
+            stock_unchanged: number;
+            /**
+             * Variants Created
+             * @default 0
+             */
+            variants_created: number;
+            /**
+             * Variants Updated
+             * @default 0
+             */
+            variants_updated: number;
+        };
         /** ImportDuplicate */
         ImportDuplicate: {
             /**
@@ -781,6 +1092,42 @@ export interface components {
             message: string;
             /** Row */
             row: number;
+        };
+        /** ImportRunOut */
+        ImportRunOut: {
+            /** Counts */
+            counts: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By User Id */
+            created_by_user_id: string | null;
+            /** File Sha256 */
+            file_sha256: string;
+            /** Filename */
+            filename: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Price List Id */
+            price_list_id: string | null;
+            /** Source Exported At */
+            source_exported_at: string | null;
+            /** Source Kind */
+            source_kind: string;
+        };
+        /** ImportRunPage */
+        ImportRunPage: {
+            /** Items */
+            items: components["schemas"]["ImportRunOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** InvitationAccept */
         InvitationAccept: {
@@ -1021,7 +1368,206 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage";
+        /** PriceListCreate */
+        PriceListCreate: {
+            /** Code */
+            code: string;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Prices Include Vat
+             * @description Fixed once created
+             */
+            prices_include_vat: boolean;
+        };
+        /** PriceListList */
+        PriceListList: {
+            /** Items */
+            items: components["schemas"]["PriceListOut"][];
+        };
+        /** PriceListOut */
+        PriceListOut: {
+            /** Code */
+            code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "EUR";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Default */
+            is_default: boolean;
+            /** Name */
+            name: string;
+            /** Prices Include Vat */
+            prices_include_vat: boolean;
+        };
+        /** PriceListUpdate */
+        PriceListUpdate: {
+            /**
+             * Is Default
+             * @description Make this the default list (the previous one stops being it)
+             */
+            is_default?: true | null;
+            /** Name */
+            name?: string | null;
+        };
+        /** PriceOut */
+        PriceOut: {
+            /**
+             * Amount
+             * @description Decimal string, e.g. '12.50'
+             */
+            amount: string;
+            /**
+             * Amount Minor
+             * @description Euro cents
+             */
+            amount_minor: number;
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "EUR";
+            /** Includes Vat */
+            includes_vat: boolean;
+            /** Price List Code */
+            price_list_code: string;
+            /**
+             * Price List Id
+             * Format: uuid
+             */
+            price_list_id: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            source: components["schemas"]["SourceOut"];
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+        };
+        /** ProductDetail */
+        ProductDetail: {
+            /** Archived At */
+            archived_at: string | null;
+            /** Brand */
+            brand: string | null;
+            /** Category */
+            category: string | null;
+            /** Code */
+            code: string;
+            /** Description */
+            description: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            last_import: components["schemas"]["SourceOut"] | null;
+            /** Name */
+            name: string;
+            /**
+             * Price Lists
+             * @description Every list, to show missing prices
+             */
+            price_lists: components["schemas"]["PriceListOut"][];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Variant Count */
+            variant_count: number;
+            /** Variants */
+            variants: components["schemas"]["VariantOut"][];
+            /** @description Null when no VAT rate is set: not quotable yet */
+            vat: components["schemas"]["VatOut"] | null;
+        };
+        /** ProductPage */
+        ProductPage: {
+            /** Items */
+            items: components["schemas"]["ProductSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** ProductSummary */
+        ProductSummary: {
+            /** Archived At */
+            archived_at: string | null;
+            /** Brand */
+            brand: string | null;
+            /** Category */
+            category: string | null;
+            /** Code */
+            code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Variant Count */
+            variant_count: number;
+            /** @description Null when no VAT rate is set: not quotable yet */
+            vat: components["schemas"]["VatOut"] | null;
+        };
+        /**
+         * SourceOut
+         * @description Where a value came from. ``import_run_id`` is null for values entered another way.
+         */
+        SourceOut: {
+            /** Filename */
+            filename: string | null;
+            /** Import Run Id */
+            import_run_id: string | null;
+            /** Source Exported At */
+            source_exported_at: string | null;
+        };
+        /** StockOut */
+        StockOut: {
+            /** Location */
+            location: string;
+            /**
+             * Observed At
+             * Format: date-time
+             * @description When the source counted it
+             */
+            observed_at: string;
+            /** Quantity Available */
+            quantity_available: number;
+            /**
+             * Recorded At
+             * Format: date-time
+             * @description When Onyx stored it
+             */
+            recorded_at: string;
+            source: components["schemas"]["SourceOut"];
+        };
         /**
          * SubjectType
          * @enum {string}
@@ -1048,6 +1594,111 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+        };
+        /**
+         * VariantLookup
+         * @description An exact SKU match with its product, for quoting and the assistant.
+         */
+        VariantLookup: {
+            product: components["schemas"]["ProductSummary"];
+            variant: components["schemas"]["VariantOut"];
+        };
+        /** VariantOut */
+        VariantOut: {
+            /** Archived At */
+            archived_at: string | null;
+            /** Attributes */
+            attributes: {
+                [key: string]: string;
+            };
+            /**
+             * Availability
+             * @enum {string}
+             */
+            availability: "in_stock" | "out_of_stock" | "unknown";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string | null;
+            /**
+             * Prices
+             * @description Current price per price list that has one
+             */
+            prices: components["schemas"]["PriceOut"][];
+            /**
+             * Product Id
+             * Format: uuid
+             */
+            product_id: string;
+            /** Sku */
+            sku: string;
+            /**
+             * Stock
+             * @description Latest observation per location
+             */
+            stock: components["schemas"]["StockOut"][];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** VatOut */
+        VatOut: {
+            /** Code */
+            code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Rate Percent */
+            rate_percent: string;
+        };
+        /** VatRateCreate */
+        VatRateCreate: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Rate Percent */
+            rate_percent: number | string;
+        };
+        /** VatRateList */
+        VatRateList: {
+            /** Items */
+            items: components["schemas"]["VatRateOut"][];
+        };
+        /** VatRateOut */
+        VatRateOut: {
+            /** Archived At */
+            archived_at: string | null;
+            /** Code */
+            code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Rate Percent */
+            rate_percent: string;
+        };
+        /** VatRateUpdate */
+        VatRateUpdate: {
+            /** Name */
+            name: string;
         };
         /** WorkspaceOut */
         WorkspaceOut: {
@@ -1085,6 +1736,19 @@ export interface components {
              * @example Europe/Malta
              */
             timezone?: string | null;
+        };
+        /** ArchiveRequest */
+        app__modules__catalogue__schemas__ArchiveRequest: {
+            /**
+             * Archived
+             * @default true
+             */
+            archived: boolean;
+        };
+        /** ArchiveRequest */
+        app__modules__crm__schemas__ArchiveRequest: {
+            /** Archived */
+            archived: boolean;
         };
     };
     responses: never;
@@ -1661,6 +2325,1048 @@ export interface operations {
             };
         };
     };
+    import_catalogue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CatalogueImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogueImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Duplicate code or concurrent change */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_import_runs: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportRunPage"];
+                };
+            };
+            /** @description Bad cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_price_lists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceListList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_price_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriceListCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceListOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Duplicate code or concurrent change */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_price_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                price_list_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriceListUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceListOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Duplicate code or concurrent change */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_products: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                category?: string | null;
+                include_archived?: boolean;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            /** @description Bad cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    archive_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__catalogue__schemas__ArchiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    lookup_sku: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sku: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantLookup"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    archive_variant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__catalogue__schemas__ArchiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_vat_rates: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRateList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_vat_rate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VatRateCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRateOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Duplicate code or concurrent change */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_vat_rate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vat_rate_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VatRateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRateOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    archive_vat_rate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vat_rate_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__catalogue__schemas__ArchiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VatRateOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_activities: {
         parameters: {
             query: {
@@ -2136,7 +3842,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ArchiveRequest"];
+                "application/json": components["schemas"]["app__modules__crm__schemas__ArchiveRequest"];
             };
         };
         responses: {
@@ -2500,7 +4206,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ArchiveRequest"];
+                "application/json": components["schemas"]["app__modules__crm__schemas__ArchiveRequest"];
             };
         };
         responses: {
@@ -2886,7 +4592,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ArchiveRequest"];
+                "application/json": components["schemas"]["app__modules__crm__schemas__ArchiveRequest"];
             };
         };
         responses: {

@@ -17,6 +17,9 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.CRM_WRITE: {OWNER, ADMIN, MEMBER},
     Permission.CRM_IMPORT: {OWNER, ADMIN},
     Permission.CRM_ARCHIVE: {OWNER, ADMIN},
+    Permission.CATALOGUE_READ: {OWNER, ADMIN, MEMBER},
+    Permission.CATALOGUE_IMPORT: {OWNER, ADMIN},
+    Permission.CATALOGUE_MANAGE: {OWNER, ADMIN},
 }
 
 

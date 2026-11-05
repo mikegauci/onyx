@@ -6,10 +6,17 @@ import { usePathname } from "next/navigation";
 
 import { isActive } from "@/lib/nav";
 
-export function CrmNav({ sections }: { sections: { href: string; label: string }[] }) {
+/** Section tabs for a module (CRM, Catalogue, …), named for assistive technology by `label`. */
+export function CrmNav({
+  sections,
+  label = "CRM",
+}: {
+  sections: { href: string; label: string }[];
+  label?: string;
+}) {
   const pathname = usePathname();
   return (
-    <nav aria-label="CRM" className="border-b">
+    <nav aria-label={label} className="border-b">
       <ul className="-mb-px flex gap-4 overflow-x-auto">
         {sections.map((section) => {
           const active = isActive(pathname, section.href);

@@ -1,0 +1,21 @@
+sku,product_code,product_name,variant_name,brand,category,description,vat_code,price_eur,stock_available,stock_location,stock_observed_at,attr_wattage,attr_colour_temp_k,attr_ip_rating,attr_finish,attr_beam_angle
+HALO-DL-6W-3000K,HALO-DOWN,Halo recessed downlight,"6 W, 3000 K",Lumetta (test),Downlights,Fire-rated recessed LED downlight (fictitious test product).,STANDARD,24.90,120,main,2026-11-04T17:30:00+01:00,6,3000,IP44,white,60
+HALO-DL-6W-4000K,HALO-DOWN,Halo recessed downlight,"6 W, 4000 K",Lumetta (test),Downlights,,STANDARD,24.90,85,main,2026-11-04T17:30:00+01:00,6,4000,IP44,white,60
+HALO-DL-9W-3000K,HALO-DOWN,Halo recessed downlight,"9 W, 3000 K",Lumetta (test),Downlights,,STANDARD,29.50,0,main,2026-11-04T17:30:00+01:00,9,3000,IP44,white,60
+HALO-DL-9W-4000K,HALO-DOWN,Halo recessed downlight,"9 W, 4000 K",Lumetta (test),Downlights,,STANDARD,29.50,,,,9,4000,IP44,white,60
+LINEA-5M-2700K,LINEA-STRIP,Linea LED strip,"5 m, 2700 K",Brightway (test),Strips,Flexible 24 V LED strip (fictitious test product).,STANDARD,42.00,40,main,2026-11-04T17:30:00+01:00,48,2700,IP20,,120
+LINEA-5M-4000K,LINEA-STRIP,Linea LED strip,"5 m, 4000 K",Brightway (test),Strips,,STANDARD,42.00,32,main,2026-11-04T17:30:00+01:00,48,4000,IP20,,120
+LINEA-5M-RGB,LINEA-STRIP,Linea LED strip,"5 m, RGB",Brightway (test),Strips,,STANDARD,,12,main,2026-11-04T17:30:00+01:00,60,,IP20,,120
+ORBIT-W-BRS,ORBIT-WALL,Orbit wall light,Brass,Lumetta (test),Wall lights,Round wall light with opal diffuser (fictitious test product).,STANDARD,89.00,7,main,2026-11-04T17:30:00+01:00,12,2700,IP20,brass,
+ORBIT-W-BLK,ORBIT-WALL,Orbit wall light,Black,Lumetta (test),Wall lights,,STANDARD,89.00,3,showroom,2026-11-04T12:00:00+01:00,12,2700,IP20,black,
+ORBIT-W-WHT,ORBIT-WALL,Orbit wall light,White,Lumetta (test),Wall lights,,STANDARD,84.00,9,main,2026-10-01T09:00:00+02:00,12,2700,IP20,white,
+NOVA-TR-1M-BLK,NOVA-TRACK,Nova track rail,"1 m, black",Brightway (test),Track,Single-circuit track rail (fictitious test product).,STANDARD,35.00,50,main,2026-11-04T17:30:00+01:00,,,,black,
+NOVA-TR-2M-BLK,NOVA-TRACK,Nova track rail,"2 m, black",Brightway (test),Track,,STANDARD,58.00,22,main,2026-11-04T17:30:00+01:00,,,,black,
+NOVA-SPOT-10W,NOVA-TRACK,Nova track rail,"Spot head, 10 W",Brightway (test),Track,,STANDARD,49.00,18,main,2026-11-04T17:30:00+01:00,10,3000,IP20,black,36
+BULB-E27-8W-2700K,BULB-E27,Classic LED bulb E27,"8 W, 2700 K",Brightway (test),Bulbs,A60 LED bulb (fictitious test product).,STANDARD,4.50,600,main,2026-11-04T17:30:00+01:00,8,2700,,,
+BULB-E27-8W-4000K,BULB-E27,Classic LED bulb E27,"8 W, 4000 K",Brightway (test),Bulbs,,STANDARD,4.50,450,main,2026-11-04T17:30:00+01:00,8,4000,,,
+BULB-E27-11W-2700K,BULB-E27,Classic LED bulb E27,"11 W, 2700 K",Brightway (test),Bulbs,,STANDARD,5.90,0,main,2026-11-04T17:30:00+01:00,11,2700,,,
+TERRA-B-60-GRY,TERRA-BOLLARD,Terra bollard,"60 cm, graphite",Lumetta (test),Outdoor,Aluminium garden bollard (fictitious test product).,STANDARD,145.00,4,main,2026-11-04T17:30:00+01:00,10,3000,IP65,graphite,
+TERRA-B-90-GRY,TERRA-BOLLARD,Terra bollard,"90 cm, graphite",Lumetta (test),Outdoor,,STANDARD,179.00,,,,10,3000,IP65,graphite,
+CRYS-CH-8,CRYSTAL-CHAND,Crystal chandelier,8 arms,Lumetta (test),Chandeliers,Made to order; price on request (fictitious test product).,,,,,,,,,chrome,
+CRYS-CH-12,CRYSTAL-CHAND,Crystal chandelier,12 arms,Lumetta (test),Chandeliers,,,,,,,,,,chrome,

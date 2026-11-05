@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 import { Button } from "@onyx/ui/components/button";
 import {
   Card,
@@ -29,6 +30,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
+      <ThemeToggle className="fixed top-4 right-4" />
       <Card>
         <CardHeader>
           <CardTitle>Sign in to Onyx</CardTitle>

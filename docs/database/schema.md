@@ -33,6 +33,7 @@ erDiagram
 | `audit_entries`        | tenant (null = platform) | Who did what                                         | **append-only** (trigger blocks UPDATE/DELETE); `request_id` correlates with logs (PR-006); `metadata` must not hold full message bodies |
 | `outbox_events`        | tenant                   | Events written in the same transaction as the change | unique (`organization_id`, `idempotency_key`); partial index on pending `available_at`                                                   |
 | `stored_files`         | tenant                   | Metadata of a file in object storage                 | `object_key` unique and CHECK-pinned to `tenants/<organization_id>/<id>`; `size_bytes >= 0`                                              |
+| `platform_admins`      | platform                 | Onyx staff allowed into `/admin` (PR-007)            | PK `user_id`; RLS: read own row only; granted by the schema owner, never through the API                                                 |
 
 Conventions:
 
@@ -52,15 +53,15 @@ Conventions:
   never carry one user's context into another request (tested).
 - Policies (all `TO onyx_app`; Supabase's `anon`/`authenticated` roles get none):
 
-  | Table                                                  | Allowed for the caller                                                                                  |
-  | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-  | `users`                                                | read self and colleagues (shared organisation); insert/update self                                      |
-  | `organizations`, `organization_modules`, `memberships` | read where the caller is a member                                                                       |
-  | `organizations`                                        | update `name`/`timezone` as owner/admin of the bound tenant (PR-006, migration `0004`)                  |
-  | `memberships`                                          | insert self only, backed by an invitation they accepted                                                 |
-  | `invitations`                                          | read/create as owner/admin (owners alone invite owners); read/accept if addressed to the caller's email |
-  | `audit_entries`                                        | insert as a member of that organisation, as themselves; no read                                         |
-  | `outbox_events`                                        | insert in the bound tenant only (PR-005); no read                                                       |
+  | Table                                                  | Allowed for the caller                                                                                   |
+  | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+  | `users`                                                | read self and colleagues (shared organisation); insert/update self                                       |
+  | `organizations`, `organization_modules`, `memberships` | read where the caller is a member                                                                        |
+  | `organizations`                                        | update `name`/`timezone` as owner/admin of the bound tenant (PR-006, migration `0004`)                   |
+  | `memberships`                                          | insert self only, backed by an invitation they accepted                                                  |
+  | `invitations`                                          | read/create as owner/admin (owners alone invite owners); read/accept if addressed to the caller's email  |
+  | `audit_entries`                                        | insert as a member of that organisation, as themselves; read as owner/admin of the bound tenant (PR-007) |
+  | `outbox_events`                                        | insert in the bound tenant only (PR-005); no read                                                        |
 
 - Helper functions `app_current_user_id()`, `app_membership_role(org)`, etc. are
   `SECURITY DEFINER` with a fixed `search_path`, so policies can consult memberships without
@@ -172,6 +173,8 @@ Never grant both roles to one login.
 Seeded users get fake auth subjects (`seed_auth_subject(email)`) that only tests can sign
 tokens for. To use a seeded workspace with your real login locally, sign in once and run
 `make db-grant email=you@example.com slug=lumen-lighting-test role=owner`.
+
+Pat Platform (`pat.platform@onyx.example.test`) is a platform admin with no memberships (PR-007).
 
 Sam Consultant belongs to both organisations with different roles, for workspace-selection and
 cross-tenant tests. All emails use the reserved `.test` domain.

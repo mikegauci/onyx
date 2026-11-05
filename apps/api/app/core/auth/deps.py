@@ -8,7 +8,7 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -165,3 +165,14 @@ def require_permission(permission: Permission) -> object:
         return workspace
 
     return Depends(_check)
+
+
+async def require_platform_admin(user: CurrentUserDep, db: DbDep) -> CurrentUser:
+    """The caller, if they are a platform admin. Everyone else gets 404, like a missing page."""
+    if not await db.scalar(text("SELECT app_is_platform_admin()")):
+        raise NotFoundError
+    bind_request_fields(platform_admin=True)
+    return user
+
+
+PlatformAdminDep = Annotated[CurrentUser, Depends(require_platform_admin)]

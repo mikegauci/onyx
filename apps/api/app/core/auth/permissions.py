@@ -14,6 +14,7 @@ class Permission(enum.StrEnum):
     WORKSPACE_UPDATE = "workspace.update"
     MEMBERS_READ = "members.read"
     INVITATIONS_CREATE = "invitations.create"
+    AUDIT_READ = "audit.read"
 
 
 _MEMBER = frozenset({Permission.WORKSPACE_READ})
@@ -21,6 +22,7 @@ _ADMIN = _MEMBER | {
     Permission.WORKSPACE_UPDATE,
     Permission.MEMBERS_READ,
     Permission.INVITATIONS_CREATE,
+    Permission.AUDIT_READ,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

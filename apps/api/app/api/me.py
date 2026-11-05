@@ -4,7 +4,7 @@ import uuid
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from app.core.auth.deps import CurrentUserDep, DbDep
 from app.core.errors import AUTH_ERRORS, ErrorResponse
@@ -28,6 +28,7 @@ class WorkspaceSummary(BaseModel):
 class MeResponse(BaseModel):
     user: UserOut
     workspaces: list[WorkspaceSummary]
+    is_platform_admin: bool
 
 
 @router.get(
@@ -46,7 +47,9 @@ async def me(user: CurrentUserDep, db: DbDep) -> MeResponse:
         .where(Membership.user_id == user.id)
         .order_by(Organization.name)
     )
+    is_admin = bool(await db.scalar(text("SELECT app_is_platform_admin()")))
     return MeResponse(
         user=UserOut(id=user.id, email=user.email, display_name=user.display_name),
         workspaces=[WorkspaceSummary(slug=s, name=n, role=r) for s, n, r in rows],
+        is_platform_admin=is_admin,
     )

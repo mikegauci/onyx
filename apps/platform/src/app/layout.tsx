@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ThemeProvider } from "@onyx/ui/components/theme-provider";
-import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
+import { Toaster } from "@onyx/ui/components/sonner";
+import { TooltipProvider } from "@onyx/ui/components/tooltip";
 
 import "./globals.css";
 
@@ -23,8 +24,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     >
       <body className="min-h-screen antialiased">
         <ThemeProvider>
-          <ThemeToggle className="fixed top-4 right-4 z-50" />
-          {children}
+          <TooltipProvider>
+            {children}
+            <Toaster />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

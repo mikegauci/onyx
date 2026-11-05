@@ -17,6 +17,7 @@ EXPECTED_TABLES = {
     "outbox_events",
     "invitations",
     "stored_files",
+    "platform_admins",
 }
 
 

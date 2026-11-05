@@ -84,13 +84,25 @@ def test_audit_insert_for_another_tenant_is_rejected(owner_engine: Engine) -> No
         )
 
 
-def test_app_role_cannot_read_audit_or_outbox(owner_engine: Engine) -> None:
-    for table in ("audit_entries", "outbox_events"):
-        with (
-            pytest.raises(ProgrammingError, match="permission denied"),
-            as_app(owner_engine, OLIVIA) as conn,
-        ):
-            conn.execute(text(f"SELECT count(*) FROM {table}"))
+def test_app_role_cannot_read_outbox(owner_engine: Engine) -> None:
+    with (
+        pytest.raises(ProgrammingError, match="permission denied"),
+        as_app(owner_engine, OLIVIA) as conn,
+    ):
+        conn.execute(text("SELECT count(*) FROM outbox_events"))
+
+
+def test_audit_is_unreadable_without_a_bound_tenant(owner_engine: Engine) -> None:
+    with owner_engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO audit_entries (organization_id, actor_user_id, action) "
+                "VALUES (:org, :user, 'seeded')"
+            ),
+            {"org": LUMEN, "user": seed_id(OLIVIA)},
+        )
+    with as_app(owner_engine, OLIVIA) as conn:
+        assert conn.execute(text("SELECT count(*) FROM audit_entries")).scalar_one() == 0
 
 
 def test_context_does_not_leak_to_the_next_transaction(owner_engine: Engine) -> None:

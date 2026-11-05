@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 import { Badge } from "@onyx/ui/components/badge";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,6 +15,7 @@ export default async function WorkspacesPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-6 py-16">
+      <ThemeToggle className="fixed top-4 right-4" />
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold tracking-tight">Your workspaces</h1>
         <SignOutButton />
@@ -40,6 +42,11 @@ export default async function WorkspacesPage() {
           ))}
         </ul>
       )}
+      {me.ok && me.data.is_platform_admin ? (
+        <Link href="/admin" className="text-brand self-start text-sm font-medium hover:underline">
+          Open platform admin
+        </Link>
+      ) : null}
     </main>
   );
 }

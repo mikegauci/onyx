@@ -50,6 +50,8 @@ export default defineConfig({
       command: "uv run uvicorn app.main:app --host 127.0.0.1 --port 8100",
       cwd: "../api",
       url: `${E2E.apiUrl}/health`,
+      // API logs (JSON, with tracebacks for unhandled errors) appear in the CI output.
+      stdout: "pipe",
       reuseExistingServer: reuse,
       env: {
         ONYX_API_ENVIRONMENT: "test",

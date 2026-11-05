@@ -1,17 +1,18 @@
 # Environments and configuration contract
 
 Owner decisions: ADR 0001 (single production Supabase project) as amended by PR-002 (a
-non-production **preview** environment with no database). Nothing here authorises a production
+non-production **preview** environment) and on 2026-11-05 (a second, free Supabase project
+`onyx-preview` holds the preview database; see `preview-database.md`). Nothing here authorises a production
 deployment, a paid plan or a DNS change; each needs explicit owner approval.
 
 ## Environments
 
-| Environment  | Site (`apps/site`)         | Platform (`apps/platform`) | API (`apps/api`)                 | Data                    |
-| ------------ | -------------------------- | -------------------------- | -------------------------------- | ----------------------- |
-| `local`      | `localhost:3000`           | `localhost:3001`           | `localhost:8000`                 | Docker Compose Postgres |
-| `test`       | Vitest                     | Vitest                     | pytest (`environment="test"`)    | none / fixtures         |
-| `preview`    | Vercel Preview deployments | Vercel Preview deployments | Render `onyx-api-preview` (free) | **none** (no DB yet)    |
-| `production` | not deployed (onyx.mt)     | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`         |
+| Environment  | Site (`apps/site`)         | Platform (`apps/platform`) | API (`apps/api`)                 | Data                                      |
+| ------------ | -------------------------- | -------------------------- | -------------------------------- | ----------------------------------------- |
+| `local`      | `localhost:3000`           | `localhost:3001`           | `localhost:8000`                 | Docker Compose Postgres                   |
+| `test`       | Vitest                     | Vitest                     | pytest (`environment="test"`)    | none / fixtures                           |
+| `preview`    | Vercel Preview deployments | Vercel Preview deployments | Render `onyx-api-preview` (free) | Supabase `onyx-preview` (free, fake data) |
+| `production` | not deployed (onyx.mt)     | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`                           |
 
 - Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` until the owner
   approves production. Merges to `main` therefore produce no Vercel deployment.
@@ -33,17 +34,18 @@ Rules: secrets never get defaults and are never committed (only `.env.example` p
 non-secret values. Every deployed URL must be an https origin on a non-local host; the build or
 the API refuses to start otherwise.
 
-| Variable                          | Service  | Secret | local                   | preview                                 | production (planned)  |
-| --------------------------------- | -------- | ------ | ----------------------- | --------------------------------------- | --------------------- |
-| `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                        | `https://onyx.mt`     |
-| `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                    | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com` | `https://api.onyx.mt` |
-| `ONYX_API_ENVIRONMENT`            | api      | no     | `local`                 | `preview`                               | `production`          |
-| `ONYX_API_LOG_LEVEL`              | api      | no     | `INFO`                  | `INFO`                                  | `INFO`                |
-| `ONYX_API_CORS_ORIGINS`           | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit    | `https://app.onyx.mt` |
-| `ONYX_API_DATABASE_URL`           | api      | yes    | compose Postgres        | not set yet (PR-004)                    | not set yet (PR-004)  |
-| `ONYX_API_MIGRATION_DATABASE_URL` | api      | yes    | falls back to above     | not set yet                             | not set yet           |
+| Variable                          | Service  | Secret | local                   | preview                                    | production (planned)  |
+| --------------------------------- | -------- | ------ | ----------------------- | ------------------------------------------ | --------------------- |
+| `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
+| `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                           | `https://onyx.mt`     |
+| `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
+| `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com`    | `https://api.onyx.mt` |
+| `ONYX_API_ENVIRONMENT`            | api      | no     | `local`                 | `preview`                                  | `production`          |
+| `ONYX_API_LOG_LEVEL`              | api      | no     | `INFO`                  | `INFO`                                     | `INFO`                |
+| `ONYX_API_CORS_ORIGINS`           | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit       | `https://app.onyx.mt` |
+| `ONYX_API_SUPABASE_URL`           | api      | no     | blank (auth off)        | `https://xnmrrdgdfzjkvjunevmi.supabase.co` | not set yet           |
+| `ONYX_API_DATABASE_URL`           | api      | yes    | compose Postgres        | `onyx-preview` pooler, `onyx_api_login`    | not set yet           |
+| `ONYX_API_MIGRATION_DATABASE_URL` | api      | yes    | falls back to above     | not set yet                                | not set yet           |
 
 `VERCEL_ENV` (set by Vercel) selects build-time validation: `preview`/`production` builds fail
 if a required URL is missing or unsafe.

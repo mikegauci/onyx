@@ -2,7 +2,9 @@ import { LUMEN, USERS, expect, signInAs, test } from "./fixtures";
 
 test("platform admin sees account metadata in the admin shell", async ({ page, context }) => {
   await signInAs(context, USERS.pat);
-  await page.goto("/admin");
+  await page.goto("/workspaces");
+  await page.getByRole("link", { name: "Open platform admin" }).click();
+  await expect(page).toHaveURL("/admin");
   await expect(
     page.getByRole("status").getByText(/Platform admin · account metadata only/),
   ).toBeVisible();

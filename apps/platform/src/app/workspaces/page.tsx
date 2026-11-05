@@ -42,6 +42,11 @@ export default async function WorkspacesPage() {
           ))}
         </ul>
       )}
+      {me.ok && me.data.is_platform_admin ? (
+        <Link href="/admin" className="text-brand self-start text-sm font-medium hover:underline">
+          Open platform admin
+        </Link>
+      ) : null}
     </main>
   );
 }

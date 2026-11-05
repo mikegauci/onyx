@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit.record import record_workspace_audit
 from app.core.auth.deps import WorkspaceAccess
+from app.core.db.base import Base
 from app.core.errors import ConflictError, ErrorDetail, NotFoundError, ValidationFailedError
 from app.modules.catalogue import schemas
 from app.modules.catalogue.importer import (
@@ -173,12 +174,10 @@ class CatalogueService:
                 details=[ErrorDetail(loc=["body", field], msg="Already used.", type="duplicate")]
             ) from exc
 
-    async def _get[M](self, model: type[M], item_id: uuid.UUID, label: str) -> M:
-        item = await self.db.scalar(
-            select(model).where(
-                model.organization_id == self.org,  # type: ignore[attr-defined]
-                model.id == item_id,  # type: ignore[attr-defined]
-            )
+    async def _get[M: Base](self, model: type[M], item_id: uuid.UUID, label: str) -> M:
+        columns: Any = model  # every catalogue model has organization_id and id
+        item: M | None = await self.db.scalar(
+            select(model).where(columns.organization_id == self.org, columns.id == item_id)
         )
         if item is None:
             raise NotFoundError(f"{label} not found.")

@@ -246,7 +246,8 @@ def _parse_row(
     observed = row.parsed("stock_observed_at", lambda v: parse_timestamp(v, now=now))
 
     if stock is None:
-        if location is not None or observed is not None:
+        already_invalid = any(e.field == "stock_available" for e in row.errors)
+        if (location is not None or observed is not None) and not already_invalid:
             row.fail("stock_available", "Required when a stock location or time is given.")
     else:
         location = location or DEFAULT_LOCATION

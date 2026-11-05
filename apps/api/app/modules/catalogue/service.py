@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func, or_, select, text, update
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -401,7 +402,7 @@ class CatalogueService:
                 )
             )
         query = paginate(query, Product.created_at, Product.id, limit=limit, cursor=cursor)
-        rows = list((await self.db.execute(query)).tuples().all())
+        rows = list((await self.db.execute(query)).all())
         page, next_cursor = _page(rows, limit, lambda r: (r[0].created_at, r[0].id))
         vat = await self._vat_by_id()
         return [self._summary(p, count, vat) for p, count in page], next_cursor
@@ -435,7 +436,7 @@ class CatalogueService:
         )
         if price_list_id is not None:
             query = query.where(Price.price_list_id == price_list_id)
-        query = query.distinct(Price.variant_id, Price.price_list_id).order_by(
+        query = query.ext(distinct_on(Price.variant_id, Price.price_list_id)).order_by(
             Price.variant_id,
             Price.price_list_id,
             Price.valid_from.desc(),
@@ -451,7 +452,7 @@ class CatalogueService:
         query = (
             select(StockLevel)
             .where(StockLevel.organization_id == self.org, StockLevel.variant_id.in_(variant_ids))
-            .distinct(StockLevel.variant_id, StockLevel.location)
+            .ext(distinct_on(StockLevel.variant_id, StockLevel.location))
             .order_by(
                 StockLevel.variant_id,
                 StockLevel.location,
@@ -708,7 +709,7 @@ class CatalogueService:
                     VatRate.archived_at.is_(None),
                 )
             )
-            vat = dict(found.tuples())
+            vat = dict(found.all())
         products = {
             p.code: p
             for p in await self.db.scalars(
@@ -878,7 +879,7 @@ class CatalogueService:
                         Product.organization_id == self.org, Product.code.in_(codes)
                     )
                 )
-            ).tuples()
+            ).all()
         )
         for row in plan.new_variants:
             self.db.add(
@@ -907,7 +908,7 @@ class CatalogueService:
                         Variant.sku.in_({r.sku for r in plan.rows}),
                     )
                 )
-            ).tuples()
+            ).all()
         )
         valid_from = exported or now
         for row in plan.prices:

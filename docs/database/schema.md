@@ -4,6 +4,10 @@ Alembic (`apps/api/migrations/`) is the only migration authority. SQLAlchemy 2 m
 their owning core area (`apps/api/app/core/{tenancy,modules,audit,outbox,storage}/models.py`);
 `app/core/db/registry.py` imports them all so `Base.metadata` is complete.
 
+CRM models live under `app/modules/crm/`. Migration `0008` adds four tenant-owned tables
+and `0009` adds reversible lead archiving;
+see [CRM permissions, import format and recovery](../platform/crm.md).
+
 **Status:** applied to local Docker Postgres and CI only. Not applied to the `onyx` Supabase
 project (owner decision, PR-004: Supabase provides Auth only for now). Applying it there needs a
 backup first and owner approval.

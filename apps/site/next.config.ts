@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@onyx/ui"],
-  // CLAUDE.md is the single source of agent instructions; skip generated AGENTS.md.
+  // Root AGENTS.md owns project instructions; skip framework-generated agent rules.
   agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders(process.env.VERCEL_ENV) }];

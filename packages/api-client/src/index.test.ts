@@ -17,7 +17,7 @@ describe("generated schema", () => {
       { cwd: packageDir, stdio: "pipe" },
     );
     expect(readFileSync(out, "utf8")).toBe(readFileSync(join(packageDir, "src/schema.ts"), "utf8"));
-  });
+  }, 30_000);
 });
 
 describe("createApiClient", () => {

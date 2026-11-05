@@ -3,7 +3,7 @@
 Monorepo for **Onyx Studio** (public website, [onyx.mt](https://onyx.mt)) and **Onyx Platform**
 (multi-tenant business operations and AI automation SaaS, [app.onyx.mt](https://app.onyx.mt)).
 
-Planning and working rules: [`CLAUDE.md`](CLAUDE.md), [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md),
+Planning and working rules: [`AGENTS.md`](AGENTS.md) (shared instructions; [`CLAUDE.md`](CLAUDE.md) points here), [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md),
 [`PR_ROADMAP.md`](PR_ROADMAP.md), [`CLAUDE_WORKFLOW.md`](CLAUDE_WORKFLOW.md). Foundation decisions:
 [`docs/adr/0001-foundation-decisions.md`](docs/adr/0001-foundation-decisions.md). The original
 planning-kit README is kept at [`docs/planning-kit-README.md`](docs/planning-kit-README.md).

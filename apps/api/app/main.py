@@ -19,6 +19,7 @@ from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.modules.crm.routes import router as crm_router
 
 
 def _default_verifier(settings: Settings) -> TokenVerifier | None:
@@ -88,6 +89,7 @@ def create_app(
     v1.include_router(audit_router)
     v1.include_router(modules_router)
     v1.include_router(admin_router)
+    v1.include_router(crm_router)
     app.include_router(v1)
     return app
 

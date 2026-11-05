@@ -23,16 +23,16 @@ erDiagram
     users |o--o{ stored_files : uploaded
 ```
 
-| Table                  | Owner                    | Purpose                                              | Key rules                                                                                               |
-| ---------------------- | ------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `organizations`        | tenant root              | A workspace (`/w/{slug}`)                            | `slug` unique; `status` active/suspended; `timezone` default `Europe/Malta`                             |
-| `users`                | user                     | Staff profile                                        | `email` citext unique; `auth_subject` unique, links to Supabase Auth in PR-004 (no FK to `auth` schema) |
-| `memberships`          | tenant                   | Role of a user in one organisation                   | unique (`organization_id`, `user_id`); `role` owner/admin/member                                        |
-| `modules`              | shared reference         | Module catalogue                                     | seeded by the migration: crm, catalogue, inbox, quotations, orders                                      |
-| `organization_modules` | tenant                   | Entitlement + tenant config                          | PK (`organization_id`, `module_key`); `enabled` default false                                           |
-| `audit_entries`        | tenant (null = platform) | Who did what                                         | **append-only** (trigger blocks UPDATE/DELETE); `metadata` must not hold full message bodies            |
-| `outbox_events`        | tenant                   | Events written in the same transaction as the change | unique (`organization_id`, `idempotency_key`); partial index on pending `available_at`                  |
-| `stored_files`         | tenant                   | Metadata of a file in object storage                 | `object_key` unique and CHECK-pinned to `tenants/<organization_id>/<id>`; `size_bytes >= 0`             |
+| Table                  | Owner                    | Purpose                                              | Key rules                                                                                                                                |
+| ---------------------- | ------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `organizations`        | tenant root              | A workspace (`/w/{slug}`)                            | `slug` unique; `status` active/suspended; `timezone` default `Europe/Malta`                                                              |
+| `users`                | user                     | Staff profile                                        | `email` citext unique; `auth_subject` unique, links to Supabase Auth in PR-004 (no FK to `auth` schema)                                  |
+| `memberships`          | tenant                   | Role of a user in one organisation                   | unique (`organization_id`, `user_id`); `role` owner/admin/member                                                                         |
+| `modules`              | shared reference         | Module catalogue                                     | seeded by the migration: crm, catalogue, inbox, quotations, orders                                                                       |
+| `organization_modules` | tenant                   | Entitlement + tenant config                          | PK (`organization_id`, `module_key`); `enabled` default false                                                                            |
+| `audit_entries`        | tenant (null = platform) | Who did what                                         | **append-only** (trigger blocks UPDATE/DELETE); `request_id` correlates with logs (PR-006); `metadata` must not hold full message bodies |
+| `outbox_events`        | tenant                   | Events written in the same transaction as the change | unique (`organization_id`, `idempotency_key`); partial index on pending `available_at`                                                   |
+| `stored_files`         | tenant                   | Metadata of a file in object storage                 | `object_key` unique and CHECK-pinned to `tenants/<organization_id>/<id>`; `size_bytes >= 0`                                              |
 
 Conventions:
 
@@ -56,6 +56,7 @@ Conventions:
   | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
   | `users`                                                | read self and colleagues (shared organisation); insert/update self                                      |
   | `organizations`, `organization_modules`, `memberships` | read where the caller is a member                                                                       |
+  | `organizations`                                        | update `name`/`timezone` as owner/admin of the bound tenant (PR-006, migration `0004`)                  |
   | `memberships`                                          | insert self only, backed by an invitation they accepted                                                 |
   | `invitations`                                          | read/create as owner/admin (owners alone invite owners); read/accept if addressed to the caller's email |
   | `audit_entries`                                        | insert as a member of that organisation, as themselves; no read                                         |

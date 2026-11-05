@@ -2,14 +2,14 @@ import { Badge } from "@onyx/ui/components/badge";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { type Me, apiGet } from "@/lib/api-client";
+import { withApi } from "@/lib/api-client";
 
 import { SignOutButton } from "../sign-out-button";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkspacesPage() {
-  const me = await apiGet<Me>("/me");
+  const me = await withApi((api) => api.GET("/v1/me"));
   if (!me.ok && me.status === "unauthenticated") redirect("/login?next=/workspaces");
 
   return (

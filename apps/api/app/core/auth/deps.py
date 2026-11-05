@@ -1,17 +1,18 @@
 """FastAPI dependencies: verified identity, provisioned user and workspace membership."""
 
+import logging
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.core.auth.roles import has_at_least
+from app.core.auth.permissions import Permission, has_permission
 from app.core.auth.tokens import (
     AuthenticationError,
     AuthUnavailableError,
@@ -24,31 +25,34 @@ from app.core.db.context import (
     bind_tenant,
     identity_transaction,
 )
+from app.core.errors import (
+    ConflictError,
+    NotAuthenticatedError,
+    NotFoundError,
+    PermissionDeniedError,
+    ServiceUnavailableError,
+)
+from app.core.logging import bind_request_fields
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
 
 _bearer = HTTPBearer(auto_error=False)
 
-UNAUTHENTICATED = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Not authenticated.",
-    headers={"WWW-Authenticate": "Bearer"},
-)
-WORKSPACE_NOT_FOUND = HTTPException(status.HTTP_404_NOT_FOUND, "Workspace not found.")
+logger = logging.getLogger("onyx.auth")
+
+WORKSPACE_NOT_FOUND_MESSAGE = "Workspace not found."
 
 
 def get_token_verifier(request: Request) -> TokenVerifier:
     verifier: TokenVerifier | None = request.app.state.token_verifier
     if verifier is None:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "Authentication is not configured."
-        )
+        raise ServiceUnavailableError("Authentication is not configured.")
     return verifier
 
 
 def get_session_factory(request: Request) -> async_sessionmaker[AsyncSession]:
     sessions: async_sessionmaker[AsyncSession] | None = request.app.state.session_factory
     if sessions is None:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Database is not configured.")
+        raise ServiceUnavailableError("Database is not configured.")
     return sessions
 
 
@@ -58,15 +62,13 @@ def get_identity(
 ) -> VerifiedIdentity:
     # Sync on purpose: a JWKS refresh is blocking I/O, so FastAPI runs this in a thread.
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise UNAUTHENTICATED
+        raise NotAuthenticatedError
     try:
         return verifier.verify(credentials.credentials)
     except AuthenticationError as exc:
-        raise UNAUTHENTICATED from exc
+        raise NotAuthenticatedError from exc
     except AuthUnavailableError as exc:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "Authentication is temporarily unavailable."
-        ) from exc
+        raise ServiceUnavailableError("Authentication is temporarily unavailable.") from exc
 
 
 IdentityDep = Annotated[VerifiedIdentity, Depends(get_identity)]
@@ -94,7 +96,7 @@ class CurrentUser:
 async def get_current_user(identity: IdentityDep, db: DbDep) -> CurrentUser:
     """The caller's profile, created on first sign-in. Never linked to a profile by email."""
     if identity.email is None:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "An email address is required.")
+        raise PermissionDeniedError("An email address is required.")
     await db.execute(
         insert(User)
         .values(
@@ -107,9 +109,8 @@ async def get_current_user(identity: IdentityDep, db: DbDep) -> CurrentUser:
     user = await db.scalar(select(User).where(User.auth_subject == identity.subject))
     if user is None:
         # The insert was skipped because another profile already uses this email.
-        raise HTTPException(
-            status.HTTP_409_CONFLICT, "This email is already linked to another account."
-        )
+        raise ConflictError("This email is already linked to another account.")
+    bind_request_fields(user_id=user.id)
     return CurrentUser(id=user.id, email=user.email, display_name=user.display_name)
 
 
@@ -138,22 +139,29 @@ async def get_workspace(slug: str, user: CurrentUserDep, db: DbDep) -> Workspace
         )
     ).first()
     if row is None:
-        raise WORKSPACE_NOT_FOUND
+        raise NotFoundError(WORKSPACE_NOT_FOUND_MESSAGE)
     organization, role = row
     try:
         tenant = await bind_tenant(db, organization.id)
     except TenantAccessDeniedError as exc:  # membership vanished mid-request
-        raise WORKSPACE_NOT_FOUND from exc
+        raise NotFoundError(WORKSPACE_NOT_FOUND_MESSAGE) from exc
+    bind_request_fields(organization_id=organization.id)
     return WorkspaceAccess(organization=organization, role=role, user=user, tenant=tenant)
 
 
 WorkspaceDep = Annotated[WorkspaceAccess, Depends(get_workspace)]
 
 
-def require_role(minimum: MembershipRole) -> object:
+def require_permission(permission: Permission) -> object:
+    """Dependency: the workspace, if the caller's role there grants ``permission``; else 403."""
+
     async def _check(workspace: WorkspaceDep) -> WorkspaceAccess:
-        if not has_at_least(workspace.role, minimum):
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient role.")
+        if not has_permission(workspace.role, permission):
+            logger.warning(
+                "permission denied",
+                extra={"fields": {"permission": permission.value, "role": workspace.role.value}},
+            )
+            raise PermissionDeniedError
         return workspace
 
     return Depends(_check)

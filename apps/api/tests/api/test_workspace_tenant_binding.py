@@ -28,7 +28,7 @@ def probe(db_url: str, tokens: TokenFactory) -> Iterator[TestClient]:
         session_factory=async_sessionmaker(engine, expire_on_commit=False),
     )
 
-    @app.get("/w/{slug}/_tenant")
+    @app.get("/v1/w/{slug}/_tenant")
     async def bound_tenant(workspace: WorkspaceDep, db: DbDep) -> dict[str, str]:
         bound = await db.scalar(text("SELECT app_current_organization_id()::text"))
         files = await db.scalar(text("SELECT count(*) FROM stored_files"))
@@ -48,21 +48,21 @@ def probe(db_url: str, tokens: TokenFactory) -> Iterator[TestClient]:
 def test_request_is_bound_to_the_selected_workspace(
     probe: TestClient, as_: As, slug: str, org: object
 ) -> None:
-    response = probe.get(f"/w/{slug}/_tenant", headers=as_.seeded(SAM))
+    response = probe.get(f"/v1/w/{slug}/_tenant", headers=as_.seeded(SAM))
     assert response.status_code == 200
     body = response.json()
     assert body["bound"] == body["context"] == str(org)
 
 
 def test_selecting_a_workspace_you_do_not_belong_to_is_rejected(probe: TestClient, as_: As) -> None:
-    response = probe.get("/w/harbour-catering-test/_tenant", headers=as_.seeded(OLIVIA))
+    response = probe.get("/v1/w/harbour-catering-test/_tenant", headers=as_.seeded(OLIVIA))
     assert response.status_code == 404
 
 
 def test_tenant_headers_and_query_parameters_are_ignored(probe: TestClient, as_: As) -> None:
     headers = {**as_.seeded(OLIVIA), "X-Organization-Id": str(HARBOUR)}
     response = probe.get(
-        "/w/lumen-lighting-test/_tenant", headers=headers, params={"organization_id": HARBOUR}
+        "/v1/w/lumen-lighting-test/_tenant", headers=headers, params={"organization_id": HARBOUR}
     )
     assert response.status_code == 200
     assert response.json()["bound"] == str(LUMEN)

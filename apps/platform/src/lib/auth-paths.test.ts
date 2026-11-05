@@ -1,16 +1,29 @@
 import { isProtectedPath, loginRedirect } from "./auth-paths";
 
 describe("isProtectedPath", () => {
-  it.each(["/workspaces", "/w/lumen", "/w/lumen/settings", "/w"])("protects %s", (path) => {
+  it.each([
+    "/workspaces",
+    "/w/lumen",
+    "/w/lumen/settings",
+    "/w",
+    "/admin",
+    "/admin/status",
+    "/invitations/accept",
+  ])("protects %s", (path) => {
     expect(isProtectedPath(path)).toBe(true);
   });
 
-  it.each(["/", "/login", "/auth/callback", "/dashboard", "/workspaces-public", "/wiki"])(
-    "leaves %s public",
-    (path) => {
-      expect(isProtectedPath(path)).toBe(false);
-    },
-  );
+  it.each([
+    "/",
+    "/login",
+    "/auth/callback",
+    "/dashboard",
+    "/workspaces-public",
+    "/wiki",
+    "/administrator",
+  ])("leaves %s public", (path) => {
+    expect(isProtectedPath(path)).toBe(false);
+  });
 });
 
 describe("loginRedirect", () => {

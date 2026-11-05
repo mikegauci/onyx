@@ -12,6 +12,9 @@ packages/api-client/src/schema.ts
 pnpm-lock.yaml
 apps/api/
 **/.next/
+**/.next-e2e/
+**/test-results/
+**/playwright-report/
 **/node_modules/
 **/next-env.d.ts
 **/coverage/

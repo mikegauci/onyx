@@ -6,7 +6,8 @@ through the generated client in `packages/api-client`.
 ## Versioning
 
 - Product routes live under `/v1` (`/v1/me`, `/v1/w/{slug}`, `/v1/w/{slug}/members`,
-  `/v1/w/{slug}/invitations`, `/v1/invitations/accept`). `/health` stays unversioned for
+  `/v1/w/{slug}/invitations`, `/v1/w/{slug}/audit`, `/v1/invitations/accept`,
+  `/v1/admin/organizations`). `/health` stays unversioned for
   load balancers and smoke checks.
 - Additive changes (new routes, new optional fields) stay in `/v1`. A breaking change ships as
   `/v2` alongside `/v1` until every client has moved.
@@ -51,6 +52,7 @@ Routes require a **permission**, never a role (`require_permission`, `app/core/a
 | `workspace.update`   |   ✓   |   ✓   |        |
 | `members.read`       |   ✓   |   ✓   |        |
 | `invitations.create` |   ✓   |   ✓   |        |
+| `audit.read`         |   ✓   |   ✓   |        |
 
 Inviting an owner additionally requires being an owner (`can_grant`). `GET /v1/w/{slug}`
 returns the caller's `permissions` so the UI can hide actions; the backend checks every
@@ -69,8 +71,20 @@ request regardless. Denials are logged (`permission`, `role`, `user_id`, `organi
   are append-only (trigger) and written in the same transaction as the change, so a rejected or
   failed change leaves no entry.
 - Audited so far: `workspace.updated` (before/after values), `invitation.created`,
-  `invitation.accepted`, `membership.created`. Reading the audit log arrives with the admin
-  shell (PR-007).
+  `invitation.accepted`, `membership.created`.
+- `GET /v1/w/{slug}/audit?limit=1..100&cursor=…` (PR-007): newest first, keyset-paginated by
+  (`occurred_at`, `id`); `next_cursor` is opaque; a malformed cursor is `400 bad_request`. The
+  actor's name is null once they are no longer visible (left the workspace).
+
+## Platform admin (PR-007)
+
+- `require_platform_admin`: the caller must have a `platform_admins` row; everyone else gets
+  `404 not_found`, so the admin API is indistinguishable from a missing route.
+- `GET /v1/admin/organizations`: account metadata only (id, slug, name, status, timezone,
+  created_at, member_count, enabled modules), read through the SECURITY DEFINER function
+  `app_admin_organization_summaries()`, which returns nothing for non-admins. Platform admins
+  have **no** tenant access (`/v1/w/{slug}` is 404 for them).
+- `/v1/me` includes `is_platform_admin` so the dashboard can show the admin link.
 
 ## Generated TypeScript client
 

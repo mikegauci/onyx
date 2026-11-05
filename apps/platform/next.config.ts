@@ -10,6 +10,8 @@ supabaseEnv();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The Playwright suite builds into its own directory so it never clobbers `make dev`.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   transpilePackages: ["@onyx/ui", "@onyx/api-client"],
   // CLAUDE.md is the single source of agent instructions; skip generated AGENTS.md.

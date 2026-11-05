@@ -1,59 +1,58 @@
 import { Badge } from "@onyx/ui/components/badge";
+import { Card, CardDescription, CardHeader, CardTitle } from "@onyx/ui/components/card";
+import { EmptyState } from "@onyx/ui/components/states";
+import { Blocks } from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
-import { withApi } from "@/lib/api-client";
-
-import { SignOutButton } from "../../sign-out-button";
-
-export const dynamic = "force-dynamic";
+import { getWorkspace } from "@/lib/data";
+import { requireOk } from "@/lib/guards";
+import { moduleLabel } from "@/lib/modules";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export default async function WorkspacePage({ params }: Props) {
+export default async function WorkspaceOverviewPage({ params }: Props) {
   const { slug } = await params;
-  const result = await withApi((api) => api.GET("/v1/w/{slug}", { params: { path: { slug } } }));
-  if (!result.ok) {
-    if (result.status === "unauthenticated") redirect(`/login?next=/w/${encodeURIComponent(slug)}`);
-    if (result.status === "not_found" || result.status === "forbidden") notFound();
-    return (
-      <main className="mx-auto max-w-xl px-6 py-16">
-        <p role="alert">The Onyx API is unavailable. Try again shortly.</p>
-      </main>
-    );
-  }
-  const workspace = result.data;
+  const workspace = requireOk(await getWorkspace(slug), `/w/${slug}`);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-6 py-16">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <Link href="/workspaces" className="text-muted-foreground text-sm hover:underline">
-            All workspaces
-          </Link>
-          <h1 className="text-3xl font-semibold tracking-tight">{workspace.name}</h1>
-        </div>
-        <SignOutButton />
-      </header>
-      <p>
-        Your role: <Badge variant="secondary">{workspace.role}</Badge>
-      </p>
-      <section aria-labelledby="modules-heading" className="flex flex-col gap-2">
+    <>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">{workspace.name}</h1>
+        <p className="text-muted-foreground text-sm">
+          Your role: <Badge variant="secondary">{workspace.role}</Badge> · Timezone{" "}
+          {workspace.timezone}
+        </p>
+      </div>
+      <section aria-labelledby="modules-heading" className="flex flex-col gap-3">
         <h2 id="modules-heading" className="font-medium">
           Enabled modules
         </h2>
         {workspace.modules.length === 0 ? (
-          <p className="text-muted-foreground">No modules enabled yet.</p>
+          <EmptyState
+            icon={Blocks}
+            title="No modules enabled yet"
+            description="An administrator can enable modules for this workspace."
+          />
         ) : (
-          <ul className="flex flex-wrap gap-2">
-            {workspace.modules.map((m) => (
-              <li key={m}>
-                <Badge variant="outline">{m}</Badge>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {workspace.modules.map((key) => (
+              <li key={key}>
+                <Link
+                  href={`/w/${workspace.slug}/m/${key}`}
+                  className="focus-visible:ring-ring block rounded-xl focus-visible:ring-2 focus-visible:outline-none"
+                >
+                  <Card className="hover:bg-muted/50 h-full transition-colors">
+                    <CardHeader>
+                      <CardTitle>{moduleLabel(key)}</CardTitle>
+                      <CardDescription>Open {moduleLabel(key)}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
               </li>
             ))}
           </ul>
         )}
       </section>
-    </main>
+    </>
   );
 }

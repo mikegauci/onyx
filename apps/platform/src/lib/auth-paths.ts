@@ -1,11 +1,8 @@
 /** Paths that require a signed-in user. The API still authorises every request. */
+const PROTECTED_PREFIXES = ["/workspaces", "/w", "/admin", "/invitations"];
+
 export function isProtectedPath(pathname: string): boolean {
-  return (
-    pathname === "/workspaces" ||
-    pathname.startsWith("/workspaces/") ||
-    pathname === "/w" ||
-    pathname.startsWith("/w/")
-  );
+  return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /** Login URL that returns the user to where they were going. */

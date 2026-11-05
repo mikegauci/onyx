@@ -1,6 +1,6 @@
 import "server-only";
 
-import { type ApiClient, apiErrorOf, createApiClient } from "@onyx/api-client";
+import { type ApiClient, type ApiError, apiErrorOf, createApiClient } from "@onyx/api-client";
 
 import { platformEnv } from "./env";
 import { getAccessToken } from "./supabase/server";
@@ -26,6 +26,40 @@ export function newRequestId(): string {
  *
  * @example withApi((api) => api.GET("/v1/w/{slug}", { params: { path: { slug } } }))
  */
+/** Outcome of a mutation, keeping the API's error body (codes, field details). */
+export type MutationOutcome<T> =
+  { ok: true; data: T } | { ok: false; status: number; error?: ApiError; requestId: string };
+
+/** Like `withApi`, but returns the standard error body so forms can show field errors. */
+export async function mutateApi<T>(
+  call: (api: ApiClient) => Promise<CallResult<T>>,
+  fetchImpl: typeof fetch = fetch,
+): Promise<MutationOutcome<T>> {
+  const token = await getAccessToken();
+  const requestId = newRequestId();
+  if (!token) return { ok: false, status: 401, requestId };
+  const api = createApiClient({
+    baseUrl: platformEnv().apiUrl,
+    accessToken: token,
+    requestId,
+    fetch: (input) =>
+      fetchImpl(input, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) }),
+  });
+  try {
+    const result = await call(api);
+    if (result.response.ok && result.data !== undefined) return { ok: true, data: result.data };
+    const error = apiErrorOf(result.error);
+    return {
+      ok: false,
+      status: result.response.status,
+      error,
+      requestId: error?.request_id ?? requestId,
+    };
+  } catch {
+    return { ok: false, status: 503, requestId };
+  }
+}
+
 export async function withApi<T>(
   call: (api: ApiClient) => Promise<CallResult<T>>,
   fetchImpl: typeof fetch = fetch,

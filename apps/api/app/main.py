@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.api.admin import router as admin_router
+from app.api.audit import router as audit_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
 from app.api.workspaces import router as workspaces_router
@@ -82,6 +84,8 @@ def create_app(
     v1 = APIRouter(prefix=API_VERSION_PREFIX)
     v1.include_router(me_router)
     v1.include_router(workspaces_router)
+    v1.include_router(audit_router)
+    v1.include_router(admin_router)
     app.include_router(v1)
     return app
 

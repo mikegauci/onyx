@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from sqlalchemy import Connection, create_engine
 from sqlalchemy.dialects.postgresql import insert
 
+from app.core.admin.models import PlatformAdmin
 from app.core.config import Settings
 from app.core.modules.models import OrganizationModule
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
@@ -45,7 +46,11 @@ SEED_USERS: dict[str, str] = {
     "max.member@harbour.example.test": "Max Member",
     # Belongs to both organisations, for workspace-selection and isolation tests.
     "sam.consultant@onyx.example.test": "Sam Consultant",
+    # Platform admin with no tenant membership, for the /admin shell and its access tests.
+    "pat.platform@onyx.example.test": "Pat Platform",
 }
+
+SEED_PLATFORM_ADMINS: tuple[str, ...] = ("pat.platform@onyx.example.test",)
 
 SEED_ORGANIZATIONS: tuple[SeedOrganization, ...] = (
     SeedOrganization(
@@ -89,6 +94,10 @@ def seed(connection: Connection) -> None:
                 display_name=display_name,
             )
             .on_conflict_do_nothing()
+        )
+    for email in SEED_PLATFORM_ADMINS:
+        connection.execute(
+            insert(PlatformAdmin).values(user_id=seed_id(email)).on_conflict_do_nothing()
         )
     for org in SEED_ORGANIZATIONS:
         org_id = seed_id(org.slug)

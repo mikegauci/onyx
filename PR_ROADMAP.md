@@ -4,11 +4,19 @@
 **Scope:** one shared SaaS serving multiple client industries. First tenant is a lighting retailer.  
 **Method:** small, reviewable PRs. PR IDs are proposed tasks, not PRs already created on GitHub.
 
-Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [CLAUDE.md](CLAUDE.md) for non-negotiable rules, and [CLAUDE_WORKFLOW.md](CLAUDE_WORKFLOW.md) for the Claude Code execution loop.
+Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.md) for shared rules (`CLAUDE.md` imports them), and [CLAUDE_WORKFLOW.md](CLAUDE_WORKFLOW.md) for the execution loop. Current continuation notes: [Claude Code handoff](docs/claude-handoff.md).
 
-## Claude Code / Opus 5.5 delivery contract
+## Current delivery status — 5 November 2026
 
-**Model:** select **Claude Opus 5.5** in Claude Code before implementation; `CLAUDE.md` documents conventions but **does not automatically select a model**. Use Plan Mode for architecture- or data-sensitive PRs. Keeping one PR per session reduces context drift.
+- **PR-009 complete and merged:** [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13), merge commit `05c483da9e39836ecd29514549df7ba9730befe9`.
+- **CI passed:** [run 42031145333](https://github.com/mikegauci/onyx/actions/runs/42031145333) — web checks/tests/default build, API checks/tests/migrations, container smoke, browser tests and aggregate `ci`.
+- CRM includes customer/contact/lead archive/restore and concurrency-safe lead transitions. Migration head: `0009`.
+- **Next recommended scope: PR-010**, product catalogue and inventory read model. Start by inspecting the current repository and proposing its plan; wait for approval before implementation. No PR-010 work has started.
+- Use focused local checks and GitHub CI for broad validation. Avoid repeated local full-suite/build/browser loops; inspect CI failures and rerun only affected checks.
+
+## Delivery contract
+
+**Assistant/model:** use the tool and model selected by the user. `CLAUDE.md` imports `AGENTS.md`; neither file selects a model. Use Plan Mode for architecture- or data-sensitive PRs. Keeping one PR per session reduces context drift.
 
 **Every numbered PR follows the same steps:**
 
@@ -18,7 +26,7 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [CLAUDE.md](CLAUDE.m
 4. Generate typed contracts when APIs change; include SQL migrations, frontend and backend tests, negative multi-tenant tests, mocks/fixtures and docs appropriate to the PR.
 5. Run the actual repository quality commands (established by PR-001; canonical target `make check`). Report outputs and failures honestly, plus any checks blocked by accounts/credentials or external systems.
 6. Produce a focused diff summary, acceptance-criteria checklist, test evidence, migration and rollback instructions, risk notes and screenshots for UI work.
-7. Push/open a **draft** PR only with configured credentials and user permission. Never claim that GitHub PRs are created if only a local branch exists. Wait for review; **do not merge/deploy** without explicit approval.
+7. Follow the current publication/merge policy in `AGENTS.md`: open ready-for-review PRs, use required CI and CI-gated auto-merge, and never bypass failing or skipped required checks. Production deployment, live DNS and billable provisioning still require explicit approval. Never claim publication or merge without evidence.
 
 **Context strategy:** Keep `CLAUDE.md` compact; PR details live here, design decisions in the brief, and operational prompts in `CLAUDE_WORKFLOW.md`. Use separate fresh Claude Code sessions per PR when practical. Don't send the entire roadmap as repeated prompt text if it's already checked into the repo.
 
@@ -140,6 +148,7 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [CLAUDE.md](CLAUDE.m
 - **PR checklist:** Tests; tenant authorisation; migration/rollback if needed; logs/alerts as applicable; documentation; human review.
 
 ### PR-009 — Implement CRM: customers, leads and contacts
+- **Status:** merged in [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13); required CI passed. See [implementation evidence](docs/platform/crm-plan-review.md).
 - **Phase:** Pilot
 - **Depends on:** 005,007,008
 - **Estimated implementation:** 20–32h (rough order of magnitude, excludes waiting on third parties)
@@ -148,6 +157,7 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [CLAUDE.md](CLAUDE.m
 - **PR checklist:** Tests; tenant authorisation; migration/rollback if needed; logs/alerts as applicable; documentation; human review.
 
 ### PR-010 — Implement product catalogue and inventory read model
+- **Status:** next recommended planning task; not implemented.
 - **Phase:** Pilot
 - **Depends on:** 005,007,008
 - **Estimated implementation:** 22–38h (rough order of magnitude, excludes waiting on third parties)

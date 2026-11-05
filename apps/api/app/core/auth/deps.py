@@ -83,7 +83,11 @@ async def get_db(
         yield session
 
 
-DbDep = Annotated[AsyncSession, Depends(get_db)]
+# scope="function": the transaction commits (or rolls back) when the route returns, before the
+# response is sent. With the default "request" scope FastAPI closes the dependency after
+# sending, so a client could get a 200 for a change the next request cannot see yet, or one
+# whose commit then fails. A failed commit now becomes an error response instead.
+DbDep = Annotated[AsyncSession, Depends(get_db, scope="function")]
 
 
 @dataclass(frozen=True)

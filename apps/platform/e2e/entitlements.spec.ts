@@ -8,27 +8,21 @@ async function restoreLumen() {
   const session = await (
     await fetch(`${E2E.authUrl}/__e2e/session?email=${encodeURIComponent(USERS.pat)}`)
   ).json();
-  // Dependencies first. The API can answer before its transaction is visible to the next
-  // request, so a dependent module may briefly see its requirement as off (409): retry.
+  // Dependencies first: inbox and quotations need crm (and catalogue). Each change is
+  // committed before the API answers, so the next request sees it.
   for (const key of ["crm", "catalogue", "inbox", "quotations"]) {
-    let status = 0;
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const response = await fetch(
-        `${E2E.apiUrl}/v1/admin/organizations/lumen-lighting-test/modules/${key}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ enabled: true }),
+    const response = await fetch(
+      `${E2E.apiUrl}/v1/admin/organizations/lumen-lighting-test/modules/${key}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
         },
-      );
-      status = response.status;
-      if (status !== 409) break;
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-    if (status < 200 || status >= 300) throw new Error(`restore ${key}: ${status}`);
+        body: JSON.stringify({ enabled: true }),
+      },
+    );
+    if (!response.ok) throw new Error(`restore ${key}: ${response.status}`);
   }
 }
 

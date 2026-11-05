@@ -3,8 +3,9 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.health import router as health_router
@@ -13,6 +14,7 @@ from app.api.workspaces import router as workspaces_router
 from app.core.auth.tokens import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
+from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 
 
@@ -22,6 +24,14 @@ def _default_verifier(settings: Settings) -> TokenVerifier | None:
     return TokenVerifier.for_jwks_url(
         jwks_url=settings.jwks_url, issuer=settings.jwt_issuer, audience=settings.jwt_audience
     )
+
+
+API_VERSION_PREFIX = "/v1"
+
+
+def _operation_id(route: APIRoute) -> str:
+    """Stable OpenAPI operation ids (the route function name) for the generated TS client."""
+    return route.name
 
 
 def create_app(
@@ -48,7 +58,12 @@ def create_app(
             if engine is not None:
                 await engine.dispose()
 
-    app = FastAPI(title="Onyx Platform API", version=settings.version, lifespan=lifespan)
+    app = FastAPI(
+        title="Onyx Platform API",
+        version=settings.version,
+        lifespan=lifespan,
+        generate_unique_id_function=_operation_id,
+    )
     app.dependency_overrides[get_settings] = lambda: settings
 
     app.add_middleware(
@@ -60,10 +75,14 @@ def create_app(
         expose_headers=[REQUEST_ID_HEADER],
     )
     app.add_middleware(RequestIdMiddleware)
+    install_error_handlers(app)
 
+    # /health stays unversioned for load balancers; the product API is versioned.
     app.include_router(health_router)
-    app.include_router(me_router)
-    app.include_router(workspaces_router)
+    v1 = APIRouter(prefix=API_VERSION_PREFIX)
+    v1.include_router(me_router)
+    v1.include_router(workspaces_router)
+    app.include_router(v1)
     return app
 
 

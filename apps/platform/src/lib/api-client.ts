@@ -1,53 +1,60 @@
 import "server-only";
 
+import { type ApiClient, apiErrorOf, createApiClient } from "@onyx/api-client";
+
 import { platformEnv } from "./env";
 import { getAccessToken } from "./supabase/server";
 
-export type Role = "owner" | "admin" | "member";
-export type WorkspaceSummary = { slug: string; name: string; role: Role };
-export type Me = {
-  user: { id: string; email: string; display_name: string };
-  workspaces: WorkspaceSummary[];
-};
-export type Workspace = {
-  slug: string;
-  name: string;
-  status: string;
-  timezone: string;
-  role: Role;
-  modules: string[];
-};
+export type { Me, Permission, Role, Workspace, WorkspaceSummary } from "@onyx/api-client";
+
+export type ApiFailure = "unauthenticated" | "not_found" | "forbidden" | "unavailable";
 
 export type ApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; status: "unauthenticated" | "not_found" | "forbidden" | "unavailable" };
+  { ok: true; data: T } | { ok: false; status: ApiFailure; requestId?: string };
+
+type CallResult<T> = { data?: T; error?: unknown; response: Response };
+
+const TIMEOUT_MS = 5000;
+
+export function newRequestId(): string {
+  return crypto.randomUUID().replaceAll("-", "");
+}
 
 /**
- * Calls the Onyx API as the signed-in user. Hand-written until the generated OpenAPI client
- * (PR-006). Never throws for expected failures.
+ * Calls the Onyx API as the signed-in user through the generated, typed client.
+ * Never throws for expected failures; the API stays the authority for every rule.
+ *
+ * @example withApi((api) => api.GET("/v1/w/{slug}", { params: { path: { slug } } }))
  */
-export async function apiGet<T>(
-  path: string,
+export async function withApi<T>(
+  call: (api: ApiClient) => Promise<CallResult<T>>,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ApiResult<T>> {
   const token = await getAccessToken();
   if (!token) return { ok: false, status: "unauthenticated" };
+  const requestId = newRequestId();
+  const api = createApiClient({
+    baseUrl: platformEnv().apiUrl,
+    accessToken: token,
+    requestId,
+    fetch: (input) =>
+      fetchImpl(input, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) }),
+  });
   try {
-    const response = await fetchImpl(new URL(path, platformEnv().apiUrl), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return toResult<T>(response);
+    return toResult(await call(api), requestId);
   } catch {
-    return { ok: false, status: "unavailable" };
+    return { ok: false, status: "unavailable", requestId };
   }
 }
 
-export async function toResult<T>(response: Response): Promise<ApiResult<T>> {
-  if (response.ok) return { ok: true, data: (await response.json()) as T };
-  if (response.status === 401) return { ok: false, status: "unauthenticated" };
-  if (response.status === 403) return { ok: false, status: "forbidden" };
-  if (response.status === 404) return { ok: false, status: "not_found" };
-  return { ok: false, status: "unavailable" };
+export function toResult<T>(result: CallResult<T>, requestId?: string): ApiResult<T> {
+  const { response } = result;
+  if (response.ok && result.data !== undefined) return { ok: true, data: result.data };
+  const id = apiErrorOf(result.error)?.request_id ?? requestId;
+  const failure = (status: ApiFailure): ApiResult<T> =>
+    id ? { ok: false, status, requestId: id } : { ok: false, status };
+  if (response.status === 401) return failure("unauthenticated");
+  if (response.status === 403) return failure("forbidden");
+  if (response.status === 404) return failure("not_found");
+  return failure("unavailable");
 }

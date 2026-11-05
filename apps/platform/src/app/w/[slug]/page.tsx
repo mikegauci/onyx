@@ -2,7 +2,7 @@ import { Badge } from "@onyx/ui/components/badge";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { type Workspace, apiGet } from "@/lib/api-client";
+import { withApi } from "@/lib/api-client";
 
 import { SignOutButton } from "../../sign-out-button";
 
@@ -12,7 +12,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export default async function WorkspacePage({ params }: Props) {
   const { slug } = await params;
-  const result = await apiGet<Workspace>(`/w/${encodeURIComponent(slug)}`);
+  const result = await withApi((api) => api.GET("/v1/w/{slug}", { params: { path: { slug } } }));
   if (!result.ok) {
     if (result.status === "unauthenticated") redirect(`/login?next=/w/${encodeURIComponent(slug)}`);
     if (result.status === "not_found" || result.status === "forbidden") notFound();

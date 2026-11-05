@@ -11,7 +11,7 @@ supabaseEnv();
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ["@onyx/ui"],
+  transpilePackages: ["@onyx/ui", "@onyx/api-client"],
   // CLAUDE.md is the single source of agent instructions; skip generated AGENTS.md.
   agentRules: false,
   async headers() {

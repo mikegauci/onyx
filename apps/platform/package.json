@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@onyx/api-client": "workspace:*",
     "@onyx/ui": "workspace:*",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",

@@ -7,6 +7,8 @@ PR_ROADMAP.md
 docs/planning-kit-README.md
 .github/
 # Generated / external
+packages/api-client/openapi.json
+packages/api-client/src/schema.ts
 pnpm-lock.yaml
 apps/api/
 **/.next/

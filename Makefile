@@ -12,7 +12,7 @@ DB_ENV := set -a; . ./$(ENV_FILE); set +a;
 ALEMBIC := cd $(API_DIR) && uv run alembic
 
 .PHONY: help setup up down dev dev-web dev-api check check-web check-api test test-web test-api \
-	fmt build api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-grant db-revision
+	fmt build api-client api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-grant db-revision
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -78,6 +78,10 @@ test-api: ## Run the API tests
 fmt: ## Auto-format and auto-fix
 	pnpm format
 	cd $(API_DIR) && uv run ruff format . && uv run ruff check --fix .
+
+api-client: ## Regenerate the OpenAPI contract and the typed TS client (packages/api-client)
+	cd $(API_DIR) && uv run python -m app.openapi_export ../../packages/api-client/openapi.json
+	pnpm --filter @onyx/api-client generate
 
 build: ## Production-build the Next.js apps
 	pnpm build

@@ -33,6 +33,8 @@ class AuditEntry(Base):
     details: Mapped[dict[str, Any]] = mapped_column(
         "metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )
+    # Correlates the entry with request logs (X-Request-ID); null for jobs without one.
+    request_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

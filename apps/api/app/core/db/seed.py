@@ -6,15 +6,18 @@ run in a deployed environment. All names and addresses are fictitious (``.test``
 
 import sys
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from decimal import Decimal
 
-from sqlalchemy import Connection, create_engine
+from sqlalchemy import Connection, create_engine, inspect
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.admin.models import PlatformAdmin
 from app.core.config import Settings
 from app.core.modules.models import OrganizationModule
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
+from app.modules.catalogue.models import Price, PriceList, Product, StockLevel, Variant, VatRate
 from app.modules.crm.models import Contact, Customer, CustomerKind, Lead, LeadSource, LeadStatus
 
 # Fixed namespace so seeded ids are stable across runs and usable in tests.
@@ -126,6 +129,75 @@ SEED_CRM: dict[str, dict[str | None, tuple[SeedContact, ...]]] = {
 }
 
 
+@dataclass(frozen=True)
+class SeedVariant:
+    sku: str
+    name: str
+    attributes: dict[str, str]
+    price_minor: int | None  # None: deliberately no price ("not provided")
+    stock: int | None  # None: deliberately no stock data ("unknown")
+
+
+@dataclass(frozen=True)
+class SeedProduct:
+    code: str
+    name: str
+    brand: str
+    category: str
+    vat_code: str | None  # None: deliberately no VAT rate set
+    variants: tuple[SeedVariant, ...] = field(default=())
+
+
+# Catalogue fixtures (fictitious brand and products). Prices are EUR cents, VAT-inclusive.
+SEED_CATALOGUE_SLUG = "lumen-lighting-test"
+SEED_VAT_RATES = (
+    ("STANDARD", "Standard rate (test)", Decimal("18.00")),
+    ("ZERO", "Zero rate (test)", Decimal("0.00")),
+)
+SEED_PRICE_LIST = ("RETAIL", "Retail (test)")
+SEED_AS_OF = datetime(2026, 11, 1, 8, 0, tzinfo=UTC)
+SEED_PRODUCTS: tuple[SeedProduct, ...] = (
+    SeedProduct(
+        "ARC-PENDANT",
+        "Arc pendant light",
+        "Lumetta (test)",
+        "Pendants",
+        "STANDARD",
+        (
+            SeedVariant(
+                "ARC-P-30-BRS", "30 cm, brass", {"diameter_cm": "30", "finish": "brass"}, 12900, 6
+            ),
+            SeedVariant(
+                "ARC-P-45-BLK", "45 cm, black", {"diameter_cm": "45", "finish": "black"}, 16900, 0
+            ),
+        ),
+    ),
+    SeedProduct(
+        "GARDEN-SPIKE",
+        "Garden spike light",
+        "Lumetta (test)",
+        "Outdoor",
+        "STANDARD",
+        (
+            SeedVariant(
+                "GSP-7W-3000K",
+                "7 W, 3000 K",
+                {"wattage": "7", "colour_temp_k": "3000", "ip_rating": "IP65"},
+                None,
+                24,
+            ),
+            SeedVariant(
+                "GSP-7W-4000K",
+                "7 W, 4000 K",
+                {"wattage": "7", "colour_temp_k": "4000", "ip_rating": "IP65"},
+                3450,
+                None,
+            ),
+        ),
+    ),
+)
+
+
 class SeedRefusedError(RuntimeError):
     """Raised when seeding is attempted in a deployed environment."""
 
@@ -172,6 +244,91 @@ def seed(connection: Connection) -> None:
                 .on_conflict_do_nothing()
             )
     seed_crm(connection)
+    # Older revisions (used by migration tests) have no catalogue tables yet.
+    if inspect(connection).has_table("catalogue_products"):
+        seed_catalogue(connection)
+
+
+def seed_catalogue(connection: Connection) -> None:
+    slug, org_id = SEED_CATALOGUE_SLUG, seed_id(SEED_CATALOGUE_SLUG)
+    vat_ids = {}
+    for code, name, rate in SEED_VAT_RATES:
+        vat_ids[code] = seed_id(f"{slug}:vat:{code}")
+        connection.execute(
+            insert(VatRate)
+            .values(
+                id=vat_ids[code], organization_id=org_id, code=code, name=name, rate_percent=rate
+            )
+            .on_conflict_do_nothing()
+        )
+    price_list_id = seed_id(f"{slug}:price-list:{SEED_PRICE_LIST[0]}")
+    connection.execute(
+        insert(PriceList)
+        .values(
+            id=price_list_id,
+            organization_id=org_id,
+            code=SEED_PRICE_LIST[0],
+            name=SEED_PRICE_LIST[1],
+            prices_include_vat=True,
+            is_default=True,
+        )
+        .on_conflict_do_nothing()
+    )
+    for product in SEED_PRODUCTS:
+        product_id = seed_id(f"{slug}:product:{product.code}")
+        connection.execute(
+            insert(Product)
+            .values(
+                id=product_id,
+                organization_id=org_id,
+                code=product.code,
+                name=product.name,
+                brand=product.brand,
+                category=product.category,
+                vat_rate_id=vat_ids[product.vat_code] if product.vat_code else None,
+            )
+            .on_conflict_do_nothing()
+        )
+        for variant in product.variants:
+            variant_id = seed_id(f"{slug}:sku:{variant.sku}")
+            connection.execute(
+                insert(Variant)
+                .values(
+                    id=variant_id,
+                    organization_id=org_id,
+                    product_id=product_id,
+                    sku=variant.sku,
+                    name=variant.name,
+                    attributes=variant.attributes,
+                )
+                .on_conflict_do_nothing()
+            )
+            if variant.price_minor is not None:
+                connection.execute(
+                    insert(Price)
+                    .values(
+                        id=seed_id(f"{slug}:price:{variant.sku}"),
+                        organization_id=org_id,
+                        variant_id=variant_id,
+                        price_list_id=price_list_id,
+                        amount_minor=variant.price_minor,
+                        valid_from=SEED_AS_OF,
+                    )
+                    .on_conflict_do_nothing()
+                )
+            if variant.stock is not None:
+                connection.execute(
+                    insert(StockLevel)
+                    .values(
+                        id=seed_id(f"{slug}:stock:{variant.sku}"),
+                        organization_id=org_id,
+                        variant_id=variant_id,
+                        location="main",
+                        quantity_available=variant.stock,
+                        observed_at=SEED_AS_OF,
+                    )
+                    .on_conflict_do_nothing()
+                )
 
 
 def seed_crm(connection: Connection) -> None:

@@ -21,6 +21,13 @@ TENANT_TABLES = (
     "crm_contacts",
     "crm_leads",
     "crm_activities",
+    "catalogue_vat_rates",
+    "catalogue_price_lists",
+    "catalogue_import_runs",
+    "catalogue_products",
+    "catalogue_variants",
+    "catalogue_prices",
+    "catalogue_stock_levels",
 )
 
 

@@ -1,7 +1,7 @@
-# Database schema (PR-003)
+# Database schema (PR-003, isolation PR-005)
 
 Alembic (`apps/api/migrations/`) is the only migration authority. SQLAlchemy 2 models live with
-their owning core area (`apps/api/app/core/{tenancy,modules,audit,outbox}/models.py`);
+their owning core area (`apps/api/app/core/{tenancy,modules,audit,outbox,storage}/models.py`);
 `app/core/db/registry.py` imports them all so `Base.metadata` is complete.
 
 **Status:** applied to local Docker Postgres and CI only. Not applied to the `onyx` Supabase
@@ -19,6 +19,8 @@ erDiagram
     organizations ||--o{ audit_entries : records
     users |o--o{ audit_entries : "acted in"
     organizations ||--o{ outbox_events : emits
+    organizations ||--o{ stored_files : owns
+    users |o--o{ stored_files : uploaded
 ```
 
 | Table                  | Owner                    | Purpose                                              | Key rules                                                                                               |
@@ -30,6 +32,7 @@ erDiagram
 | `organization_modules` | tenant                   | Entitlement + tenant config                          | PK (`organization_id`, `module_key`); `enabled` default false                                           |
 | `audit_entries`        | tenant (null = platform) | Who did what                                         | **append-only** (trigger blocks UPDATE/DELETE); `metadata` must not hold full message bodies            |
 | `outbox_events`        | tenant                   | Events written in the same transaction as the change | unique (`organization_id`, `idempotency_key`); partial index on pending `available_at`                  |
+| `stored_files`         | tenant                   | Metadata of a file in object storage                 | `object_key` unique and CHECK-pinned to `tenants/<organization_id>/<id>`; `size_bytes >= 0`             |
 
 Conventions:
 
@@ -56,7 +59,7 @@ Conventions:
   | `memberships`                                          | insert self only, backed by an invitation they accepted                                                 |
   | `invitations`                                          | read/create as owner/admin (owners alone invite owners); read/accept if addressed to the caller's email |
   | `audit_entries`                                        | insert as a member of that organisation, as themselves; no read                                         |
-  | `outbox_events`                                        | nothing yet                                                                                             |
+  | `outbox_events`                                        | insert in the bound tenant only (PR-005); no read                                                       |
 
 - Helper functions `app_current_user_id()`, `app_membership_role(org)`, etc. are
   `SECURITY DEFINER` with a fixed `search_path`, so policies can consult memberships without
@@ -67,13 +70,84 @@ Conventions:
 
 ### Default deny
 
-- Row-level security is **enabled with no policies** on every table except `modules` and
-  `alembic_version` (`RLS_EXEMPT_TABLES`). Any role other than the table owner therefore reads,
-  inserts, updates and deletes nothing. Tests prove this with a throwaway non-owner role.
+- Row-level security is enabled on every table except `modules` and `alembic_version`
+  (`RLS_EXEMPT_TABLES`). Policies exist only for `onyx_app` and `onyx_worker`, so any other role
+  except the table owner reads, inserts, updates and deletes nothing (tested with a throwaway
+  non-owner role).
 - A guard test fails if a new public table lacks RLS and is not explicitly exempted.
 - The owner role (migrations, seeding) bypasses RLS because RLS is not `FORCE`d. It must never
-  serve user requests.
-- **PR-005** adds per-tenant policies for business data and tenant-scoped repositories.
+  serve user requests or jobs.
+
+### Tenant-bound business data (PR-005, migration `0003`)
+
+Business data is scoped to **one bound tenant per transaction**, in addition to the identity
+rules above.
+
+- **Binding.** `app.current_organization_id` is set transaction-locally, read by
+  `app_current_organization_id()`.
+  - Requests: `get_workspace` resolves `/w/{slug}` through the caller's membership, then
+    `bind_tenant()` sets the setting and re-checks membership. The tenant never comes from a
+    URL id, body, header or model output; non-members get 404.
+  - Workers: `worker_transaction(sessions, organization_id)` enters `onyx_worker`
+    (`NOLOGIN NOBYPASSRLS`, no end user) and binds the job's tenant explicitly; an unknown
+    organisation is rejected.
+- **Policies** (`app/core/db/rls.py`, applied by `create_tenant_policies(table)`), on every
+  command (`USING` and `WITH CHECK`):
+
+  | Role          | Policy                  | A row is visible/writable when                                  |
+  | ------------- | ----------------------- | --------------------------------------------------------------- |
+  | `onyx_app`    | `<table>_tenant_app`    | `organization_id` = bound tenant **and** the caller is a member |
+  | `onyx_worker` | `<table>_tenant_worker` | `organization_id` = bound tenant                                |
+
+  Applied to `stored_files` and `outbox_events`. A forged setting therefore grants a user
+  nothing without a membership; a malformed one raises an error (fails closed). The worker can
+  also read its bound `organizations` row and `organization_modules`, and nothing in `users`,
+  `memberships`, `invitations` or `audit_entries`.
+
+- **Grants.** `onyx_app`: `stored_files` select/insert/delete and update of `filename` only (so
+  `organization_id` cannot be changed); `outbox_events` insert only. `onyx_worker`: the same on
+  `stored_files`; `outbox_events` select/insert and update of delivery columns.
+- **Repositories.** `TenantRepository` (`app/core/db/repository.py`) adds an explicit
+  `organization_id` filter on every read/delete and sets `organization_id` from the bound
+  `TenantContext` on insert; passing it as input raises `TenantScopeError`.
+- **Object storage.** `TenantFileService` (`app/core/storage/`) builds keys only as
+  `tenants/<organization_id>/<file_id>` on the server, re-validates the key against the bound
+  tenant before every read/delete, and serves a file only if its metadata row is visible. Another
+  tenant's file id behaves like a missing one. Backends: in-memory (tests) and a local directory
+  (development, confined to its root). A Supabase Storage backend (private bucket, server-side
+  credentials) arrives with the first feature that stores real files.
+- **New tenant tables** must call `create_tenant_policies()` in their migration. A guard test
+  fails for any table with `organization_id` that lacks both policies, unless it is listed in
+  `IDENTITY_SCOPED_TENANT_TABLES` (`memberships`, `invitations`, `organization_modules`,
+  `audit_entries`, which keep their membership-based PR-004 rules).
+- **Tests** (`tests/api/test_tenant_rls.py`, `test_tenant_context.py`,
+  `test_workspace_tenant_binding.py`, `tests/test_storage_keys.py`): two tenants plus a user in
+  both; cross-tenant reads, inserts, updates, deletes and file access; improper tenant
+  selection (forged setting, non-member slug, ignored tenant headers/params); worker scoping;
+  no context leak across transactions on one pooled connection.
+
+Known limits:
+
+- Both restricted roles are entered with `SET LOCAL ROLE` from the login role, so SQL that the
+  application itself runs could `RESET ROLE`. The API never executes caller-supplied SQL (and
+  LLMs never get SQL tools); keep it that way.
+- The outbox relay that publishes events for all tenants needs its own cross-tenant role; it is
+  designed with the Temporal worker (PR-020).
+- Upload writes the object after the metadata row; a rolled-back transaction can leave an
+  unreferenced object (never served). Reconciliation is a follow-up for the first real storage
+  feature.
+
+### Deployed role setup (owner action, before the first deployed database)
+
+```sql
+-- As the schema owner, after `alembic upgrade head`:
+CREATE ROLE onyx_api_login LOGIN PASSWORD '<secret>' NOSUPERUSER NOBYPASSRLS NOINHERIT;
+GRANT onyx_app TO onyx_api_login;           -- API (ONYX_API_DATABASE_URL)
+CREATE ROLE onyx_worker_login LOGIN PASSWORD '<secret>' NOSUPERUSER NOBYPASSRLS NOINHERIT;
+GRANT onyx_worker TO onyx_worker_login;     -- Temporal worker (PR-020)
+```
+
+Never grant both roles to one login.
 
 ## Configuration
 

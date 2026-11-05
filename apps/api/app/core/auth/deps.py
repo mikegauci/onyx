@@ -18,7 +18,12 @@ from app.core.auth.tokens import (
     TokenVerifier,
     VerifiedIdentity,
 )
-from app.core.db.context import identity_transaction
+from app.core.db.context import (
+    TenantAccessDeniedError,
+    TenantContext,
+    bind_tenant,
+    identity_transaction,
+)
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
 
 _bearer = HTTPBearer(auto_error=False)
@@ -116,10 +121,15 @@ class WorkspaceAccess:
     organization: Organization
     role: MembershipRole
     user: CurrentUser
+    tenant: TenantContext
 
 
 async def get_workspace(slug: str, user: CurrentUserDep, db: DbDep) -> WorkspaceAccess:
-    """The workspace named by ``slug`` if the caller is a member; 404 otherwise."""
+    """The workspace named by ``slug`` if the caller is a member; 404 otherwise.
+
+    On success the request transaction is bound to that organisation, so tenant policies
+    scope every later query to it.
+    """
     row = (
         await db.execute(
             select(Organization, Membership.role)
@@ -130,7 +140,11 @@ async def get_workspace(slug: str, user: CurrentUserDep, db: DbDep) -> Workspace
     if row is None:
         raise WORKSPACE_NOT_FOUND
     organization, role = row
-    return WorkspaceAccess(organization=organization, role=role, user=user)
+    try:
+        tenant = await bind_tenant(db, organization.id)
+    except TenantAccessDeniedError as exc:  # membership vanished mid-request
+        raise WORKSPACE_NOT_FOUND from exc
+    return WorkspaceAccess(organization=organization, role=role, user=user, tenant=tenant)
 
 
 WorkspaceDep = Annotated[WorkspaceAccess, Depends(get_workspace)]

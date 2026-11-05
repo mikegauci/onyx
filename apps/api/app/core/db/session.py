@@ -11,7 +11,7 @@ from app.core.config import Settings
 
 
 def create_engine(settings: Settings) -> AsyncEngine:
-    """Engine for the application role. Tenant context handling arrives in PR-005."""
+    """Engine for the login role; transactions drop to onyx_app or onyx_worker (see db.context)."""
     return create_async_engine(settings.require_database_url(), pool_pre_ping=True)
 
 

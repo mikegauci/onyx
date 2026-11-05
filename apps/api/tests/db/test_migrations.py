@@ -3,7 +3,8 @@
 from alembic import command
 from sqlalchemy import Engine, create_engine, inspect, text
 
-from app.core.db.registry import RLS_EXEMPT_TABLES, Base
+from app.core.db.registry import IDENTITY_SCOPED_TENANT_TABLES, RLS_EXEMPT_TABLES, Base
+from app.core.db.rls import APP_ROLE, WORKER_ROLE, tenant_policy_names
 from tests.db_fixtures import TemporaryDatabase, alembic_config
 
 EXPECTED_TABLES = {
@@ -15,6 +16,7 @@ EXPECTED_TABLES = {
     "audit_entries",
     "outbox_events",
     "invitations",
+    "stored_files",
 }
 
 
@@ -61,6 +63,37 @@ def test_every_non_exempt_table_has_row_level_security(migrated_engine: Engine) 
         ).all()
     missing = sorted(name for name, rls in rows if not rls and name not in RLS_EXEMPT_TABLES)
     assert missing == [], f"Tables without row-level security: {missing}"
+
+
+def test_every_tenant_table_has_the_standard_tenant_policies(migrated_engine: Engine) -> None:
+    """Guard: a new table with ``organization_id`` cannot ship without tenant isolation."""
+    with migrated_engine.connect() as conn:
+        tenant_tables = set(
+            conn.execute(
+                text(
+                    "SELECT table_name FROM information_schema.columns "
+                    "WHERE table_schema = 'public' AND column_name = 'organization_id'"
+                )
+            ).scalars()
+        )
+        policies = {
+            (table, name): (roles, qual, check)
+            for table, name, roles, qual, check in conn.execute(
+                text(
+                    "SELECT tablename, policyname, roles, qual, with_check FROM pg_policies "
+                    "WHERE schemaname = 'public'"
+                )
+            )
+        }
+    business_tables = tenant_tables - IDENTITY_SCOPED_TENANT_TABLES
+    assert "stored_files" in business_tables
+    for table in sorted(business_tables):
+        for name, role in zip(tenant_policy_names(table), (APP_ROLE, WORKER_ROLE), strict=True):
+            assert (table, name) in policies, f"{table} lacks tenant policy {name}"
+            roles, qual, check = policies[(table, name)]
+            assert list(roles) == [role]
+            assert "app_current_organization_id()" in qual
+            assert "app_current_organization_id()" in check
 
 
 def test_required_extensions_are_installed(migrated_engine: Engine) -> None:

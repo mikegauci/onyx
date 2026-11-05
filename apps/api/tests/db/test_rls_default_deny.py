@@ -15,6 +15,7 @@ TENANT_TABLES = (
     "audit_entries",
     "outbox_events",
     "invitations",
+    "stored_files",
 )
 
 

@@ -746,12 +746,13 @@ class CatalogueService:
         new_products: dict[str, dict[str, Any]] = {}
         product_updates: dict[uuid.UUID, dict[str, Any]] = {}
         for code, details in product_details(kept).items():
+            vat_code = details["vat_code"]
             values: dict[str, Any] = {
                 "name": details["product_name"],
                 "brand": details["brand"],
                 "category": details["category"],
                 "description": details["description"],
-                "vat_rate_id": vat[details["vat_code"]] if details["vat_code"] else None,
+                "vat_rate_id": vat[vat_code] if vat_code else None,
             }
             product = products.get(code)
             if product is None:

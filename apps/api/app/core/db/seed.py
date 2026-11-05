@@ -251,7 +251,7 @@ def seed(connection: Connection) -> None:
 
 def seed_catalogue(connection: Connection) -> None:
     slug, org_id = SEED_CATALOGUE_SLUG, seed_id(SEED_CATALOGUE_SLUG)
-    vat_ids = {}
+    vat_ids: dict[str, uuid.UUID] = {}
     for code, name, rate in SEED_VAT_RATES:
         vat_ids[code] = seed_id(f"{slug}:vat:{code}")
         connection.execute(

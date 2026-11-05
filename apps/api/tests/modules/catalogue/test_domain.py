@@ -20,6 +20,8 @@ from app.modules.catalogue.importer import (
 )
 
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "catalogue" / "lighting-catalogue.csv"
+# The dashboard offers the same file as its downloadable example.
+EXAMPLE = Path(__file__).resolve().parents[5] / "apps" / "platform" / "public" / "examples"
 NOW = datetime(2026, 11, 5, 12, 0, tzinfo=UTC)
 HEADER = "sku,product_code,product_name"
 
@@ -125,6 +127,10 @@ def test_sample_catalogue_parses_without_inventing_data() -> None:
     description = products["HALO-DOWN"]["description"]
     assert description is not None
     assert description.startswith("Fire-rated")
+
+
+def test_dashboard_example_is_the_sample_catalogue() -> None:
+    assert (EXAMPLE / "catalogue.csv").read_bytes() == FIXTURE.read_bytes()
 
 
 # --- row and file validation -----------------------------------------------------------------

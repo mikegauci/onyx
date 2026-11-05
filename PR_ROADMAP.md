@@ -11,7 +11,7 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.m
 - **PR-009 complete and merged:** [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13), merge commit `05c483da9e39836ecd29514549df7ba9730befe9`.
 - **CI passed:** [run 42031145333](https://github.com/mikegauci/onyx/actions/runs/42031145333) — web checks/tests/default build, API checks/tests/migrations, container smoke, browser tests and aggregate `ci`.
 - CRM includes customer/contact/lead archive/restore and concurrency-safe lead transitions. Migration head: `0009`.
-- **Next recommended scope: PR-010**, product catalogue and inventory read model. Start by inspecting the current repository and proposing its plan; wait for approval before implementation. No PR-010 work has started.
+- **PR-010 implemented (in review):** catalogue and inventory read model, migration `0010`. See [docs/platform/catalogue.md](docs/platform/catalogue.md). Merge status is recorded on its GitHub PR.
 - Use focused local checks and GitHub CI for broad validation. Avoid repeated local full-suite/build/browser loops; inspect CI failures and rerun only affected checks.
 
 ## Delivery contract
@@ -157,7 +157,7 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.m
 - **PR checklist:** Tests; tenant authorisation; migration/rollback if needed; logs/alerts as applicable; documentation; human review.
 
 ### PR-010 — Implement product catalogue and inventory read model
-- **Status:** next recommended planning task; not implemented.
+- **Status:** implemented on `feat/catalogue-inventory-read-model`; see [docs/platform/catalogue.md](docs/platform/catalogue.md).
 - **Phase:** Pilot
 - **Depends on:** 005,007,008
 - **Estimated implementation:** 22–38h (rough order of magnitude, excludes waiting on third parties)

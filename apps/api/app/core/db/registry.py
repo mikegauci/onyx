@@ -10,6 +10,7 @@ from app.core.tenancy import models as tenancy_models
 from app.modules.catalogue import models as catalogue_models
 from app.modules.crm import models as crm_models
 from app.modules.inbox import models as inbox_models
+from app.modules.quotations import models as quotation_models
 
 __all__ = [
     "Base",
@@ -20,6 +21,7 @@ __all__ = [
     "inbox_models",
     "module_models",
     "outbox_models",
+    "quotation_models",
     "storage_models",
     "tenancy_models",
 ]

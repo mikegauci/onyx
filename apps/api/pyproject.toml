@@ -12,6 +12,7 @@ dependencies = [
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
     "pyjwt[crypto]==2.15.1",
+    "reportlab==4.5.1",
     "sqlalchemy[asyncio]==2.1.8",
     "uvicorn[standard]==0.54.0",
 ]
@@ -45,6 +46,11 @@ python_version = "3.13"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["app", "tests"]
+
+[[tool.mypy.overrides]]
+# ReportLab ships no type information; its use is confined to app/modules/quotations/pdf.py.
+module = ["reportlab", "reportlab.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

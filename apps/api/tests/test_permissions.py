@@ -23,6 +23,10 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.INBOX_READ: {OWNER, ADMIN, MEMBER},
     Permission.INBOX_WRITE: {OWNER, ADMIN, MEMBER},
     Permission.INBOX_MANAGE: {OWNER, ADMIN},
+    Permission.QUOTATIONS_READ: {OWNER, ADMIN, MEMBER},
+    Permission.QUOTATIONS_WRITE: {OWNER, ADMIN, MEMBER},
+    Permission.QUOTATIONS_APPROVE: {OWNER, ADMIN},
+    Permission.QUOTATIONS_MANAGE: {OWNER, ADMIN},
 }
 
 

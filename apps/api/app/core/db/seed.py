@@ -34,6 +34,16 @@ from app.modules.inbox.models import (
     Participant,
     ParticipantKind,
 )
+from app.modules.quotations.models import (
+    Counter,
+    Line,
+    LineKind,
+    Quote,
+    QuoteStatus,
+    Version,
+    VersionStatus,
+)
+from app.modules.quotations.pricing import LineInput, line_totals
 
 # Fixed namespace so seeded ids are stable across runs and usable in tests.
 SEED_NAMESPACE = uuid.UUID("6f1c2a52-0b7e-4f7d-9a51-3c1f0e0d5a01")
@@ -264,6 +274,8 @@ def seed(connection: Connection) -> None:
         seed_catalogue(connection)
     if inspect(connection).has_table("inbox_conversations"):
         seed_inbox(connection)
+    if inspect(connection).has_table("quotations_quotes"):
+        seed_quotations(connection)
 
 
 def seed_catalogue(connection: Connection) -> None:
@@ -567,6 +579,94 @@ def seed_inbox(connection: Connection) -> None:
                     )
                     .on_conflict_do_nothing()
                 )
+
+
+# One draft quote for Lumen: a catalogue SKU and a custom installation line.
+SEED_QUOTE_NUMBER = "Q-2026-0001"
+
+
+def seed_quotations(connection: Connection) -> None:
+    slug = SEED_CATALOGUE_SLUG
+    org_id = seed_id(slug)
+    quote_id = seed_id(f"{slug}:quote:{SEED_QUOTE_NUMBER}")
+    version_id = seed_id(f"{slug}:quote:{SEED_QUOTE_NUMBER}:v1")
+    contact_id = seed_id(f"{slug}:contact:clara.borg@seaview.example.test")
+    vat_id = seed_id(f"{slug}:vat:STANDARD")
+    connection.execute(
+        insert(Counter)
+        .values(organization_id=org_id, year=2026, last_number=1)
+        .on_conflict_do_nothing()
+    )
+    connection.execute(
+        insert(Quote)
+        .values(
+            id=quote_id,
+            organization_id=org_id,
+            number=SEED_QUOTE_NUMBER,
+            title="Lobby chandelier replacement",
+            contact_id=contact_id,
+            customer_id=seed_id(f"{slug}:customer:Seaview Hotel (test)"),
+            lead_id=seed_id(f"{slug}:lead:Lobby chandelier replacement"),
+            price_list_id=seed_id(f"{slug}:price-list:{SEED_PRICE_LIST[0]}"),
+            status=QuoteStatus.DRAFT,
+            current_version=1,
+            created_by_user_id=seed_id("olivia.owner@lumen.example.test"),
+        )
+        .on_conflict_do_nothing()
+    )
+    connection.execute(
+        insert(Version)
+        .values(
+            id=version_id,
+            organization_id=org_id,
+            quote_id=quote_id,
+            version=1,
+            status=VersionStatus.DRAFT,
+            prices_include_vat=True,
+        )
+        .on_conflict_do_nothing()
+    )
+    lines = (
+        (
+            LineKind.CATALOGUE,
+            "ARC-P-30-BRS",
+            "Arc pendant light - 30 cm, brass",
+            2,
+            12900,
+            Decimal("0"),
+        ),
+        (LineKind.CUSTOM, None, "Installation (half day)", 1, 8000, Decimal("0")),
+    )
+    for position, (kind, sku, description, quantity, price, discount) in enumerate(lines, 1):
+        totals = line_totals(
+            LineInput(price, quantity, discount, "STANDARD", Decimal("18.00")),
+            prices_include_vat=True,
+        )
+        connection.execute(
+            insert(Line)
+            .values(
+                id=seed_id(f"{slug}:quote:{SEED_QUOTE_NUMBER}:line:{position}"),
+                organization_id=org_id,
+                version_id=version_id,
+                position=position,
+                kind=kind,
+                variant_id=seed_id(f"{slug}:sku:{sku}") if sku else None,
+                sku=sku,
+                description=description,
+                quantity=quantity,
+                unit_price_minor=price,
+                source_price_id=seed_id(f"{slug}:price:{sku}") if sku else None,
+                price_valid_from=SEED_AS_OF if sku else None,
+                vat_rate_id=vat_id,
+                vat_code="STANDARD",
+                vat_percent=Decimal("18.00"),
+                discount_percent=discount,
+                net_minor=totals.net_minor,
+                vat_minor=totals.vat_minor,
+                gross_minor=totals.gross_minor,
+            )
+            .on_conflict_do_nothing()
+        )
 
 
 def run(settings: Settings) -> None:

@@ -18,7 +18,7 @@ test("owner navigates the workspace shell and settings", async ({ page, context 
   }
 
   await nav.getByRole("link", { name: "CRM" }).click();
-  await expect(page.getByText("CRM is on its way")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Leads", exact: true })).toBeVisible();
 
   await nav.getByRole("link", { name: "Settings" }).click();
   await expect(page).toHaveURL(`${LUMEN}/settings/general`);

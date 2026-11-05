@@ -17,6 +17,10 @@ TENANT_TABLES = (
     "invitations",
     "stored_files",
     "platform_admins",
+    "crm_customers",
+    "crm_contacts",
+    "crm_leads",
+    "crm_activities",
 )
 
 

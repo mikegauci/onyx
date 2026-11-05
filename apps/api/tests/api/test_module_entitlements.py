@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
+from fastapi.routing import APIRoute, iter_route_contexts
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import ProgrammingError
@@ -202,14 +202,17 @@ def test_every_module_path_is_gated() -> None:
     """Guard: a route under /v1/w/{slug}/<module>/... must depend on require_module(<module>)."""
     app = create_app()
     checked = 0
-    for route in app.routes:
+    # Included routers are nested (FastAPI >= 0.16x), so walk the effective routes with their
+    # full paths; ``app.routes`` alone would only show the top-level entries.
+    for context in iter_route_contexts(app.routes):
+        route, path = context.original_route, context.path or ""
         if not isinstance(route, APIRoute):
             continue
         for key in ModuleKey:
-            if route.path.startswith(f"/v1/w/{{slug}}/{key.value}"):
+            if path.startswith(f"/v1/w/{{slug}}/{key.value}/"):
                 checked += 1
-                assert key in _gates(None, route.dependant.dependencies), route.path
-    assert checked >= 0  # module routes arrive from PR-009; the guard applies from then on
+                assert key in _gates(None, route.dependant.dependencies), path
+    assert checked >= 18  # the CRM API; a guard that checks nothing must fail
 
 
 def test_registry_matches_the_catalogue(owner_engine: Engine) -> None:

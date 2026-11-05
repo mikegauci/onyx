@@ -14,7 +14,11 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   transpilePackages: ["@onyx/ui", "@onyx/api-client"],
-  // CLAUDE.md is the single source of agent instructions; skip generated AGENTS.md.
+  experimental: {
+    // A 1 MB CSV plus its preview and row errors must fit in the confirmation action.
+    serverActions: { bodySizeLimit: "2mb" },
+  },
+  // Root AGENTS.md owns project instructions; skip framework-generated agent rules.
   agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders(process.env.VERCEL_ENV) }];

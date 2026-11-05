@@ -51,6 +51,8 @@ class ErrorDetail(BaseModel):
     loc: list[str | int]
     msg: str
     type: str
+    # Id of a related record (e.g. the existing contact behind a duplicate), when relevant.
+    ref: str | None = None
 
 
 class ApiError(BaseModel):
@@ -72,8 +74,12 @@ class AppError(Exception):
     default_message = "Something went wrong."
     headers: dict[str, str] | None = None
 
-    def __init__(self, message: str | None = None) -> None:
+    def __init__(
+        self, message: str | None = None, *, details: list[ErrorDetail] | None = None
+    ) -> None:
         self.message = message or self.default_message
+        # Structured hints for clients (field locations, existing ids). Never submitted values.
+        self.details = details
         super().__init__(self.message)
 
 
@@ -100,6 +106,12 @@ class NotFoundError(AppError):
     status_code = 404
     code = ErrorCode.NOT_FOUND
     default_message = "Not found."
+
+
+class ValidationFailedError(AppError):
+    status_code = 422
+    code = ErrorCode.VALIDATION_FAILED
+    default_message = "The request is not valid."
 
 
 class ConflictError(AppError):
@@ -142,7 +154,9 @@ def internal_error_response() -> JSONResponse:
 
 async def _app_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)  # noqa: S101
-    return error_response(exc.status_code, exc.code, exc.message, headers=exc.headers)
+    return error_response(
+        exc.status_code, exc.code, exc.message, details=exc.details, headers=exc.headers
+    )
 
 
 async def _http_error(_: Request, exc: Exception) -> JSONResponse:

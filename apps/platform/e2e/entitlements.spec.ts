@@ -27,6 +27,8 @@ async function restoreLumen() {
 test.afterEach(restoreLumen);
 
 test("disabling CRM hides it and denies it for that tenant only", async ({ browser }) => {
+  // This scenario drives three separate signed-in browser contexts, including cold routes.
+  test.setTimeout(120_000);
   const admin = await browser.newContext();
   await signInAs(admin, USERS.pat);
   const adminPage = await admin.newPage();

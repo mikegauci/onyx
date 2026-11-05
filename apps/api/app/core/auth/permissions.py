@@ -15,14 +15,20 @@ class Permission(enum.StrEnum):
     MEMBERS_READ = "members.read"
     INVITATIONS_CREATE = "invitations.create"
     AUDIT_READ = "audit.read"
+    CRM_READ = "crm.read"
+    CRM_WRITE = "crm.write"  # create/edit customers, contacts and leads; notes; lead status
+    CRM_IMPORT = "crm.import"
+    CRM_ARCHIVE = "crm.archive"
 
 
-_MEMBER = frozenset({Permission.WORKSPACE_READ})
+_MEMBER = frozenset({Permission.WORKSPACE_READ, Permission.CRM_READ, Permission.CRM_WRITE})
 _ADMIN = _MEMBER | {
     Permission.WORKSPACE_UPDATE,
     Permission.MEMBERS_READ,
     Permission.INVITATIONS_CREATE,
     Permission.AUDIT_READ,
+    Permission.CRM_IMPORT,
+    Permission.CRM_ARCHIVE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

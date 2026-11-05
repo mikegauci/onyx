@@ -15,6 +15,7 @@ from app.core.admin.models import PlatformAdmin
 from app.core.config import Settings
 from app.core.modules.models import OrganizationModule
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
+from app.modules.crm.models import Contact, Customer, CustomerKind, Lead, LeadSource, LeadStatus
 
 # Fixed namespace so seeded ids are stable across runs and usable in tests.
 SEED_NAMESPACE = uuid.UUID("6f1c2a52-0b7e-4f7d-9a51-3c1f0e0d5a01")
@@ -78,6 +79,53 @@ SEED_ORGANIZATIONS: tuple[SeedOrganization, ...] = (
 )
 
 
+@dataclass(frozen=True)
+class SeedLead:
+    title: str
+    status: LeadStatus
+
+
+@dataclass(frozen=True)
+class SeedContact:
+    full_name: str
+    email: str
+    phone: str
+    leads: tuple[SeedLead, ...] = ()
+
+
+# CRM fixtures per organisation slug: customer name -> its contacts (None: no customer).
+SEED_CRM: dict[str, dict[str | None, tuple[SeedContact, ...]]] = {
+    "lumen-lighting-test": {
+        "Seaview Hotel (test)": (
+            SeedContact(
+                "Clara Borg",
+                "clara.borg@seaview.example.test",
+                "+35621000001",
+                (SeedLead("Lobby chandelier replacement", LeadStatus.QUALIFIED),),
+            ),
+        ),
+        None: (
+            SeedContact(
+                "Luca Vella",
+                "luca.vella@example.test",
+                "+35699000002",
+                (SeedLead("Garden lighting enquiry", LeadStatus.NEW),),
+            ),
+        ),
+    },
+    "harbour-catering-test": {
+        "Valletta Events (test)": (
+            SeedContact(
+                "Nina Camilleri",
+                "nina.camilleri@valletta-events.example.test",
+                "+35621000003",
+                (SeedLead("Wedding catering for 120 guests", LeadStatus.NEW),),
+            ),
+        ),
+    },
+}
+
+
 class SeedRefusedError(RuntimeError):
     """Raised when seeding is attempted in a deployed environment."""
 
@@ -123,6 +171,54 @@ def seed(connection: Connection) -> None:
                 )
                 .on_conflict_do_nothing()
             )
+    seed_crm(connection)
+
+
+def seed_crm(connection: Connection) -> None:
+    for slug, customers in SEED_CRM.items():
+        org_id = seed_id(slug)
+        for customer_name, contacts in customers.items():
+            customer_id = None
+            if customer_name is not None:
+                customer_id = seed_id(f"{slug}:customer:{customer_name}")
+                connection.execute(
+                    insert(Customer)
+                    .values(
+                        id=customer_id,
+                        organization_id=org_id,
+                        kind=CustomerKind.BUSINESS,
+                        name=customer_name,
+                    )
+                    .on_conflict_do_nothing()
+                )
+            for contact in contacts:
+                contact_id = seed_id(f"{slug}:contact:{contact.email}")
+                connection.execute(
+                    insert(Contact)
+                    .values(
+                        id=contact_id,
+                        organization_id=org_id,
+                        customer_id=customer_id,
+                        full_name=contact.full_name,
+                        email=contact.email,
+                        phone=contact.phone,
+                    )
+                    .on_conflict_do_nothing()
+                )
+                for lead in contact.leads:
+                    connection.execute(
+                        insert(Lead)
+                        .values(
+                            id=seed_id(f"{slug}:lead:{lead.title}"),
+                            organization_id=org_id,
+                            contact_id=contact_id,
+                            customer_id=customer_id,
+                            title=lead.title,
+                            source=LeadSource.MANUAL,
+                            status=lead.status,
+                        )
+                        .on_conflict_do_nothing()
+                    )
 
 
 def run(settings: Settings) -> None:

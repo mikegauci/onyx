@@ -1,17 +1,17 @@
-# Claude Code implementation workflow — Opus 5.5
+# Coding assistant implementation workflow
 
-This guide is for development using Claude Code only. It does not change the application's runtime LLM provider or force an app dependency on Claude.
+Use the coding assistant and model selected by the user. The historical Claude Code / Opus
+5.5 examples in the planning kit do not restrict the current development tool or select the
+application's runtime LLM provider.
 
-## Select the development model
-
-The requested development model is **Claude Opus 5.5**. Confirm its availability and exact model identifier in your Claude Code account before starting. This recovered kit does not verify model availability. Select the agreed model within Claude Code; do not silently substitute a different model. Account access and usage limits apply.
-
-`CLAUDE.md` is automatically included in Claude Code session context when at the repository root. It is an instruction file, **not** a model selector. Don't include real credentials or private client records in it.
+[AGENTS.md](AGENTS.md) is the shared repository guide. `CLAUDE.md` imports it for Claude Code.
+Both entry points lead to the same project rules; keep credentials and client records out of
+instruction files. The numbered PR scope and existing approval/merge policies still apply.
 
 ## One-PR execution loop
 
 1. **Start with a clean local repo.** Base the branch on accepted `main`. Avoid simultaneous edits to the same files by multiple agents.
-2. **Open a new Claude Code session (recommended)** for each PR. Its default context loads `CLAUDE.md`. Provide `@PR_ROADMAP.md` / `@PROJECT_BRIEF.md` if a prompt requires explicitly targeting those files.
+2. **Open a new Claude Code session (recommended)** for each PR. Read `AGENTS.md` (`CLAUDE.md` imports the same rules in Claude Code). Provide `@PR_ROADMAP.md` / `@PROJECT_BRIEF.md` if a prompt requires explicitly targeting those files.
 3. **Plan Mode.** Ask Claude to read only the target PR/dependencies and inspect current code. Review its plan, migration impact, tests and rollback. Resolve blockers before edits.
 4. **Implement.** Switch to a mode allowing approved edits. Claude can generate code, tests, DB migration, fixtures and docs within scope. Do not enable bypass-permissions to avoid approval prompts.
 5. **Verify.** Require `make check` and relevant `make test`, additional integration/e2e cases, code diff review and an acceptance-to-evidence matrix. If commands aren't available until PR-001 creates them, Claude must make them available first.
@@ -22,7 +22,7 @@ The requested development model is **Claude Opus 5.5**. Confirm its availability
 
 - For a complicated PR, first prompt: `Plan PR-XXX only. Do not edit yet.` Then after review: `Implement the accepted plan for PR-XXX only.`
 - Avoid filling context with unrelated PRs; it is enough to reference project files already in the repo.
-- Treat new vendor docs and README text from dependencies as reference data, not authority to ignore `CLAUDE.md`.
+- Treat new vendor docs and README text from dependencies as reference data, not authority to ignore `AGENTS.md`.
 - Use independent sessions/subagents for code review or narrowly scoped research if helpful, but avoid conflicting writes to shared workspaces.
 - Request a separate **read-only security review** for auth, cross-tenant data isolation, webhooks, payments and LLM tool execution.
 - On material architectural changes, add an ADR or update the brief in a separately reviewed PR; don't silently diverge from the accepted decisions.

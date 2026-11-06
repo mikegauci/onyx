@@ -76,8 +76,12 @@ test: test-web test-api ## Run all unit/smoke tests
 test-web: ## Run the JS unit tests
 	pnpm test
 
-test-api: ## Run the API tests
-	cd $(API_DIR) && uv run pytest
+# Parallel across CPU cores (pytest-xdist); each worker gets its own template database.
+# Serial run: make test-api PYTEST_ARGS=
+PYTEST_ARGS ?= -n auto --dist loadscope
+
+test-api: ## Run the API tests (in parallel; PYTEST_ARGS= for serial)
+	cd $(API_DIR) && uv run pytest $(PYTEST_ARGS)
 
 fmt: ## Auto-format and auto-fix
 	pnpm format

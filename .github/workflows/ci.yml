@@ -66,6 +66,16 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: make check-api
+      - name: Turn off Postgres durability (CI-only throwaway server)
+        # Never do this on a real database: a crash could lose or corrupt data.
+        env:
+          PGPASSWORD: onyx_local_only
+        run: |
+          for setting in "fsync = off" "synchronous_commit = off" "full_page_writes = off"; do
+            psql -h localhost -p 54322 -U onyx -d onyx -v ON_ERROR_STOP=1 -c "ALTER SYSTEM SET $setting"
+          done
+          psql -h localhost -p 54322 -U onyx -d onyx -v ON_ERROR_STOP=1 -c "SELECT pg_reload_conf()"
+          psql -h localhost -p 54322 -U onyx -d onyx -At -c "SHOW fsync" | grep -qx off
       - run: make test-api
       - name: Migrate and seed a database the way developers do
         # Seeding twice proves it is idempotent.
@@ -114,7 +124,31 @@ jobs:
           working-directory: apps/api
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
-      - run: cd apps/platform && pnpm exec playwright install --with-deps chromium
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(cd apps/platform && pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+      - name: Install Chromium and its OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd apps/platform && pnpm exec playwright install --with-deps chromium
+      - name: Install Chromium OS dependencies (browser restored from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: cd apps/platform && pnpm exec playwright install-deps chromium
+      - name: Turn off Postgres durability (CI-only throwaway server)
+        # Never do this on a real database: a crash could lose or corrupt data.
+        env:
+          PGPASSWORD: onyx_local_only
+        run: |
+          for setting in "fsync = off" "synchronous_commit = off" "full_page_writes = off"; do
+            psql -h localhost -p 54322 -U onyx -d onyx -v ON_ERROR_STOP=1 -c "ALTER SYSTEM SET $setting"
+          done
+          psql -h localhost -p 54322 -U onyx -d onyx -v ON_ERROR_STOP=1 -c "SELECT pg_reload_conf()"
+          psql -h localhost -p 54322 -U onyx -d onyx -At -c "SHOW fsync" | grep -qx off
       - run: make e2e
         env:
           CI: "1"

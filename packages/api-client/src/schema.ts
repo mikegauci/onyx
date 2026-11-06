@@ -55,6 +55,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/ai-budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Ai Budget */
+        get: operations["read_ai_budget"];
+        /** Set Ai Budget */
+        put: operations["set_ai_budget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{slug}/ai/test-call": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Ai Test Call */
+        post: operations["run_ai_test_call"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/organizations/{slug}/modules/{key}": {
         parameters: {
             query?: never;
@@ -122,6 +157,23 @@ export interface paths {
         head?: never;
         /** Update Workspace */
         patch: operations["update_workspace"];
+        trace?: never;
+    };
+    "/v1/w/{slug}/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Ai Usage */
+        get: operations["read_ai_usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/w/{slug}/audit": {
@@ -1028,6 +1080,113 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AIBudgetOut */
+        AIBudgetOut: {
+            /** Alert Percent */
+            alert_percent: number | null;
+            /** Monthly Limit Usd Micros */
+            monthly_limit_usd_micros: number | null;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Slug */
+            slug: string;
+            /** Spent Usd Micros */
+            spent_usd_micros: number;
+        };
+        /** AIBudgetUpdate */
+        AIBudgetUpdate: {
+            /**
+             * Alert Percent
+             * @default 80
+             */
+            alert_percent: number;
+            /** Monthly Limit Usd Micros */
+            monthly_limit_usd_micros: number;
+        };
+        /** AITestCallOut */
+        AITestCallOut: {
+            /** Attempts */
+            attempts: number;
+            /** Cost Usd Micros */
+            cost_usd_micros: number;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Provider */
+            provider: string;
+            reply: components["schemas"]["DiagnosticReply"];
+        };
+        /** AIUsageEventOut */
+        AIUsageEventOut: {
+            /** Attempts */
+            attempts: number;
+            /** Cost Usd Micros */
+            cost_usd_micros: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Kind */
+            error_kind: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Latency Ms */
+            latency_ms: number | null;
+            /** Model */
+            model: string;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Provider */
+            provider: string;
+            status: components["schemas"]["UsageStatus"];
+            /** Workload */
+            workload: string;
+        };
+        /** AIUsageSummary */
+        AIUsageSummary: {
+            /** Alert Percent */
+            alert_percent: number | null;
+            /** Events */
+            events: components["schemas"]["AIUsageEventOut"][];
+            /**
+             * Monthly Limit Usd Micros
+             * @description None: no budget, so AI is off.
+             */
+            monthly_limit_usd_micros: number | null;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Remaining Usd Micros */
+            remaining_usd_micros: number | null;
+            /**
+             * Spent Usd Micros
+             * @description Includes reservations of calls in flight.
+             */
+            spent_usd_micros: number;
+        };
         /** Acknowledgement */
         Acknowledgement: {
             code: components["schemas"]["WarningCode"];
@@ -1652,11 +1811,21 @@ export interface components {
          * @enum {string}
          */
         DeliveryStatus: "received" | "logged";
+        /** DiagnosticReply */
+        DiagnosticReply: {
+            /** Echo */
+            echo: string;
+            /**
+             * Status
+             * @constant
+             */
+            status: "ok";
+        };
         /**
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable";
+        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable" | "budget_exceeded";
         /** ErrorDetail */
         ErrorDetail: {
             /** Loc */
@@ -2257,7 +2426,7 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "ai.usage.read";
         /** PostMessageResult */
         PostMessageResult: {
             conversation: components["schemas"]["ConversationDetail"];
@@ -2654,6 +2823,11 @@ export interface components {
             /** Vat Breakdown */
             vat_breakdown: components["schemas"]["VatGroupOut"][];
         };
+        /**
+         * UsageStatus
+         * @enum {string}
+         */
+        UsageStatus: "reserved" | "succeeded" | "provider_error" | "timeout" | "invalid_output" | "budget_blocked";
         /** UserOut */
         UserOut: {
             /** Display Name */
@@ -3028,6 +3202,193 @@ export interface operations {
             };
         };
     };
+    read_ai_budget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIBudgetOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_ai_budget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIBudgetUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIBudgetOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    run_ai_test_call: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AITestCallOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The tenant's AI budget is exhausted or unset */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description AI unavailable or the provider failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     set_organization_module: {
         parameters: {
             query?: never;
@@ -3332,6 +3693,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkspaceOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_ai_usage: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIUsageSummary"];
                 };
             };
             /** @description Not authenticated */

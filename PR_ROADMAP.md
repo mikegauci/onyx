@@ -6,14 +6,15 @@
 
 Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.md) for shared rules (`CLAUDE.md` imports them), and [CLAUDE_WORKFLOW.md](CLAUDE_WORKFLOW.md) for the execution loop. Current continuation notes: [Claude Code handoff](docs/claude-handoff.md).
 
-## Current delivery status — 5 November 2026
+## Current delivery status — 6 November 2026
 
 - **PR-009 complete and merged:** [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13), merge commit `05c483da9e39836ecd29514549df7ba9730befe9`.
 - **CI passed:** [run 42031145333](https://github.com/mikegauci/onyx/actions/runs/42031145333) — web checks/tests/default build, API checks/tests/migrations, container smoke, browser tests and aggregate `ci`.
 - CRM includes customer/contact/lead archive/restore and concurrency-safe lead transitions. Migration head: `0009`.
 - **PR-010 complete and merged:** [GitHub PR #15](https://github.com/mikegauci/onyx/pull/15), catalogue and inventory read model, migration `0010`. See [docs/platform/catalogue.md](docs/platform/catalogue.md).
 - **PR-011 complete and merged:** [GitHub PR #16](https://github.com/mikegauci/onyx/pull/16), conversations and unified inbox, migration `0011`. See [docs/platform/inbox.md](docs/platform/inbox.md).
-- **PR-012 implemented (in review):** quotations, exact totals, approval and PDF preview, migration `0012`. See [docs/platform/quotations.md](docs/platform/quotations.md). Merge status is recorded on its GitHub PR.
+- **PR-012 complete and merged:** [GitHub PR #19](https://github.com/mikegauci/onyx/pull/19), quotations, exact totals, approval and PDF preview, migration `0012`. See [docs/platform/quotations.md](docs/platform/quotations.md).
+- **PR-013 implemented (in review):** AI gateway, per-tenant usage and fail-closed budgets, migration `0013`. See [docs/platform/ai-gateway.md](docs/platform/ai-gateway.md). Merge status is recorded on its GitHub PR.
 - Use focused local checks and GitHub CI for broad validation. Avoid repeated local full-suite/build/browser loops; inspect CI failures and rerun only affected checks.
 
 ## Delivery contract

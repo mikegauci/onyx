@@ -40,6 +40,8 @@ EXPECTED_TABLES = {
     "quotations_quotes",
     "quotations_versions",
     "quotations_lines",
+    "ai_budgets",
+    "ai_usage_events",
 }
 
 

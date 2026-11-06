@@ -1,5 +1,6 @@
 """Imports every model module so ``Base.metadata`` is complete (Alembic, tests)."""
 
+from app.ai import models as ai_models
 from app.core.admin import models as admin_models
 from app.core.audit import models as audit_models
 from app.core.db.base import Base
@@ -15,6 +16,7 @@ from app.modules.quotations import models as quotation_models
 __all__ = [
     "Base",
     "admin_models",
+    "ai_models",
     "audit_models",
     "catalogue_models",
     "crm_models",

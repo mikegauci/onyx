@@ -152,6 +152,17 @@ Known limits:
   writes the tenant audit entry in the same transaction. Neither app role can write
   `organization_modules` directly.
 
+### AI budgets and usage (PR-013, migration `0013`)
+
+- `ai_budgets` (PK `organization_id`) and `ai_usage_events` carry the standard tenant policies,
+  not gated by a module. `onyx_app` may only read them.
+- The gateway writes as `onyx_worker` bound to the tenant: insert a `reserved` event, finalise
+  it once, set `ai_budgets.alerted_period`. A trigger rejects any change to a finalised event
+  and every DELETE, even by the schema owner. Cost is integer micro-USD.
+- `app_admin_ai_budget(slug)` / `app_admin_set_ai_budget(slug, limit, alert, request_id)`
+  (SECURITY DEFINER, `onyx_app`): platform admins only (`42501` otherwise); setting writes an
+  `ai.budget.updated` audit entry in the same transaction. See `docs/platform/ai-gateway.md`.
+
 ### Deployed role setup (owner action, before the first deployed database)
 
 ```sql

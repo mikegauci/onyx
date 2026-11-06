@@ -23,3 +23,12 @@ services:
       # Explicit https origins of the preview platform app (comma-separated, no wildcards).
       - key: ONYX_API_CORS_ORIGINS
         sync: false
+      # AI gateway. Unset = AI unavailable (fail closed). Keys are entered in the dashboard.
+      - key: ONYX_API_OPENAI_API_KEY
+        sync: false
+      - key: ONYX_API_ANTHROPIC_API_KEY
+        sync: false
+      - key: ONYX_API_AI_DEFAULT_MODEL
+        sync: false
+      - key: ONYX_API_AI_MODEL_PRICES
+        sync: false

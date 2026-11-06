@@ -16,7 +16,7 @@ provider. Live use needs the owner's approval for:
 
 | Setting (env)                    | Meaning                                               |
 | -------------------------------- | ----------------------------------------------------- |
-| `ONYX_API_RESEND_API_KEY`        | Resend API key (server only)                          |
+| `ONYX_API_RESEND_API_KEY`        | Resend API key with **full access** (server only)     |
 | `ONYX_API_RESEND_WEBHOOK_SECRET` | The webhook's signing secret (`whsec_…`)              |
 | `ONYX_API_EMAIL_INBOUND_DOMAIN`  | Receiving domain for channel addresses (`in.onyx.mt`) |
 | `ONYX_API_EMAIL_FROM_DOMAIN`     | Verified sending domain (`reply.onyx.mt`)             |
@@ -25,6 +25,10 @@ provider. Live use needs the owner's approval for:
 All four of the first settings must be set. If any is missing, email channels report
 `connected: false` and refuse to record or send (`409`), and the webhook answers `503`. The
 system fails closed.
+
+A sending-only key cannot read received email: Resend answers `403 restricted_api_key`. The
+webhook then answers `503`, so Resend keeps retrying and no email is lost while the key is
+replaced.
 
 One Resend account serves every tenant. No credentials are stored per tenant.
 

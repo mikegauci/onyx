@@ -58,6 +58,7 @@ from app.modules.inbox.models import (
 logger = logging.getLogger(__name__)
 
 DETAIL_MAX = 200
+AUTH_ERRORS = frozenset({401, 403})
 
 
 class Outcome(enum.StrEnum):
@@ -230,9 +231,18 @@ class EmailConnector:
         try:
             email = await self.config.provider.get_received(provider_id)
         except EmailProviderError as exc:
-            _log(event_type, Outcome.REJECTED, organization_id=org, code=exc.code)
-            if exc.retryable:
+            # A rejected key (401/403) is our misconfiguration, not a bad email: keep the
+            # provider retrying so the email is not lost while the key is being fixed.
+            config_error = exc.status in AUTH_ERRORS
+            if exc.retryable or config_error:
+                if config_error:
+                    logger.warning(
+                        "email provider refused our API key; check its permissions",
+                        extra={"fields": {"code": exc.code, "status": exc.status}},
+                    )
+                _log(event_type, Outcome.REJECTED, organization_id=org, code=exc.code)
                 raise RetryLaterError from exc
+            _log(event_type, Outcome.REJECTED, organization_id=org, code=exc.code)
             return Outcome.REJECTED
 
         if email.from_address.lower().endswith("@" + self.config.from_domain):

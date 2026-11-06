@@ -18,15 +18,23 @@ would otherwise get on our tables and functions. The dashboard never uses the Da
 
 ## Roles
 
-| Role             | Login | Purpose                                                      |
-| ---------------- | ----- | ------------------------------------------------------------ |
-| `postgres`       | yes   | Schema owner: migrations only (Supabase-managed password)    |
-| `onyx_api_login` | yes   | `ONYX_API_DATABASE_URL` on Render; member of `onyx_app` only |
-| `onyx_app`       | no    | Entered per request with `SET LOCAL ROLE`; no RLS bypass     |
-| `onyx_worker`    | no    | Background jobs (PR-020); its own login role is created then |
+| Role             | Login | Purpose                                                                      |
+| ---------------- | ----- | ---------------------------------------------------------------------------- |
+| `postgres`       | yes   | Schema owner: migrations only (Supabase-managed password)                    |
+| `onyx_api_login` | yes   | `ONYX_API_DATABASE_URL` on Render; member of `onyx_app` and `onyx_worker`    |
+| `onyx_app`       | no    | Entered per request with `SET LOCAL ROLE`; no RLS bypass                     |
+| `onyx_worker`    | no    | Tenant-bound jobs inside the API (AI gateway, email webhooks); no RLS bypass |
 
-`onyx_api_login` is `NOSUPERUSER NOBYPASSRLS NOINHERIT`, so it can do nothing until a request
-transaction switches to `onyx_app`.
+`onyx_api_login` is `NOSUPERUSER NOBYPASSRLS NOINHERIT`, so it can do nothing until a
+transaction switches to `onyx_app` (requests) or `onyx_worker` (AI usage metering and email
+webhooks, which bind one tenant explicitly). Both memberships are required:
+
+```sql
+GRANT onyx_app TO onyx_api_login;
+GRANT onyx_worker TO onyx_api_login;  -- added 2026-11-06; without it webhooks and AI fail
+```
+
+A separate worker login role comes with the Temporal worker (PR-020).
 
 ## Owner steps
 

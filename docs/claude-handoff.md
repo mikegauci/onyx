@@ -20,10 +20,15 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0013` with a $5/month AI budget for `onyx-studio` and
-  `openai:gpt-6.1-terra` configured on Render. No real AI call has been verified there yet.
-  Applying `0014`/`0015` and enabling the `assistant` or `outbound` modules need the owner's
-  go-ahead.
+- `onyx-preview` is at `0016`. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
+  AI budget, and the email channel "Onyx". Email setup on preview:
+  - Resend domains `in.onyx.mt` (receiving) and `reply.onyx.mt` (sending) are verified, with
+    DNS on Cloudflare.
+  - The webhook points at `onyx-api-preview`.
+  - All four email settings are on Render.
+  - `onyx_api_login` was also granted `onyx_worker` (see `docs/deployment/preview-database.md`).
+
+  No real AI call or email round trip has been verified yet.
 
 - PR-015 part 2 merged ([#22](https://github.com/mikegauci/onyx/pull/22)). PR-015 is complete.
 - PR-016 part 1 merged ([#23](https://github.com/mikegauci/onyx/pull/23)): the `outbound` module, drafts with revisions, approve/edit/reject,
@@ -31,8 +36,8 @@ files do not select models.
   waiting for approval. Migration `0015`. See `docs/platform/outbound.md`.
 
 - PR-016 part 2 merged ([#24](https://github.com/mikegauci/onyx/pull/24)). PR-016 is complete.
-- PR-017 part 1, the email connector backend (Resend), is on branch `feat/email-connector`
-  (see its GitHub PR):
+- PR-017 part 1 merged ([#25](https://github.com/mikegauci/onyx/pull/25)), the email
+  connector backend (Resend):
   - signed webhooks, with tenant resolution from the channel's random inbound token;
   - inbound threading;
   - approved replies emailed once with an idempotency key;

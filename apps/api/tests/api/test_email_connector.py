@@ -381,6 +381,29 @@ def test_a_provider_outage_while_fetching_is_retried_later(
     assert [r.external_message_id for r in _inbound(owner_engine)] == [message_id]
 
 
+def test_a_rejected_api_key_is_retried_later_not_dropped(
+    api: TestClient, provider: FakeProvider, owner_engine: Engine
+) -> None:
+    """A send-only key cannot read received email (Resend: 403 restricted_api_key)."""
+    provider.fail = EmailProviderError("restricted_api_key", retryable=False, status=403)
+    response, _ = _receive(api, provider, event_id="msg_key")
+    assert response.status_code == 503
+    assert _inbound(owner_engine) == []
+    assert _rows(owner_engine, "SELECT id FROM inbox_webhook_events") == []
+    provider.fail = None
+    [provider_id] = provider.received
+    retry = _webhook(
+        api,
+        {
+            "type": "email.received",
+            "data": {"email_id": provider_id, "to": [f"{LUMEN_TOKEN}@{INBOUND}"]},
+        },
+        event_id="msg_key",
+    )
+    assert retry.status_code == 200
+    assert len(_inbound(owner_engine)) == 1
+
+
 # --- outbound ------------------------------------------------------------------------------
 
 

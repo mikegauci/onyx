@@ -20,14 +20,14 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from datetime import time as dt_time
 from typing import Any
 
 from pydantic import BaseModel
-from pydantic_ai import Agent, UsageLimits, capture_run_messages
+from pydantic_ai import Agent, Tool, UsageLimits, capture_run_messages
 from pydantic_ai.exceptions import (
     AgentRunError,
     ModelAPIError,
@@ -145,12 +145,32 @@ class AIGateway:
         instructions: str,
         prompt: str,
         actor_user_id: uuid.UUID | None = None,
+        tools: Sequence[Tool[Any]] = (),
+        deps: Any = None,
+        max_requests: int = REQUESTS_PER_ATTEMPT,
+        tool_context_tokens: int = 0,
     ) -> AIResult[T]:
+        """Run one model task, optionally with read-only ``tools``, and return validated output.
+
+        ``tools`` must not change anything: a run may be retried as a whole. ``max_requests``
+        bounds the model requests per attempt (tool round trips plus one output retry), and
+        ``tool_context_tokens`` is the most each request may add from tool results; both size
+        the budget reservation.
+        """
+        if tools and max_requests < REQUESTS_PER_ATTEMPT + 1:
+            raise ValueError("A run with tools needs room for at least one tool round trip.")
         ref = resolve_model(self._settings, workload)
         price = price_for(self._settings, ref)
         model = self._model_factory(ref, self._settings)
 
-        reserve = self.worst_case_cost_micros(price, output_type, instructions, prompt)
+        reserve = self.worst_case_cost_micros(
+            price,
+            output_type,
+            instructions,
+            prompt,
+            max_requests=max_requests,
+            tool_context_tokens=tool_context_tokens,
+        )
         fields = {"organization_id": organization_id, "workload": workload, "model": ref.ref}
 
         reservation = await self._reserve(organization_id, workload, ref, reserve, actor_user_id)
@@ -163,7 +183,9 @@ class AIGateway:
             raise AIBudgetExceededError(reservation.reason)
 
         started = time.monotonic()
-        outcome = await self._call(model, output_type, instructions, prompt)
+        outcome = await self._call(
+            model, output_type, instructions, prompt, list(tools), deps, max_requests
+        )
         latency_ms = int((time.monotonic() - started) * 1000)
         cost = price.cost_micros(outcome.input_tokens, outcome.output_tokens)
         await self._finalise(organization_id, reservation.event_id, outcome, cost, latency_ms)
@@ -196,13 +218,23 @@ class AIGateway:
         return AIResult(output=outcome.output, usage=usage)
 
     def worst_case_cost_micros(
-        self, price: TokenPrice, output_type: type[BaseModel], instructions: str, prompt: str
+        self,
+        price: TokenPrice,
+        output_type: type[BaseModel],
+        instructions: str,
+        prompt: str,
+        *,
+        max_requests: int = REQUESTS_PER_ATTEMPT,
+        tool_context_tokens: int = 0,
     ) -> int:
-        """The most one call may spend: every attempt and output retry at full length."""
+        """The most one call may spend: every attempt and request at full length."""
         schema = json.dumps(output_type.model_json_schema())
-        requests = REQUESTS_PER_ATTEMPT * self._settings.ai_max_attempts
+        requests = max_requests * self._settings.ai_max_attempts
+        per_request_input = estimate_input_tokens(instructions, prompt, schema)
+        # Each request in a tool loop resends the conversation so far, tool results included.
+        context = tool_context_tokens * max_requests
         return price.cost_micros(
-            estimate_input_tokens(instructions, prompt, schema) * requests,
+            (per_request_input + context) * requests,
             self._settings.ai_max_output_tokens * requests,
         )
 
@@ -315,10 +347,18 @@ class AIGateway:
     # --- provider call -------------------------------------------------------------------
 
     async def _call[T: BaseModel](
-        self, model: Model, output_type: type[T], instructions: str, prompt: str
+        self,
+        model: Model,
+        output_type: type[T],
+        instructions: str,
+        prompt: str,
+        tools: list[Tool[Any]],
+        deps: Any,
+        max_requests: int,
     ) -> _Outcome:
         settings = self._settings
         timeout = settings.ai_timeout_seconds
+        run_timeout = timeout * max_requests  # each request has its own deadline too
         model_settings = ModelSettings(
             max_tokens=settings.ai_max_output_tokens,
             request_timeout=timeout,
@@ -328,16 +368,21 @@ class AIGateway:
         for attempt in range(1, settings.ai_max_attempts + 1):
             outcome.attempts = attempt
             agent = Agent(
-                model, output_type=output_type, instructions=instructions, retries={"output": 1}
+                model,
+                output_type=output_type,
+                instructions=instructions,
+                retries={"output": 1},
+                tools=tools,
             )
             retryable = False
             with capture_run_messages() as messages:
                 try:
-                    async with asyncio.timeout(timeout):
+                    async with asyncio.timeout(run_timeout):
                         result = await agent.run(
                             prompt,
+                            deps=deps,
                             model_settings=model_settings,
-                            usage_limits=UsageLimits(request_limit=REQUESTS_PER_ATTEMPT),
+                            usage_limits=UsageLimits(request_limit=max_requests),
                         )
                     outcome.status, outcome.output, outcome.error_kind = (
                         UsageStatus.SUCCEEDED,

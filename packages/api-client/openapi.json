@@ -3338,7 +3338,8 @@
           "catalogue",
           "inbox",
           "quotations",
-          "orders"
+          "orders",
+          "assistant"
         ],
         "title": "ModuleKey",
         "type": "string"
@@ -3639,10 +3640,64 @@
           "quotations.write",
           "quotations.approve",
           "quotations.manage",
+          "assistant.run",
+          "assistant.manage",
           "ai.usage.read"
         ],
         "title": "Permission",
         "type": "string"
+      },
+      "PolicyOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "title",
+          "body",
+          "updated_at"
+        ],
+        "title": "PolicyOut",
+        "type": "object"
+      },
+      "PolicyUpsert": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ],
+        "title": "PolicyUpsert",
+        "type": "object"
       },
       "PostMessageResult": {
         "properties": {
@@ -4373,6 +4428,25 @@
         "title": "QuotePage",
         "type": "object"
       },
+      "QuoteRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number"
+        ],
+        "title": "QuoteRef",
+        "type": "object"
+      },
       "QuoteStatus": {
         "enum": [
           "draft",
@@ -4477,6 +4551,30 @@
         "title": "QuoteUpdate",
         "type": "object"
       },
+      "Reason": {
+        "enum": [
+          "model_escalated",
+          "low_confidence",
+          "no_lines",
+          "ungrounded_sku",
+          "unknown_sku",
+          "archived_sku",
+          "missing_price",
+          "missing_vat",
+          "unknown_stock",
+          "insufficient_stock",
+          "reply_mentions_amount",
+          "reply_ungrounded_sku",
+          "unknown_policy",
+          "no_contact",
+          "quote_failed",
+          "ai_unavailable",
+          "budget_exceeded",
+          "provider_failed"
+        ],
+        "title": "Reason",
+        "type": "string"
+      },
       "Ref": {
         "properties": {
           "id": {
@@ -4495,6 +4593,101 @@
         ],
         "title": "Ref",
         "type": "object"
+      },
+      "RunOut": {
+        "properties": {
+          "conversation_id": {
+            "format": "uuid",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "cost_usd_micros": {
+            "title": "Cost Usd Micros",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "note_message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Message Id"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/RunOutcome"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "tool_calls": {
+            "items": {
+              "$ref": "#/components/schemas/ToolCallOut"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "conversation_id",
+          "outcome",
+          "reasons",
+          "quote",
+          "note_message_id",
+          "tool_calls",
+          "model",
+          "cost_usd_micros",
+          "created_at"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "RunOutcome": {
+        "enum": [
+          "drafted",
+          "escalated"
+        ],
+        "title": "RunOutcome",
+        "type": "string"
       },
       "Sender": {
         "additionalProperties": false,
@@ -4713,6 +4906,48 @@
         ],
         "title": "SubjectType",
         "type": "string"
+      },
+      "ToolCallOut": {
+        "properties": {
+          "found": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found"
+          },
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skus",
+            "type": "array"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          }
+        },
+        "required": [
+          "tool"
+        ],
+        "title": "ToolCallOut",
+        "type": "object"
       },
       "TotalsOut": {
         "properties": {
@@ -6326,6 +6561,498 @@
         "summary": "Read Ai Usage",
         "tags": [
           "ai"
+        ]
+      }
+    },
+    "/v1/w/{slug}/assistant/conversations/{conversation_id}/runs": {
+      "get": {
+        "operationId": "list_assistant_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunOut"
+                  },
+                  "title": "Response List Assistant Runs",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Assistant Runs",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "post": {
+        "operationId": "run_assistant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conversation closed, or no customer message yet"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Assistant",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/v1/w/{slug}/assistant/policies": {
+      "get": {
+        "operationId": "list_assistant_policies",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PolicyOut"
+                  },
+                  "title": "Response List Assistant Policies",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Assistant Policies",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/v1/w/{slug}/assistant/policies/{topic}": {
+      "delete": {
+        "operationId": "delete_assistant_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "topic",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_]{1,39}$",
+              "title": "Topic",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Assistant Policy",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "put": {
+        "operationId": "put_assistant_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "topic",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_]{1,39}$",
+              "title": "Topic",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Assistant Policy",
+        "tags": [
+          "assistant"
         ]
       }
     },

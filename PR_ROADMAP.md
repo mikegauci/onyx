@@ -14,7 +14,8 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.m
 - **PR-010 complete and merged:** [GitHub PR #15](https://github.com/mikegauci/onyx/pull/15), catalogue and inventory read model, migration `0010`. See [docs/platform/catalogue.md](docs/platform/catalogue.md).
 - **PR-011 complete and merged:** [GitHub PR #16](https://github.com/mikegauci/onyx/pull/16), conversations and unified inbox, migration `0011`. See [docs/platform/inbox.md](docs/platform/inbox.md).
 - **PR-012 complete and merged:** [GitHub PR #19](https://github.com/mikegauci/onyx/pull/19), quotations, exact totals, approval and PDF preview, migration `0012`. See [docs/platform/quotations.md](docs/platform/quotations.md).
-- **PR-013 implemented (in review):** AI gateway, per-tenant usage and fail-closed budgets, migration `0013`. See [docs/platform/ai-gateway.md](docs/platform/ai-gateway.md). Merge status is recorded on its GitHub PR.
+- **PR-013 complete and merged:** [GitHub PR #20](https://github.com/mikegauci/onyx/pull/20), AI gateway, per-tenant usage and fail-closed budgets, migration `0013`. See [docs/platform/ai-gateway.md](docs/platform/ai-gateway.md).
+- **PR-015 part 1 implemented (in review):** grounded sales assistant backend, tools, deterministic checks and evaluations, migration `0014`. See [docs/platform/assistant.md](docs/platform/assistant.md). Part 2 (inbox screen, policy settings) follows. PR-014 is deferred.
 - Use focused local checks and GitHub CI for broad validation. Avoid repeated local full-suite/build/browser loops; inspect CI failures and rerun only affected checks.
 
 ## Delivery contract

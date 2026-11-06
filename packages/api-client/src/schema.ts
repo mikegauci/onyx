@@ -911,6 +911,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/knowledge/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Knowledge Documents */
+        get: operations["list_knowledge_documents"];
+        put?: never;
+        /** Upload Knowledge Document */
+        post: operations["upload_knowledge_document"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/knowledge/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Knowledge Document */
+        get: operations["get_knowledge_document"];
+        put?: never;
+        post?: never;
+        /** Delete Knowledge Document */
+        delete: operations["delete_knowledge_document"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/knowledge/documents/{document_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace Knowledge Document */
+        put: operations["replace_knowledge_document"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/knowledge/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search Knowledge */
+        post: operations["search_knowledge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/members": {
         parameters: {
             query?: never;
@@ -1711,6 +1781,18 @@ export interface components {
             /** Signature */
             signature?: string | null;
         };
+        /** ChunkPreview */
+        ChunkPreview: {
+            /**
+             * Excerpt
+             * @description The first 300 characters
+             */
+            excerpt: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Page */
+            page: number | null;
+        };
         /** ContactCreate */
         ContactCreate: {
             /** Customer Id */
@@ -2074,6 +2156,115 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** DocumentDetail */
+        DocumentDetail: {
+            /** Character Count */
+            character_count: number;
+            /** Chunk Count */
+            chunk_count: number;
+            /** Chunks */
+            chunks: components["schemas"]["ChunkPreview"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["UserRef"] | null;
+            /** Filename */
+            filename: string;
+            format: components["schemas"]["DocumentFormat"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Page Count */
+            page_count: number | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            updated_by: components["schemas"]["UserRef"] | null;
+            /** Version */
+            version: number;
+        };
+        /**
+         * DocumentFormat
+         * @enum {string}
+         */
+        DocumentFormat: "pdf" | "text" | "markdown";
+        /** DocumentList */
+        DocumentList: {
+            /** Items */
+            items: components["schemas"]["DocumentOut"][];
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /** Character Count */
+            character_count: number;
+            /** Chunk Count */
+            chunk_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["UserRef"] | null;
+            /** Filename */
+            filename: string;
+            format: components["schemas"]["DocumentFormat"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Page Count */
+            page_count: number | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            updated_by: components["schemas"]["UserRef"] | null;
+            /** Version */
+            version: number;
+        };
+        /** DocumentReplace */
+        DocumentReplace: {
+            /** Content Base64 */
+            content_base64: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Title
+             * @description A new title; omit to keep it
+             */
+            title?: string | null;
+        };
+        /** DocumentUpload */
+        DocumentUpload: {
+            /**
+             * Content Base64
+             * @description The file, base64-encoded (at most 5 MB)
+             */
+            content_base64: string;
+            /**
+             * Filename
+             * @description Decides the format: .pdf, .txt or .md
+             */
+            filename: string;
+            /** Title */
+            title: string;
         };
         /** DraftApproveRequest */
         DraftApproveRequest: {
@@ -2789,7 +2980,7 @@ export interface components {
          * ModuleKey
          * @enum {string}
          */
-        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant" | "outbound";
+        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant" | "outbound" | "knowledge";
         /** ModuleOut */
         ModuleOut: {
             /** Description */
@@ -2914,7 +3105,7 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "ai.usage.read";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read";
         /** PolicyOut */
         PolicyOut: {
             /** Body */
@@ -3267,7 +3458,7 @@ export interface components {
          * Reason
          * @enum {string}
          */
-        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
+        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "unknown_source" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
         /**
          * ReasonOut
          * @description Why a run went to staff: a stable code and the text staff read.
@@ -3351,6 +3542,58 @@ export interface components {
          * @enum {string}
          */
         RunOutcome: "drafted" | "escalated";
+        /** SearchHit */
+        SearchHit: {
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Content */
+            content: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Document Title */
+            document_title: string;
+            /** Matched By */
+            matched_by: ("keyword" | "semantic")[];
+            /** Page */
+            page: number | null;
+            /**
+             * Score
+             * @description Fused rank score; higher is better
+             */
+            score: number;
+        };
+        /** SearchOut */
+        SearchOut: {
+            /**
+             * Abstained
+             * @description True when nothing relevant enough was found
+             */
+            abstained: boolean;
+            /** Hits */
+            hits: components["schemas"]["SearchHit"][];
+            /**
+             * Mode
+             * @description keyword when semantic search was unavailable for this query
+             * @enum {string}
+             */
+            mode: "hybrid" | "keyword";
+        };
+        /** SearchRequest */
+        SearchRequest: {
+            /**
+             * Limit
+             * @default 5
+             */
+            limit: number;
+            /** Query */
+            query: string;
+        };
         /**
          * Sender
          * @description Who wrote a customer message, when it is not an existing CRM contact.
@@ -8715,6 +8958,457 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_knowledge_documents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_knowledge_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The same file is already in the knowledge base */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The workspace's AI budget is used up */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Embeddings are unavailable; nothing was stored */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_knowledge_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_knowledge_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    replace_knowledge_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentReplace"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The same file is already in the knowledge base */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The workspace's AI budget is used up */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Embeddings are unavailable; nothing was stored */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    search_knowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
             403: {
                 headers: {
                     [name: string]: unknown;

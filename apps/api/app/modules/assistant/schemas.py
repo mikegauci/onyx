@@ -49,6 +49,11 @@ class AssistantOutput(BaseModel):
     policies_used: list[str] = Field(
         default_factory=list, max_length=5, description="Policy topics quoted in the reply."
     )
+    sources_used: list[str] = Field(
+        default_factory=list,
+        max_length=5,
+        description="source_id of each search_knowledge passage the reply relies on.",
+    )
 
 
 # --- API ---------------------------------------------------------------------------------

@@ -50,6 +50,8 @@ EXPECTED_TABLES = {
     "inbox_email_deliveries",
     "inbox_suppressions",
     "inbox_webhook_events",
+    "knowledge_documents",
+    "knowledge_chunks",
 }
 
 
@@ -182,4 +184,13 @@ def test_required_extensions_are_installed(migrated_engine: Engine) -> None:
 def test_module_catalogue_is_reference_data(migrated_engine: Engine) -> None:
     with migrated_engine.connect() as conn:
         keys = set(conn.execute(text("SELECT key FROM modules")).scalars())
-    assert keys == {"crm", "catalogue", "inbox", "quotations", "orders", "assistant", "outbound"}
+    assert keys == {
+        "crm",
+        "catalogue",
+        "inbox",
+        "quotations",
+        "orders",
+        "assistant",
+        "outbound",
+        "knowledge",
+    }

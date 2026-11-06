@@ -12,6 +12,7 @@ from app.modules.assistant import models as assistant_models
 from app.modules.catalogue import models as catalogue_models
 from app.modules.crm import models as crm_models
 from app.modules.inbox import models as inbox_models
+from app.modules.knowledge import models as knowledge_models
 from app.modules.outbound import models as outbound_models
 from app.modules.quotations import models as quotation_models
 
@@ -24,6 +25,7 @@ __all__ = [
     "catalogue_models",
     "crm_models",
     "inbox_models",
+    "knowledge_models",
     "module_models",
     "outbound_models",
     "outbox_models",

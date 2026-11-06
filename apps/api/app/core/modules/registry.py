@@ -16,6 +16,7 @@ class ModuleKey(enum.StrEnum):
     QUOTATIONS = "quotations"
     ORDERS = "orders"
     ASSISTANT = "assistant"
+    OUTBOUND = "outbound"
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,12 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
             ModuleKey.ASSISTANT,
             "Sales assistant",
             frozenset({ModuleKey.INBOX, ModuleKey.CATALOGUE, ModuleKey.QUOTATIONS}),
+        ),
+        # Approves and sends replies on inbox conversations, with their quotes (PR-016).
+        ModuleSpec(
+            ModuleKey.OUTBOUND,
+            "Outbound replies",
+            frozenset({ModuleKey.INBOX, ModuleKey.QUOTATIONS}),
         ),
     )
 }

@@ -153,6 +153,15 @@ def _warning_out(warning: LineWarning) -> schemas.WarningOut:
     )
 
 
+def workspace_today(workspace: WorkspaceAccess) -> date:
+    """Today in the workspace's timezone: the date quote validity is judged by."""
+    try:
+        zone = ZoneInfo(workspace.organization.timezone)
+    except (KeyError, ValueError):
+        zone = ZoneInfo("UTC")
+    return datetime.now(UTC).astimezone(zone).date()
+
+
 class QuotationService:
     def __init__(self, db: AsyncSession, workspace: WorkspaceAccess) -> None:
         self.db = db
@@ -174,11 +183,7 @@ class QuotationService:
         )
 
     def _today(self) -> date:
-        try:
-            zone = ZoneInfo(self.workspace.organization.timezone)
-        except (KeyError, ValueError):
-            zone = ZoneInfo("UTC")
-        return datetime.now(UTC).astimezone(zone).date()
+        return workspace_today(self.workspace)
 
     def _can_approve(self) -> bool:
         return has_permission(self.workspace.role, Permission.QUOTATIONS_APPROVE)

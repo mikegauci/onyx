@@ -31,6 +31,10 @@ class Permission(enum.StrEnum):
     QUOTATIONS_MANAGE = "quotations.manage"  # numbering, validity and discount policy
     ASSISTANT_RUN = "assistant.run"  # ask the assistant to draft a reply and quote
     ASSISTANT_MANAGE = "assistant.manage"  # the policy texts the assistant may quote
+    OUTBOUND_READ = "outbound.read"  # replies waiting for approval, and their history
+    OUTBOUND_WRITE = "outbound.write"  # draft and edit replies; send approved ones
+    OUTBOUND_APPROVE = "outbound.approve"  # approve (optionally editing) or reject a reply
+    OUTBOUND_MANAGE = "outbound.manage"  # how long drafts stay valid
     AI_USAGE_READ = "ai.usage.read"  # the workspace's AI spend, budget and call history
 
 
@@ -45,6 +49,8 @@ _MEMBER = frozenset(
         Permission.QUOTATIONS_READ,
         Permission.QUOTATIONS_WRITE,
         Permission.ASSISTANT_RUN,
+        Permission.OUTBOUND_READ,
+        Permission.OUTBOUND_WRITE,
     }
 )
 _ADMIN = _MEMBER | {
@@ -61,6 +67,8 @@ _ADMIN = _MEMBER | {
     Permission.QUOTATIONS_MANAGE,
     Permission.AI_USAGE_READ,
     Permission.ASSISTANT_MANAGE,
+    Permission.OUTBOUND_APPROVE,
+    Permission.OUTBOUND_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

@@ -17,20 +17,26 @@ files do not select models.
   read-only tools, deterministic grounding/price/stock/reply checks, draft quotes through the
   quotations service, escalation notes, opt-in live evals (`make eval-assistant yes=1`).
   Migration `0014`. See `docs/platform/assistant.md`.
-- PR-015 part 2, the dashboard screens, is on branch `feat/assistant-inbox-panel` (see its
-  GitHub PR): the "Sales assistant" panel on inbox conversations, assistant-labelled notes and
-  the Sales assistant page with policy texts. No migration.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
 - `onyx-preview` is at `0013` with a $5/month AI budget for `onyx-studio` and
   `openai:gpt-6.1-terra` configured on Render. No real AI call has been verified there yet.
-  Applying `0014` and enabling the `assistant` module need the owner's go-ahead.
+  Applying `0014`/`0015` and enabling the `assistant` or `outbound` modules need the owner's
+  go-ahead.
+
+- PR-015 part 2 merged ([#22](https://github.com/mikegauci/onyx/pull/22)). PR-015 is complete.
+- PR-016 part 1, approval and outbound sending backend, is on branch `feat/outbound-approvals`
+  (see its GitHub PR): the `outbound` module, drafts with revisions, approve/edit/reject,
+  expiry, send once through the inbox adapter with an outbox event, and assistant drafts
+  waiting for approval. Migration `0015`. See `docs/platform/outbound.md`.
 
 ## Next task
 
-After part 2 merges, PR-015 is complete. Plan PR-016 (approval and outbound sending) when the
-owner selects it. PR-014 stays deferred. Wait for plan approval.
+After part 1 merges, build PR-016 part 2 (approved plan): an approvals queue page and a draft
+panel on inbox conversations (revision history, edit / approve / reject / send), plus a
+Playwright test that a member cannot approve and an unapproved AI quote cannot be sent.
+PR-014 stays deferred.
 
 ## Verification preference
 

@@ -61,6 +61,7 @@ def test_catalogue_lists_every_module_with_this_tenants_flags(api: TestClient, a
         "crm": True,
         "inbox": True,
         "orders": False,
+        "outbound": False,
         "quotations": True,
     }
     quotations = next(m for m in modules if m["key"] == "quotations")

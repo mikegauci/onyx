@@ -921,6 +921,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/outbound/conversations/{conversation_id}/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Outbound Draft */
+        post: operations["create_outbound_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Outbound Drafts */
+        get: operations["list_outbound_drafts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Outbound Draft */
+        get: operations["read_outbound_draft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Outbound Draft */
+        post: operations["approve_outbound_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Outbound Draft */
+        post: operations["reject_outbound_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise Outbound Draft */
+        post: operations["revise_outbound_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Outbound Draft */
+        post: operations["send_outbound_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/outbound/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Outbound Settings */
+        get: operations["read_outbound_settings"];
+        /** Update Outbound Settings */
+        put: operations["update_outbound_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/quotations/quotes": {
         parameters: {
             query?: never;
@@ -1256,7 +1393,7 @@ export interface components {
         ActivityKind: "created" | "updated" | "status_changed" | "note" | "imported" | "archived" | "restored";
         /** ActivityOut */
         ActivityOut: {
-            actor: components["schemas"]["UserRef"] | null;
+            actor: components["schemas"]["app__modules__crm__schemas__UserRef"] | null;
             /** Body */
             body: string | null;
             /** Details */
@@ -1297,16 +1434,6 @@ export interface components {
             message: string;
             /** Request Id */
             request_id?: string | null;
-        };
-        /** ApproveRequest */
-        ApproveRequest: {
-            /** Acknowledge */
-            acknowledge?: components["schemas"]["Acknowledgement"][];
-            /**
-             * Version
-             * @description The version being approved; guards against a stale view
-             */
-            version: number;
         };
         /** AssignRequest */
         AssignRequest: {
@@ -1657,7 +1784,7 @@ export interface components {
         ConversationDetail: {
             /** Allowed Statuses */
             allowed_statuses: components["schemas"]["ConversationStatus"][];
-            assignee: components["schemas"]["UserRef"] | null;
+            assignee: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
             channel: components["schemas"]["ChannelRef"];
             contact: components["schemas"]["ContactRef"] | null;
             /**
@@ -1719,7 +1846,7 @@ export interface components {
         ConversationStatus: "open" | "waiting_on_customer" | "closed";
         /** ConversationSummary */
         ConversationSummary: {
-            assignee: components["schemas"]["UserRef"] | null;
+            assignee: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
             channel: components["schemas"]["ChannelRef"];
             contact: components["schemas"]["ContactRef"] | null;
             /**
@@ -1874,6 +2001,148 @@ export interface components {
              */
             status: "ok";
         };
+        /** DraftCreate */
+        DraftCreate: {
+            /** Body */
+            body: string;
+            /**
+             * Quote Id
+             * @description A quote for the conversation's contact to send with it
+             */
+            quote_id?: string | null;
+        };
+        /** DraftDetail */
+        DraftDetail: {
+            /** Approved At */
+            approved_at: string | null;
+            approved_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Approved Revision */
+            approved_revision: number | null;
+            /**
+             * Body
+             * @description The current revision's text
+             */
+            body: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Conversation Subject */
+            conversation_subject: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Current Revision */
+            current_revision: number;
+            /** Decided At */
+            decided_at: string | null;
+            decided_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            expiry: components["schemas"]["ExpiryOut"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            origin: components["schemas"]["DraftOrigin"];
+            quote: components["schemas"]["app__modules__outbound__schemas__QuoteRef"] | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /**
+             * Revisions
+             * @description Oldest first
+             */
+            revisions: components["schemas"]["RevisionOut"][];
+            /** Sent At */
+            sent_at: string | null;
+            sent_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Sent Message Id */
+            sent_message_id: string | null;
+            /** @description Current state; an open draft that no longer holds shows as expired */
+            status: components["schemas"]["DraftStatus"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * DraftOrigin
+         * @description Who wrote a draft or a revision.
+         * @enum {string}
+         */
+        DraftOrigin: "assistant" | "staff";
+        /** DraftOut */
+        DraftOut: {
+            /** Approved At */
+            approved_at: string | null;
+            approved_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Approved Revision */
+            approved_revision: number | null;
+            /**
+             * Body
+             * @description The current revision's text
+             */
+            body: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Conversation Subject */
+            conversation_subject: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Current Revision */
+            current_revision: number;
+            /** Decided At */
+            decided_at: string | null;
+            decided_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            expiry: components["schemas"]["ExpiryOut"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            origin: components["schemas"]["DraftOrigin"];
+            quote: components["schemas"]["app__modules__outbound__schemas__QuoteRef"] | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Sent At */
+            sent_at: string | null;
+            sent_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            /** Sent Message Id */
+            sent_message_id: string | null;
+            /** @description Current state; an open draft that no longer holds shows as expired */
+            status: components["schemas"]["DraftStatus"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * DraftStatus
+         * @enum {string}
+         */
+        DraftStatus: "pending" | "approved" | "sent" | "rejected" | "expired" | "superseded";
         /**
          * ErrorCode
          * @enum {string}
@@ -1901,7 +2170,7 @@ export interface components {
         EventKind: "created" | "assigned" | "unassigned" | "status_changed" | "handed_to_staff" | "handed_to_assistant" | "contact_linked" | "lead_linked" | "subject_changed";
         /** EventOut */
         EventOut: {
-            actor: components["schemas"]["UserRef"] | null;
+            actor: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
             /** Details */
             details: {
                 [key: string]: unknown;
@@ -1925,6 +2194,17 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** ExpiryOut */
+        ExpiryOut: {
+            code: components["schemas"]["ExpiryReason"];
+            /** Message */
+            message: string;
+        };
+        /**
+         * ExpiryReason
+         * @enum {string}
+         */
+        ExpiryReason: "time" | "new_customer_message" | "quote_changed" | "quote_expired";
         /**
          * Handler
          * @description Who is expected to respond: staff, or (from PR-015) the assistant drafting for staff.
@@ -2155,7 +2435,7 @@ export interface components {
             lost_reason: string | null;
             /** Notes */
             notes: string | null;
-            owner: components["schemas"]["UserRef"] | null;
+            owner: components["schemas"]["app__modules__crm__schemas__UserRef"] | null;
             source: components["schemas"]["LeadSource"];
             status: components["schemas"]["LeadStatus"];
             /**
@@ -2330,7 +2610,7 @@ export interface components {
         MessageKind: "reply" | "customer" | "note";
         /** MessageOut */
         MessageOut: {
-            author: components["schemas"]["UserRef"] | null;
+            author: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
             author_kind: components["schemas"]["AuthorKind"];
             /** Body */
             body: string;
@@ -2367,7 +2647,7 @@ export interface components {
          * ModuleKey
          * @enum {string}
          */
-        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant";
+        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant" | "outbound";
         /** ModuleOut */
         ModuleOut: {
             /** Description */
@@ -2479,7 +2759,7 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "ai.usage.read";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "ai.usage.read";
         /** PolicyOut */
         PolicyOut: {
             /** Body */
@@ -2678,6 +2958,18 @@ export interface components {
             /** @description Null when no VAT rate is set: not quotable yet */
             vat: components["schemas"]["VatOut"] | null;
         };
+        /**
+         * QuoteBlock
+         * @description Why an attached quote stops a reply being approved (the draft stays pending).
+         * @enum {string}
+         */
+        QuoteBlock: "quote_not_approved" | "quote_past_validity";
+        /** QuoteBlockOut */
+        QuoteBlockOut: {
+            code: components["schemas"]["QuoteBlock"];
+            /** Message */
+            message: string;
+        };
         /** QuoteCreate */
         QuoteCreate: {
             /**
@@ -2766,16 +3058,6 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** QuoteRef */
-        QuoteRef: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: string;
-        };
         /**
          * QuoteStatus
          * @enum {string}
@@ -2840,6 +3122,35 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** RejectRequest */
+        RejectRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** RevisionCreate */
+        RevisionCreate: {
+            /**
+             * Base Revision
+             * @description The revision on screen; refused if the draft has moved on
+             */
+            base_revision: number;
+            /** Body */
+            body: string;
+        };
+        /** RevisionOut */
+        RevisionOut: {
+            author: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            author_kind: components["schemas"]["DraftOrigin"];
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Revision */
+            revision: number;
+        };
         /** RunOut */
         RunOut: {
             /**
@@ -2864,7 +3175,7 @@ export interface components {
             /** Note Message Id */
             note_message_id: string | null;
             outcome: components["schemas"]["RunOutcome"];
-            quote: components["schemas"]["QuoteRef"] | null;
+            quote: components["schemas"]["app__modules__assistant__schemas__QuoteRef"] | null;
             /** Reasons */
             reasons: components["schemas"]["ReasonOut"][];
             /** Tool Calls */
@@ -2886,24 +3197,6 @@ export interface components {
             name?: string | null;
             /** Phone */
             phone?: string | null;
-        };
-        /** SettingsOut */
-        SettingsOut: {
-            /** Max Discount Percent */
-            max_discount_percent: string;
-            /** Number Prefix */
-            number_prefix: string;
-            /** Validity Days */
-            validity_days: number;
-        };
-        /** SettingsUpdate */
-        SettingsUpdate: {
-            /** Max Discount Percent */
-            max_discount_percent?: number | string | null;
-            /** Number Prefix */
-            number_prefix?: string | null;
-            /** Validity Days */
-            validity_days?: number | null;
         };
         /**
          * SourceOut
@@ -2983,16 +3276,6 @@ export interface components {
              * Format: uuid
              */
             id: string;
-        };
-        /** UserRef */
-        UserRef: {
-            /** Display Name */
-            display_name: string | null;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
         };
         /**
          * VariantLookup
@@ -3190,6 +3473,16 @@ export interface components {
              */
             timezone?: string | null;
         };
+        /** QuoteRef */
+        app__modules__assistant__schemas__QuoteRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+        };
         /** ArchiveRequest */
         app__modules__catalogue__schemas__ArchiveRequest: {
             /**
@@ -3202,6 +3495,111 @@ export interface components {
         app__modules__crm__schemas__ArchiveRequest: {
             /** Archived */
             archived: boolean;
+        };
+        /** UserRef */
+        app__modules__crm__schemas__UserRef: {
+            /** Display Name */
+            display_name: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** UserRef */
+        app__modules__inbox__schemas__UserRef: {
+            /** Display Name */
+            display_name: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** ApproveRequest */
+        app__modules__outbound__schemas__ApproveRequest: {
+            /**
+             * Body
+             * @description Edit and approve in one step: approves this new text
+             */
+            body?: string | null;
+            /**
+             * Revision
+             * @description The revision on screen; refused if the draft has moved on
+             */
+            revision: number;
+        };
+        /** QuoteRef */
+        app__modules__outbound__schemas__QuoteRef: {
+            /**
+             * Approved Version
+             * @description The version approved with the reply
+             */
+            approved_version: number | null;
+            /** @description Why the reply cannot be approved with this quote yet */
+            blocked: components["schemas"]["QuoteBlockOut"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /** Status */
+            status: string;
+            /** Version */
+            version: number;
+        };
+        /** SettingsOut */
+        app__modules__outbound__schemas__SettingsOut: {
+            /**
+             * Expiry Hours
+             * @description How long a draft can wait for approval and sending
+             */
+            expiry_hours: number;
+        };
+        /** SettingsUpdate */
+        app__modules__outbound__schemas__SettingsUpdate: {
+            /** Expiry Hours */
+            expiry_hours: number;
+        };
+        /** UserRef */
+        app__modules__outbound__schemas__UserRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+        };
+        /** ApproveRequest */
+        app__modules__quotations__schemas__ApproveRequest: {
+            /** Acknowledge */
+            acknowledge?: components["schemas"]["Acknowledgement"][];
+            /**
+             * Version
+             * @description The version being approved; guards against a stale view
+             */
+            version: number;
+        };
+        /** SettingsOut */
+        app__modules__quotations__schemas__SettingsOut: {
+            /** Max Discount Percent */
+            max_discount_percent: string;
+            /** Number Prefix */
+            number_prefix: string;
+            /** Validity Days */
+            validity_days: number;
+        };
+        /** SettingsUpdate */
+        app__modules__quotations__schemas__SettingsUpdate: {
+            /** Max Discount Percent */
+            max_discount_percent?: number | string | null;
+            /** Number Prefix */
+            number_prefix?: string | null;
+            /** Validity Days */
+            validity_days?: number | null;
         };
     };
     responses: never;
@@ -8226,6 +8624,691 @@ export interface operations {
             };
         };
     };
+    create_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conversation closed or a draft is waiting */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_outbound_drafts: {
+        parameters: {
+            query?: {
+                /** @description Stored state to filter on */
+                status?: components["schemas"]["DraftStatus"] | null;
+                conversation_id?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    approve_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__outbound__schemas__ApproveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Draft finished, changed since loaded, expired, or its quote blocks it */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reject_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Draft finished, changed since loaded, expired, or its quote blocks it */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revise_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Draft finished, changed since loaded, expired, or its quote blocks it */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_outbound_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Already sent; nothing new was sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not approved, expired, conversation closed or channel not connected */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_outbound_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_outbound_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_quotes: {
         parameters: {
             query?: {
@@ -8540,7 +9623,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ApproveRequest"];
+                "application/json": components["schemas"]["app__modules__quotations__schemas__ApproveRequest"];
             };
         };
         responses: {
@@ -9322,7 +10405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SettingsOut"];
+                    "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsOut"];
                 };
             };
             /** @description Not authenticated */
@@ -9383,7 +10466,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SettingsUpdate"];
+                "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsUpdate"];
             };
         };
         responses: {
@@ -9393,7 +10476,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SettingsOut"];
+                    "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsOut"];
                 };
             };
             /** @description Not authenticated */

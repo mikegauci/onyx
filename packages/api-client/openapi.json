@@ -322,7 +322,7 @@
           "actor": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__crm__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -448,28 +448,6 @@
           "message"
         ],
         "title": "ApiError",
-        "type": "object"
-      },
-      "ApproveRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "acknowledge": {
-            "items": {
-              "$ref": "#/components/schemas/Acknowledgement"
-            },
-            "title": "Acknowledge",
-            "type": "array"
-          },
-          "version": {
-            "description": "The version being approved; guards against a stale view",
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "version"
-        ],
-        "title": "ApproveRequest",
         "type": "object"
       },
       "AssignRequest": {
@@ -1457,7 +1435,7 @@
           "assignee": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -1618,7 +1596,7 @@
           "assignee": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -2038,6 +2016,475 @@
         "title": "DiagnosticReply",
         "type": "object"
       },
+      "DraftCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "quote_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A quote for the conversation's contact to send with it",
+            "title": "Quote Id"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "DraftCreate",
+        "type": "object"
+      },
+      "DraftDetail": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approved_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Revision"
+          },
+          "body": {
+            "description": "The current revision's text",
+            "title": "Body",
+            "type": "string"
+          },
+          "conversation_id": {
+            "format": "uuid",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "conversation_subject": {
+            "title": "Conversation Subject",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "expiry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExpiryOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DraftOrigin"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__QuoteRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "revisions": {
+            "description": "Oldest first",
+            "items": {
+              "$ref": "#/components/schemas/RevisionOut"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "sent_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sent_message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent Message Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DraftStatus",
+            "description": "Current state; an open draft that no longer holds shows as expired"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "conversation_id",
+          "conversation_subject",
+          "origin",
+          "status",
+          "current_revision",
+          "body",
+          "quote",
+          "expires_at",
+          "expiry",
+          "approved_revision",
+          "approved_by",
+          "approved_at",
+          "rejection_reason",
+          "decided_by",
+          "decided_at",
+          "sent_message_id",
+          "sent_by",
+          "sent_at",
+          "created_by",
+          "created_at",
+          "updated_at",
+          "revisions"
+        ],
+        "title": "DraftDetail",
+        "type": "object"
+      },
+      "DraftOrigin": {
+        "description": "Who wrote a draft or a revision.",
+        "enum": [
+          "assistant",
+          "staff"
+        ],
+        "title": "DraftOrigin",
+        "type": "string"
+      },
+      "DraftOut": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approved_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Revision"
+          },
+          "body": {
+            "description": "The current revision's text",
+            "title": "Body",
+            "type": "string"
+          },
+          "conversation_id": {
+            "format": "uuid",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "conversation_subject": {
+            "title": "Conversation Subject",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "expiry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExpiryOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DraftOrigin"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__QuoteRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "sent_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sent_message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent Message Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DraftStatus",
+            "description": "Current state; an open draft that no longer holds shows as expired"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "conversation_id",
+          "conversation_subject",
+          "origin",
+          "status",
+          "current_revision",
+          "body",
+          "quote",
+          "expires_at",
+          "expiry",
+          "approved_revision",
+          "approved_by",
+          "approved_at",
+          "rejection_reason",
+          "decided_by",
+          "decided_at",
+          "sent_message_id",
+          "sent_by",
+          "sent_at",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DraftOut",
+        "type": "object"
+      },
+      "DraftStatus": {
+        "enum": [
+          "pending",
+          "approved",
+          "sent",
+          "rejected",
+          "expired",
+          "superseded"
+        ],
+        "title": "DraftStatus",
+        "type": "string"
+      },
       "ErrorCode": {
         "enum": [
           "bad_request",
@@ -2132,7 +2579,7 @@
           "actor": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -2195,6 +2642,33 @@
         ],
         "title": "EventPage",
         "type": "object"
+      },
+      "ExpiryOut": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ExpiryReason"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ExpiryOut",
+        "type": "object"
+      },
+      "ExpiryReason": {
+        "enum": [
+          "time",
+          "new_customer_message",
+          "quote_changed",
+          "quote_expired"
+        ],
+        "title": "ExpiryReason",
+        "type": "string"
       },
       "Handler": {
         "description": "Who is expected to respond: staff, or (from PR-015) the assistant drafting for staff.",
@@ -2707,7 +3181,7 @@
           "owner": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__crm__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -3243,7 +3717,7 @@
           "author": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRef"
+                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
               },
               {
                 "type": "null"
@@ -3339,7 +3813,8 @@
           "inbox",
           "quotations",
           "orders",
-          "assistant"
+          "assistant",
+          "outbound"
         ],
         "title": "ModuleKey",
         "type": "string"
@@ -3642,6 +4117,10 @@
           "quotations.manage",
           "assistant.run",
           "assistant.manage",
+          "outbound.read",
+          "outbound.write",
+          "outbound.approve",
+          "outbound.manage",
           "ai.usage.read"
         ],
         "title": "Permission",
@@ -4144,6 +4623,32 @@
         "title": "ProductSummary",
         "type": "object"
       },
+      "QuoteBlock": {
+        "description": "Why an attached quote stops a reply being approved (the draft stays pending).",
+        "enum": [
+          "quote_not_approved",
+          "quote_past_validity"
+        ],
+        "title": "QuoteBlock",
+        "type": "string"
+      },
+      "QuoteBlockOut": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/QuoteBlock"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "QuoteBlockOut",
+        "type": "object"
+      },
       "QuoteCreate": {
         "additionalProperties": false,
         "properties": {
@@ -4428,25 +4933,6 @@
         "title": "QuotePage",
         "type": "object"
       },
-      "QuoteRef": {
-        "properties": {
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "number": {
-            "title": "Number",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "number"
-        ],
-        "title": "QuoteRef",
-        "type": "object"
-      },
       "QuoteStatus": {
         "enum": [
           "draft",
@@ -4612,6 +5098,84 @@
         "title": "Ref",
         "type": "object"
       },
+      "RejectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "RejectRequest",
+        "type": "object"
+      },
+      "RevisionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "base_revision": {
+            "description": "The revision on screen; refused if the draft has moved on",
+            "minimum": 1.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "base_revision"
+        ],
+        "title": "RevisionCreate",
+        "type": "object"
+      },
+      "RevisionOut": {
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author_kind": {
+            "$ref": "#/components/schemas/DraftOrigin"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "body",
+          "author_kind",
+          "author",
+          "created_at"
+        ],
+        "title": "RevisionOut",
+        "type": "object"
+      },
       "RunOut": {
         "properties": {
           "conversation_id": {
@@ -4662,7 +5226,7 @@
           "quote": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuoteRef"
+                "$ref": "#/components/schemas/app__modules__assistant__schemas__QuoteRef"
               },
               {
                 "type": "null"
@@ -4747,77 +5311,6 @@
           }
         },
         "title": "Sender",
-        "type": "object"
-      },
-      "SettingsOut": {
-        "properties": {
-          "max_discount_percent": {
-            "title": "Max Discount Percent",
-            "type": "string"
-          },
-          "number_prefix": {
-            "title": "Number Prefix",
-            "type": "string"
-          },
-          "validity_days": {
-            "title": "Validity Days",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "number_prefix",
-          "validity_days",
-          "max_discount_percent"
-        ],
-        "title": "SettingsOut",
-        "type": "object"
-      },
-      "SettingsUpdate": {
-        "additionalProperties": false,
-        "properties": {
-          "max_discount_percent": {
-            "anyOf": [
-              {
-                "maximum": 100.0,
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Discount Percent"
-          },
-          "number_prefix": {
-            "anyOf": [
-              {
-                "pattern": "^[A-Z]{1,10}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Number Prefix"
-          },
-          "validity_days": {
-            "anyOf": [
-              {
-                "maximum": 365.0,
-                "minimum": 1.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Validity Days"
-          }
-        },
-        "title": "SettingsUpdate",
         "type": "object"
       },
       "SourceOut": {
@@ -5037,32 +5530,6 @@
           "display_name"
         ],
         "title": "UserOut",
-        "type": "object"
-      },
-      "UserRef": {
-        "properties": {
-          "display_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
-          },
-          "user_id": {
-            "format": "uuid",
-            "title": "User Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "display_name"
-        ],
-        "title": "UserRef",
         "type": "object"
       },
       "VariantLookup": {
@@ -5566,6 +6033,25 @@
         "title": "WorkspaceUpdate",
         "type": "object"
       },
+      "app__modules__assistant__schemas__QuoteRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number"
+        ],
+        "title": "QuoteRef",
+        "type": "object"
+      },
       "app__modules__catalogue__schemas__ArchiveRequest": {
         "additionalProperties": false,
         "properties": {
@@ -5590,6 +6076,284 @@
           "archived"
         ],
         "title": "ArchiveRequest",
+        "type": "object"
+      },
+      "app__modules__crm__schemas__UserRef": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "UserRef",
+        "type": "object"
+      },
+      "app__modules__inbox__schemas__UserRef": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "UserRef",
+        "type": "object"
+      },
+      "app__modules__outbound__schemas__ApproveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Edit and approve in one step: approves this new text",
+            "title": "Body"
+          },
+          "revision": {
+            "description": "The revision on screen; refused if the draft has moved on",
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "title": "ApproveRequest",
+        "type": "object"
+      },
+      "app__modules__outbound__schemas__QuoteRef": {
+        "properties": {
+          "approved_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The version approved with the reply",
+            "title": "Approved Version"
+          },
+          "blocked": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteBlockOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the reply cannot be approved with this quote yet"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "version",
+          "approved_version",
+          "blocked"
+        ],
+        "title": "QuoteRef",
+        "type": "object"
+      },
+      "app__modules__outbound__schemas__SettingsOut": {
+        "properties": {
+          "expiry_hours": {
+            "description": "How long a draft can wait for approval and sending",
+            "title": "Expiry Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiry_hours"
+        ],
+        "title": "SettingsOut",
+        "type": "object"
+      },
+      "app__modules__outbound__schemas__SettingsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "expiry_hours": {
+            "maximum": 720.0,
+            "minimum": 1.0,
+            "title": "Expiry Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiry_hours"
+        ],
+        "title": "SettingsUpdate",
+        "type": "object"
+      },
+      "app__modules__outbound__schemas__UserRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "UserRef",
+        "type": "object"
+      },
+      "app__modules__quotations__schemas__ApproveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge": {
+            "items": {
+              "$ref": "#/components/schemas/Acknowledgement"
+            },
+            "title": "Acknowledge",
+            "type": "array"
+          },
+          "version": {
+            "description": "The version being approved; guards against a stale view",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "ApproveRequest",
+        "type": "object"
+      },
+      "app__modules__quotations__schemas__SettingsOut": {
+        "properties": {
+          "max_discount_percent": {
+            "title": "Max Discount Percent",
+            "type": "string"
+          },
+          "number_prefix": {
+            "title": "Number Prefix",
+            "type": "string"
+          },
+          "validity_days": {
+            "title": "Validity Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number_prefix",
+          "validity_days",
+          "max_discount_percent"
+        ],
+        "title": "SettingsOut",
+        "type": "object"
+      },
+      "app__modules__quotations__schemas__SettingsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "max_discount_percent": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Discount Percent"
+          },
+          "number_prefix": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{1,10}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number Prefix"
+          },
+          "validity_days": {
+            "anyOf": [
+              {
+                "maximum": 365.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity Days"
+          }
+        },
+        "title": "SettingsUpdate",
         "type": "object"
       }
     },
@@ -13010,6 +13774,989 @@
         ]
       }
     },
+    "/v1/w/{slug}/outbound/conversations/{conversation_id}/drafts": {
+      "post": {
+        "operationId": "create_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conversation closed or a draft is waiting"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts": {
+      "get": {
+        "operationId": "list_outbound_drafts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Stored state to filter on",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DraftStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Stored state to filter on",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "conversation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DraftOut"
+                  },
+                  "title": "Response List Outbound Drafts",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Outbound Drafts",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts/{draft_id}": {
+      "get": {
+        "operationId": "read_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/approve": {
+      "post": {
+        "operationId": "approve_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__ApproveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Draft finished, changed since loaded, expired, or its quote blocks it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Approve Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/reject": {
+      "post": {
+        "operationId": "reject_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Draft finished, changed since loaded, expired, or its quote blocks it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reject Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/revisions": {
+      "post": {
+        "operationId": "revise_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Draft finished, changed since loaded, expired, or its quote blocks it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revise Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/drafts/{draft_id}/send": {
+      "post": {
+        "operationId": "send_outbound_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Already sent; nothing new was sent"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not approved, expired, conversation closed or channel not connected"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Send Outbound Draft",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
+    "/v1/w/{slug}/outbound/settings": {
+      "get": {
+        "operationId": "read_outbound_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Outbound Settings",
+        "tags": [
+          "outbound"
+        ]
+      },
+      "put": {
+        "operationId": "update_outbound_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Outbound Settings",
+        "tags": [
+          "outbound"
+        ]
+      }
+    },
     "/v1/w/{slug}/quotations/quotes": {
       "get": {
         "operationId": "list_quotes",
@@ -13521,7 +15268,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveRequest"
+                "$ref": "#/components/schemas/app__modules__quotations__schemas__ApproveRequest"
               }
             }
           },
@@ -14673,7 +16420,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SettingsOut"
+                  "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsOut"
                 }
               }
             },
@@ -14757,7 +16504,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SettingsUpdate"
+                "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsUpdate"
               }
             }
           },
@@ -14768,7 +16515,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SettingsOut"
+                  "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsOut"
                 }
               }
             },

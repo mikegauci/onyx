@@ -16,15 +16,20 @@ from app.api.audit import router as audit_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
 from app.api.modules import router as modules_router
+from app.api.webhooks import router as webhooks_router
 from app.api.workspaces import router as workspaces_router
 from app.core.auth.tokens import TokenVerifier
 from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.integrations import email
+from app.integrations.email import EmailConfig, EmailProvider
+from app.integrations.email.resend import ResendProvider
 from app.modules.assistant.routes import router as assistant_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
+from app.modules.inbox.email_connector import EmailConnector
 from app.modules.inbox.routes import router as inbox_router
 from app.modules.outbound.routes import router as outbound_router
 from app.modules.quotations.routes import router as quotations_router
@@ -36,6 +41,31 @@ def _default_verifier(settings: Settings) -> TokenVerifier | None:
     return TokenVerifier.for_jwks_url(
         jwks_url=settings.jwks_url, issuer=settings.jwt_issuer, audience=settings.jwt_audience
     )
+
+
+def _email_config(
+    settings: Settings, provider: EmailProvider | None
+) -> tuple[EmailConfig | None, ResendProvider | None]:
+    """The email provider when fully configured; otherwise email channels stay disconnected."""
+    if not settings.email_configured:
+        return None, None
+    assert settings.resend_api_key is not None  # noqa: S101 - email_configured
+    assert settings.resend_webhook_secret is not None  # noqa: S101
+    assert settings.email_inbound_domain is not None  # noqa: S101
+    assert settings.email_from_domain is not None  # noqa: S101
+    owned = None
+    if provider is None:
+        owned = ResendProvider(
+            settings.resend_api_key.get_secret_value(), timeout=settings.email_timeout_seconds
+        )
+        provider = owned
+    config = EmailConfig(
+        provider=provider,
+        webhook_secret=settings.resend_webhook_secret.get_secret_value(),
+        inbound_domain=settings.email_inbound_domain,
+        from_domain=settings.email_from_domain,
+    )
+    return config, owned
 
 
 API_VERSION_PREFIX = "/v1"
@@ -52,6 +82,7 @@ def create_app(
     token_verifier: TokenVerifier | None = None,
     session_factory: async_sessionmaker[AsyncSession] | None = None,
     ai_model_factory: ModelFactory | None = None,
+    email_provider: EmailProvider | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -74,9 +105,19 @@ def create_app(
             if app.state.session_factory is not None
             else None
         )
+        email_config, owned = _email_config(settings, email_provider)
+        email.configure(email_config)
+        app.state.email_connector = (
+            EmailConnector(app.state.session_factory, email_config)
+            if email_config is not None and app.state.session_factory is not None
+            else None
+        )
         try:
             yield
         finally:
+            email.configure(None)
+            if owned is not None:
+                await owned.aclose()
             if engine is not None:
                 await engine.dispose()
 
@@ -114,6 +155,7 @@ def create_app(
     v1.include_router(quotations_router)
     v1.include_router(assistant_router)
     v1.include_router(outbound_router)
+    v1.include_router(webhooks_router)
     app.include_router(v1)
     return app
 

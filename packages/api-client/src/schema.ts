@@ -853,6 +853,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/inbox/suppressions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Suppressions
+         * @description Addresses this workspace does not email (bounces, complaints, customer requests).
+         */
+        get: operations["list_suppressions"];
+        put?: never;
+        /** Add Suppression */
+        post: operations["add_suppression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/inbox/suppressions/{suppression_id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Release Suppression
+         * @description Email the address again (for example after the customer fixed their mailbox).
+         */
+        post: operations["release_suppression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/invitations": {
         parameters: {
             query?: never;
@@ -1592,9 +1633,19 @@ export interface components {
         };
         /** ChannelCreate */
         ChannelCreate: {
+            /**
+             * From Name
+             * @description Email only: sender name customers see (default: workspace)
+             */
+            from_name?: string | null;
             kind: components["schemas"]["ChannelKind"];
             /** Name */
             name: string;
+            /**
+             * Signature
+             * @description Email only: text added below every reply
+             */
+            signature?: string | null;
         };
         /**
          * ChannelKind
@@ -1620,14 +1671,23 @@ export interface components {
             created_at: string;
             /** Disabled At */
             disabled_at: string | null;
+            /** From Name */
+            from_name?: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /**
+             * Inbound Address
+             * @description Email only, once connected: the address customers write to
+             */
+            inbound_address?: string | null;
             kind: components["schemas"]["ChannelKind"];
             /** Name */
             name: string;
+            /** Signature */
+            signature?: string | null;
         };
         /** ChannelRef */
         ChannelRef: {
@@ -1644,8 +1704,12 @@ export interface components {
         ChannelUpdate: {
             /** Disabled */
             disabled?: boolean | null;
+            /** From Name */
+            from_name?: string | null;
             /** Name */
             name?: string | null;
+            /** Signature */
+            signature?: string | null;
         };
         /** ContactCreate */
         ContactCreate: {
@@ -2000,7 +2064,7 @@ export interface components {
          * DeliveryStatus
          * @enum {string}
          */
-        DeliveryStatus: "received" | "logged";
+        DeliveryStatus: "received" | "logged" | "sent";
         /** DiagnosticReply */
         DiagnosticReply: {
             /** Echo */
@@ -2197,6 +2261,28 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** EmailDeliveryOut */
+        EmailDeliveryOut: {
+            /**
+             * Detail
+             * @description Bounce type or failure reason code, no content
+             */
+            detail: string | null;
+            /** Recipient */
+            recipient: string;
+            status: components["schemas"]["EmailDeliveryStatus"];
+            /**
+             * Status At
+             * Format: date-time
+             */
+            status_at: string;
+        };
+        /**
+         * EmailDeliveryStatus
+         * @description The latest provider report for one outbound email.
+         * @enum {string}
+         */
+        EmailDeliveryStatus: "sent" | "delivered" | "delayed" | "bounced" | "complained" | "failed" | "suppressed";
         /**
          * ErrorCode
          * @enum {string}
@@ -2668,6 +2754,8 @@ export interface components {
             author_kind: components["schemas"]["AuthorKind"];
             /** Body */
             body: string;
+            /** @description Outbound email only: the provider's latest report */
+            delivery?: components["schemas"]["EmailDeliveryOut"] | null;
             delivery_status: components["schemas"]["DeliveryStatus"];
             direction: components["schemas"]["MessageDirection"];
             /**
@@ -3334,6 +3422,45 @@ export interface components {
          * @enum {string}
          */
         SubjectType: "customer" | "contact" | "lead";
+        /**
+         * SuppressionCreate
+         * @description Stop emailing an address, e.g. the customer asked not to be contacted by email.
+         */
+        SuppressionCreate: {
+            /** Address */
+            address: string;
+            /** Note */
+            note?: string | null;
+        };
+        /** SuppressionList */
+        SuppressionList: {
+            /** Items */
+            items: components["schemas"]["SuppressionOut"][];
+        };
+        /** SuppressionOut */
+        SuppressionOut: {
+            /** Address */
+            address: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            reason: components["schemas"]["SuppressionReason"];
+        };
+        /**
+         * SuppressionReason
+         * @enum {string}
+         */
+        SuppressionReason: "bounced" | "complained" | "manual";
         /** ToolCallOut */
         ToolCallOut: {
             /** Found */
@@ -8341,6 +8468,219 @@ export interface operations {
             };
         };
     };
+    list_suppressions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuppressionList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_suppression: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuppressionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuppressionOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in the current state, or duplicate */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    release_suppression: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suppression_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     create_invitation: {
         parameters: {
             query?: never;
@@ -9132,7 +9472,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Not approved, expired, conversation closed or channel not connected */
+            /** @description Not approved, expired, conversation closed, channel not connected, no email address, or the address is suppressed */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9150,7 +9490,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Authentication or database unavailable */
+            /** @description The email provider did not accept it; nothing was sent */
             503: {
                 headers: {
                     [name: string]: unknown;

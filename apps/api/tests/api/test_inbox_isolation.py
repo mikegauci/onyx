@@ -327,12 +327,30 @@ def test_messages_are_append_only_even_for_the_owner(owner_engine: Engine, state
         conn.execute(text(statement), {"id": LUMEN_MESSAGE})
 
 
-def test_worker_role_has_no_inbox_access_yet(owner_engine: Engine) -> None:
+def test_worker_role_sees_only_its_bound_tenant(owner_engine: Engine) -> None:
+    """The email connector (PR-017) works as onyx_worker, bound to the resolved tenant."""
+    with as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn:
+        orgs = conn.execute(text("SELECT DISTINCT organization_id FROM inbox_messages")).scalars()
+        assert set(orgs) == {LUMEN_ID}
+    with as_role(owner_engine, "onyx_worker") as conn:
+        assert conn.execute(text("SELECT count(*) FROM inbox_messages")).scalar_one() == 0
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "UPDATE inbox_messages SET body = 'x'",
+        "UPDATE inbox_conversations SET subject = 'x'",
+        "UPDATE inbox_channels SET inbound_token = 'x'",
+        "DELETE FROM inbox_conversations",
+    ],
+)
+def test_worker_role_cannot_rewrite_inbox_records(owner_engine: Engine, statement: str) -> None:
     with (
         pytest.raises(ProgrammingError, match="permission denied"),
         as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn,
     ):
-        conn.execute(text("SELECT count(*) FROM inbox_messages"))
+        conn.execute(text(statement))
 
 
 # --- module disabled -------------------------------------------------------------------------

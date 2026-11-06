@@ -1,4 +1,4 @@
-"""The channel adapter contract, and the manual adapter (the only one in PR-011).
+"""The channel adapter contract, the manual adapter, and what staff record on email channels.
 
 An adapter translates between a provider and the inbox:
 
@@ -23,6 +23,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 
 from app.core.errors import ConflictError
+from app.integrations import email as email_settings
 from app.modules.crm.identity import IdentityError, normalise_email, normalise_phone
 from app.modules.inbox.models import (
     BODY_MAX_LENGTH,
@@ -156,12 +157,32 @@ class ManualChannelAdapter:
         return DeliveryResult(status=DeliveryStatus.LOGGED)
 
 
+class EmailStaffAdapter(ManualChannelAdapter):
+    """What staff record by hand on an email channel (e.g. an email received elsewhere).
+
+    Real email arrives through the verified webhook (``email_connector``) and replies leave
+    only through approved outbound drafts, so ``send`` is never used for email.
+    """
+
+    kind = ChannelKind.EMAIL
+
+    async def send(self, message: OutboundMessage) -> DeliveryResult:  # pragma: no cover
+        raise ChannelNotConnectedError("Email replies are sent from an approved outbound draft.")
+
+
 ADAPTERS: dict[ChannelKind, ChannelAdapter] = {ChannelKind.MANUAL: ManualChannelAdapter()}
+_EMAIL = EmailStaffAdapter()
+
+
+def channel_connected(kind: ChannelKind) -> bool:
+    """Manual channels always work; email works once the email provider is configured."""
+    if kind is ChannelKind.EMAIL:
+        return email_settings.current() is not None
+    return kind in ADAPTERS
 
 
 def adapter_for(kind: ChannelKind) -> ChannelAdapter:
-    """The adapter for a channel kind; email/WhatsApp/web are not connected until later PRs."""
-    adapter = ADAPTERS.get(kind)
-    if adapter is None:
+    """The adapter for a channel kind; WhatsApp and web are not connected until later PRs."""
+    if not channel_connected(kind):
         raise ChannelNotConnectedError
-    return adapter
+    return _EMAIL if kind is ChannelKind.EMAIL else ADAPTERS[kind]

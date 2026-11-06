@@ -5,10 +5,13 @@ comes from ``WorkspaceAccess`` (never from input); queries add an explicit ``org
 filter on top of row-level security. Each change writes its conversation event and its audit
 entry in the same transaction. Audit and event details never contain message text.
 
-Nothing here sends anything to a customer. A reply is passed to the channel adapter, and the
-only adapter (manual) records it as ``logged``. Real delivery arrives with PR-016/PR-017.
+A reply on a manual channel is recorded as ``logged``. A reply on an email channel is sent
+through the email provider, and only when the outbound module asks for it after approval
+(``send_email=True``): staff cannot log or send an email reply directly. Suppressed addresses
+are never emailed.
 """
 
+import logging
 import uuid
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -27,18 +30,28 @@ from app.core.errors import (
     ErrorDetail,
     NotFoundError,
     PermissionDeniedError,
+    ServiceUnavailableError,
     ValidationFailedError,
 )
-from app.core.tenancy.models import Membership, User
+from app.core.tenancy.models import Membership, Organization, User
+from app.integrations import email as email_settings
+from app.integrations.email import EmailProviderError
 from app.modules.crm import public as crm
 from app.modules.crm.pagination import encode_cursor, paginate
 from app.modules.inbox import schemas
 from app.modules.inbox.channels.base import (
-    ADAPTERS,
     InvalidInboundError,
     OutboundMessage,
     adapter_for,
+    channel_connected,
     parse_occurred_at,
+)
+from app.modules.inbox.channels.email import (
+    ReplyContext,
+    channel_address,
+    compose_reply,
+    message_ids,
+    new_inbound_token,
 )
 from app.modules.inbox.ingest import (
     DUPLICATE_MESSAGE,
@@ -56,15 +69,22 @@ from app.modules.inbox.lifecycle import (
 from app.modules.inbox.models import (
     AuthorKind,
     Channel,
+    ChannelKind,
     Conversation,
     DeliveryStatus,
+    EmailDelivery,
+    EmailDeliveryStatus,
     Event,
     EventKind,
     Handler,
     Message,
     MessageDirection,
     Participant,
+    Suppression,
+    SuppressionReason,
 )
+
+logger = logging.getLogger(__name__)
 
 UNIQUE_CHANNEL_NAME = "uq_inbox_channels_organization_id_name"
 
@@ -75,6 +95,32 @@ class DuplicateChannelError(ConflictError):
 
 class TransitionNotAllowedError(ConflictError):
     default_message = "This status change is not allowed."
+
+
+class EmailNeedsApprovalError(ConflictError):
+    default_message = (
+        "Replies on an email channel are sent from an approved draft in Outbound replies."
+    )
+
+
+class NoEmailRecipientError(ConflictError):
+    default_message = "The customer has no email address on this conversation."
+
+
+class RecipientSuppressedError(ConflictError):
+    default_message = "This customer's email address is suppressed, so nothing was sent."
+
+
+class EmailSendFailedError(ServiceUnavailableError):
+    default_message = "The email provider did not accept the reply. Nothing was sent; try again."
+
+
+class DuplicateSuppressionError(ConflictError):
+    default_message = "This address is already suppressed."
+
+
+UNIQUE_ACTIVE_SUPPRESSION = "uq_inbox_suppressions_active"
+REFERENCES_MAX = 10
 
 
 def _invalid(field: str, message: str, kind: str = "invalid") -> ValidationFailedError:
@@ -101,11 +147,20 @@ def _user(user_id: uuid.UUID | None, name: str | None) -> schemas.UserRef | None
 
 
 def channel_out(channel: Channel) -> schemas.ChannelOut:
+    config = email_settings.current()
+    address = (
+        channel_address(channel.inbound_token, config.inbound_domain)
+        if config is not None and channel.inbound_token is not None
+        else None
+    )
     return schemas.ChannelOut(
         id=channel.id,
         kind=channel.kind,
         name=channel.name,
-        connected=channel.kind in ADAPTERS,
+        connected=channel_connected(channel.kind),
+        inbound_address=address,
+        from_name=channel.from_name,
+        signature=channel.signature,
         disabled_at=channel.disabled_at,
         created_at=channel.created_at,
     )
@@ -124,6 +179,17 @@ def _participant_out(
         contact=schemas.ContactRef(id=contact.id, full_name=contact.full_name) if contact else None,
         display_name=participant.display_name,
         address=participant.address,
+    )
+
+
+def _suppression_out(suppression: Suppression, name: str | None) -> schemas.SuppressionOut:
+    return schemas.SuppressionOut(
+        id=suppression.id,
+        address=suppression.address,
+        reason=suppression.reason,
+        note=suppression.note,
+        created_by=_user(suppression.created_by_user_id, name),
+        created_at=suppression.created_at,
     )
 
 
@@ -188,11 +254,21 @@ class InboxService:
                 details=[ErrorDetail(loc=["body", "name"], msg="Already used.", type="duplicate")]
             ) from exc
 
+    def _email_only(self, kind: ChannelKind, values: dict[str, Any]) -> None:
+        for field in ("from_name", "signature"):
+            if values.get(field) is not None and kind is not ChannelKind.EMAIL:
+                raise _invalid(field, "Only email channels have this setting.")
+
     async def create_channel(self, body: schemas.ChannelCreate) -> Channel:
+        self._email_only(body.kind, body.model_dump())
+        is_email = body.kind is ChannelKind.EMAIL
         channel = Channel(
             organization_id=self.org,
             kind=body.kind,
             name=body.name,
+            inbound_token=new_inbound_token() if is_email else None,
+            from_name=body.from_name,
+            signature=body.signature,
             created_by_user_id=self.actor,
         )
         self.db.add(channel)
@@ -209,6 +285,12 @@ class InboxService:
         if body.disabled is not None and body.disabled != (channel.disabled_at is not None):
             channel.disabled_at = self._now() if body.disabled else None
             changed.append("disabled")
+        values = body.model_dump(exclude_unset=True)
+        self._email_only(channel.kind, values)
+        for field in ("from_name", "signature"):
+            if field in values and values[field] != getattr(channel, field):
+                setattr(channel, field, values[field])
+                changed.append(field)
         if changed:
             await self._flush_channel()
             await self._audit("channel.updated", "channel", channel.id, {"fields": changed})
@@ -592,12 +674,18 @@ class InboxService:
         )
 
     async def post_message(
-        self, conversation_id: uuid.UUID, body: schemas.MessageCreate
+        self, conversation_id: uuid.UUID, body: schemas.MessageCreate, *, send_email: bool = False
     ) -> tuple[Message, bool]:
+        """Record a message. ``send_email`` is only set by ``public.send_reply`` (outbound)."""
         conversation = await self.get_conversation(conversation_id, lock=True)
         channel = await self.get_channel(conversation.channel_id)
         if body.kind is schemas.MessageKind.CUSTOMER:
             return await self._log_customer_message(conversation, channel, body)
+        is_email_reply = (
+            body.kind is schemas.MessageKind.REPLY and channel.kind is ChannelKind.EMAIL
+        )
+        if is_email_reply and (not send_email or body.idempotency_key is None):
+            raise EmailNeedsApprovalError
 
         if body.idempotency_key is not None:
             existing = await self._existing_staff_message(channel.id, body.idempotency_key)
@@ -609,16 +697,26 @@ class InboxService:
         except InvalidInboundError as exc:
             raise _invalid(exc.field, str(exc)) from exc
 
+        sent: tuple[str, str, str] | None = None  # provider, provider id, recipient
         if body.kind is schemas.MessageKind.REPLY:
             direction = MessageDirection.OUTBOUND
             if not can_post(conversation.status, direction):
                 raise ConflictError("Reopen the conversation before logging a reply.")
             adapter = adapter_for(channel.kind)
-            first = (await self._first_participants([conversation.id])).get(conversation.id)
-            delivery = await adapter.send(
-                OutboundMessage(body=body.body, recipient_address=first.address if first else None)
-            )
-            status, external_id = delivery.status, delivery.external_message_id
+            if is_email_reply:
+                assert body.idempotency_key is not None  # noqa: S101 - checked above
+                sent = await self._send_email(
+                    conversation, channel, body.body, body.idempotency_key
+                )
+                status, external_id = DeliveryStatus.SENT, None
+            else:
+                first = (await self._first_participants([conversation.id])).get(conversation.id)
+                delivery = await adapter.send(
+                    OutboundMessage(
+                        body=body.body, recipient_address=first.address if first else None
+                    )
+                )
+                status, external_id = delivery.status, delivery.external_message_id
         else:
             direction = MessageDirection.NOTE
             status, external_id = DeliveryStatus.LOGGED, None
@@ -645,18 +743,190 @@ class InboxService:
             existing = await self._existing_staff_message(channel.id, body.idempotency_key)
             assert existing is not None  # noqa: S101 - the constraint just said so
             return existing, True
+        if sent is not None:
+            provider, provider_id, recipient = sent
+            self.db.add(
+                EmailDelivery(
+                    organization_id=self.org,
+                    message_id=message.id,
+                    channel_id=channel.id,
+                    provider=provider,
+                    provider_message_id=provider_id,
+                    recipient=recipient,
+                    status=EmailDeliveryStatus.SENT,
+                )
+            )
+            await self.db.flush()
         if direction is MessageDirection.OUTBOUND and occurred_at > conversation.last_message_at:
             conversation.last_message_at = occurred_at
         await self._audit(
             "message.logged",
             "conversation",
             conversation.id,
-            {"message_id": str(message.id), "direction": direction.value},
+            {
+                "message_id": str(message.id),
+                "direction": direction.value,
+                **({"delivery": "email"} if sent is not None else {}),
+            },
         )
         if body.set_status is not None and body.set_status is not conversation.status:
             await self._set_status(conversation, body.set_status)
         await self.db.flush()
         return message, False
+
+    # --- email -----------------------------------------------------------------------------
+
+    async def _email_recipient(self, conversation: Conversation) -> str:
+        participants = (
+            await self.db.scalars(
+                select(Participant)
+                .where(
+                    Participant.organization_id == self.org,
+                    Participant.conversation_id == conversation.id,
+                )
+                .order_by(Participant.created_at)
+            )
+        ).all()
+        for participant in participants:
+            if participant.address and "@" in participant.address:
+                return participant.address
+        if conversation.contact_id is not None:
+            contact = (await crm.get_contacts(self.db, self.tenant, [conversation.contact_id])).get(
+                conversation.contact_id
+            )
+            if contact is not None and contact.email:
+                return contact.email
+        raise NoEmailRecipientError
+
+    async def is_suppressed(self, address: str) -> bool:
+        found = await self.db.scalar(
+            select(Suppression.id).where(
+                Suppression.organization_id == self.org,
+                Suppression.address == address.lower(),
+                Suppression.released_at.is_(None),
+            )
+        )
+        return found is not None
+
+    async def _thread_ids(self, conversation: Conversation) -> tuple[str | None, list[str]]:
+        """The customer's last Message-ID (In-Reply-To) and the References chain."""
+        rows = (
+            await self.db.scalars(
+                select(Message.external_message_id)
+                .where(
+                    Message.organization_id == self.org,
+                    Message.conversation_id == conversation.id,
+                    Message.direction == MessageDirection.INBOUND,
+                    Message.external_message_id.like("<%>"),
+                )
+                .order_by(Message.occurred_at.desc(), Message.id.desc())
+                .limit(REFERENCES_MAX)
+            )
+        ).all()
+        ids = [i for i in reversed(rows) if i and message_ids(i)]
+        root = conversation.external_thread_ref
+        references = ids if root is None or root in ids else [root, *ids]
+        return (ids[-1] if ids else None), references[-REFERENCES_MAX:]
+
+    async def _send_email(
+        self, conversation: Conversation, channel: Channel, body: str, key: str
+    ) -> tuple[str, str, str]:
+        config = email_settings.current()
+        if config is None or channel.inbound_token is None:  # pragma: no cover - adapter_for
+            raise ConflictError("This channel is not connected yet.")
+        recipient = await self._email_recipient(conversation)
+        if await self.is_suppressed(recipient):
+            raise RecipientSuppressedError
+        in_reply_to, references = await self._thread_ids(conversation)
+        workspace_name = await self.db.scalar(
+            select(Organization.name).where(Organization.id == self.org)
+        )
+        email = compose_reply(
+            body,
+            ReplyContext(
+                channel_token=channel.inbound_token,
+                from_name=channel.from_name or workspace_name or channel.name,
+                signature=channel.signature,
+                conversation_id=conversation.id,
+                subject=conversation.subject,
+                recipient=recipient,
+                in_reply_to=in_reply_to,
+                references=tuple(references),
+                idempotency_key=key,
+                organization_id=self.org,
+            ),
+            inbound_domain=config.inbound_domain,
+            from_domain=config.from_domain,
+        )
+        try:
+            provider_id = await config.provider.send(email)
+        except EmailProviderError as exc:
+            logger.warning(
+                "email send failed",
+                extra={
+                    "fields": {
+                        "conversation_id": str(conversation.id),
+                        "code": exc.code,
+                        "status": exc.status,
+                        "retryable": exc.retryable,
+                    }
+                },
+            )
+            raise EmailSendFailedError from exc
+        return config.provider.name, provider_id, recipient
+
+    # --- suppressions ----------------------------------------------------------------------
+
+    async def list_suppressions(self) -> list[schemas.SuppressionOut]:
+        rows = await self.db.execute(
+            select(Suppression, User.display_name)
+            .outerjoin(User, User.id == Suppression.created_by_user_id)
+            .where(Suppression.organization_id == self.org, Suppression.released_at.is_(None))
+            .order_by(Suppression.created_at.desc())
+        )
+        return [_suppression_out(s, name) for s, name in rows.all()]
+
+    async def add_suppression(self, body: schemas.SuppressionCreate) -> schemas.SuppressionOut:
+        suppression = Suppression(
+            organization_id=self.org,
+            address=body.address,
+            reason=SuppressionReason.MANUAL,
+            note=body.note,
+            created_by_user_id=self.actor,
+        )
+        try:
+            async with self.db.begin_nested():
+                self.db.add(suppression)
+                await self.db.flush()
+        except IntegrityError as exc:
+            if constraint_name(exc) != UNIQUE_ACTIVE_SUPPRESSION:
+                raise
+            raise DuplicateSuppressionError from exc
+        # Ids only: the address stays out of the audit log.
+        await self._audit("suppression.added", "suppression", suppression.id, {"reason": "manual"})
+        return _suppression_out(suppression, None)
+
+    async def release_suppression(self, suppression_id: uuid.UUID) -> None:
+        suppression = await self.db.scalar(
+            select(Suppression)
+            .where(
+                Suppression.organization_id == self.org,
+                Suppression.id == suppression_id,
+                Suppression.released_at.is_(None),
+            )
+            .with_for_update()
+        )
+        if suppression is None:
+            raise NotFoundError("Suppression not found.")
+        suppression.released_at = self._now()
+        suppression.released_by_user_id = self.actor
+        await self.db.flush()
+        await self._audit(
+            "suppression.released",
+            "suppression",
+            suppression.id,
+            {"reason": suppression.reason.value},
+        )
 
     async def _log_customer_message(
         self, conversation: Conversation, channel: Channel, body: schemas.MessageCreate
@@ -717,9 +987,26 @@ class InboxService:
                 select(User.id, User.display_name).where(User.id.in_(author_ids))
             )
             names = dict(rows.all())
+        sent_ids = [m.id for m in messages if m.delivery_status is DeliveryStatus.SENT]
+        deliveries = (
+            {
+                d.message_id: d
+                for d in (
+                    await self.db.scalars(
+                        select(EmailDelivery).where(
+                            EmailDelivery.organization_id == self.org,
+                            EmailDelivery.message_id.in_(sent_ids),
+                        )
+                    )
+                ).all()
+            }
+            if sent_ids
+            else {}
+        )
         out = []
         for m in messages:
             participant = participants.get(m.participant_id) if m.participant_id else None
+            delivery = deliveries.get(m.id)
             out.append(
                 schemas.MessageOut(
                     id=m.id,
@@ -731,6 +1018,14 @@ class InboxService:
                     participant=_participant_out(participant, contacts) if participant else None,
                     body=m.body,
                     delivery_status=m.delivery_status,
+                    delivery=schemas.EmailDeliveryOut(
+                        status=delivery.status,
+                        recipient=delivery.recipient,
+                        detail=delivery.detail,
+                        status_at=delivery.status_at,
+                    )
+                    if delivery is not None
+                    else None,
                     occurred_at=m.occurred_at,
                     recorded_at=m.recorded_at,
                 )

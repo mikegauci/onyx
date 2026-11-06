@@ -47,6 +47,9 @@ EXPECTED_TABLES = {
     "outbound_settings",
     "outbound_drafts",
     "outbound_revisions",
+    "inbox_email_deliveries",
+    "inbox_suppressions",
+    "inbox_webhook_events",
 }
 
 

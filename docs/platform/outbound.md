@@ -3,8 +3,8 @@
 A reply to a customer goes out only after a person with approval rights has approved that
 exact text, and any quote it carries has been approved too. The assistant (PR-015) and staff
 both write **drafts**; approvers approve, edit or reject them; then a member sends the approved
-reply. Every step is audited. Real email delivery comes with PR-017: until then a reply on a
-manual channel is recorded as `logged`, and email channels refuse to send (`409`).
+reply. Every step is audited. A reply on a manual channel is recorded as `logged`. On an email
+channel it is emailed once through the connector ([email.md](email.md), PR-017).
 
 The `outbound` module requires `inbox` and `quotations`. A platform admin enables it per
 tenant. The API enforces the entitlement and permissions on every route under
@@ -121,7 +121,7 @@ owner included:
 - only an approved draft becomes sent;
 - revisions are append-only and can only be added to an open draft.
 
-`onyx_worker` has no access yet; the email connector (PR-017) adds what it needs.
+`onyx_worker` has no outbound access. The email connector (PR-017) works on inbox tables only.
 
 ## Rollback
 

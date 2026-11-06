@@ -32,6 +32,7 @@ class ErrorCode(enum.StrEnum):
     VALIDATION_FAILED = "validation_failed"
     INTERNAL_ERROR = "internal_error"
     UNAVAILABLE = "unavailable"
+    BUDGET_EXCEEDED = "budget_exceeded"
 
 
 _CODE_FOR_STATUS = {

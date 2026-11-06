@@ -27,6 +27,7 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.QUOTATIONS_WRITE: {OWNER, ADMIN, MEMBER},
     Permission.QUOTATIONS_APPROVE: {OWNER, ADMIN},
     Permission.QUOTATIONS_MANAGE: {OWNER, ADMIN},
+    Permission.AI_USAGE_READ: {OWNER, ADMIN},
 }
 
 

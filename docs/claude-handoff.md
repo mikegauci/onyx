@@ -1,61 +1,36 @@
-# Claude Code handoff — 5 November 2026
+# Claude Code handoff — 6 November 2026
 
 ## Start here
 
-Read `CLAUDE.md` → `AGENTS.md`, this handoff, `PROJECT_BRIEF.md`, the PR-010 section of
-`PR_ROADMAP.md`, and `CLAUDE_WORKFLOW.md`. Use the model the owner selects in Claude Code.
-The repository files do not select models.
+Read `CLAUDE.md` → `AGENTS.md`, this handoff, `PROJECT_BRIEF.md`, the next PR's section of
+`PR_ROADMAP.md`, and `CLAUDE_WORKFLOW.md`. Use the model the owner selects; the repository
+files do not select models.
 
 ## Accepted baseline
 
-- PR-009 CRM merged in [GitHub PR #13](https://github.com/mikegauci/onyx/pull/13).
-- Merge commit: `05c483da9e39836ecd29514549df7ba9730befe9` on `main`.
-- [GitHub CI](https://github.com/mikegauci/onyx/actions/runs/42031145333) passed API, container
-  smoke, web checks/tests/default build, full Playwright suite and aggregate `ci`.
-- CRM supports customers, contacts, leads, lifecycle, notes/activity, CSV preview/import,
-  normalized identity deduplication and tenant/module/role enforcement.
-- Leads now have archive/restore with retained history, and status changes share a row lock
-  with archiving so competing requests validate the latest committed state.
-- Alembic is the only migration authority. `0008` creates CRM tables; `0009` adds lead
-  archive markers. Do not rewrite merged migrations. Migration head is `0009`.
-- Tests use fake data and local PostgreSQL/fake authentication. No shared/production database
-  migration or production deployment was performed. The temporary local test database was
-  shut down. No test server needs to be kept running for this handoff.
+- Merged on `main`: PR-001–PR-009, PR-010 catalogue ([#15](https://github.com/mikegauci/onyx/pull/15)),
+  PR-011 inbox ([#16](https://github.com/mikegauci/onyx/pull/16)) and PR-012 quotations
+  ([#19](https://github.com/mikegauci/onyx/pull/19)).
+- PR-013 AI gateway is on branch `feat/ai-gateway` (see its GitHub PR for merge status):
+  server-side Pydantic AI gateway (OpenAI/Anthropic adapters plus a local fake model),
+  per-tenant usage events in micro-USD, fail-closed monthly budgets set by platform admins,
+  an alert threshold, bounded retries/timeouts and redaction. Migration `0013`.
+  See `docs/platform/ai-gateway.md`.
+- Alembic is the only migration authority. Do not rewrite merged migrations.
+- No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
+  Tests use a scripted model through the real Pydantic AI agent path.
+- The `onyx-preview` Supabase project is at schema `0012`; applying `0013` after merge needs
+  the owner's go-ahead.
 
-Operations: `docs/platform/crm.md`. Requirement/evidence mapping:
-`docs/platform/crm-plan-review.md`. A separate security-review artifact is not recorded.
+## Next task
 
-## Next task: plan PR-010 only
-
-PR-010 covers the product catalogue and inventory read model: products, SKUs,
-variants/attributes, EUR price lists, configurable VAT, availability, import/refresh source
-metadata and authoritative timestamps. Acceptance requires a sample lighting catalogue
-import, exact SKU/price/VAT/stock-source visibility, and no invented unsupported information.
-
-Inspect existing module entitlements, CRM patterns, tenant repositories, permissions,
-generated contracts and migration/test infrastructure before proposing changes. Keep
-business rules in FastAPI, enforce tenant RLS and backend entitlements, and include
-cross-tenant negative cases. Use fake fixtures until real client data and integrations are
-authorized. Propose scope, contracts, migrations, tests and rollback; wait for plan approval.
-Do not start PR-011 or later work automatically.
+Plan PR-014 (optional knowledge retrieval) or PR-015 (grounded sales/quotation assistant),
+as the owner chooses. PR-015 must call `AIGateway.run_structured` for every model call and
+keep totals, prices and stock in the deterministic backend services. Wait for plan approval.
 
 ## Verification preference
 
-The owner explicitly asked to reduce long local runs and token use. Run focused local tests
-for the change, then push a ready-for-review PR and use existing GitHub CI for full
-validation. Inspect real failures; avoid repeating full local API/build/browser matrices or
-polling unchanged results. Required CI must pass before merge. Preserve all deployment,
-shared-database, credential, paid-resource and customer-communication approval gates.
-
-## Copy into a fresh Claude Code session
-
-```text
-Continue the Onyx repository from the merged PR-009 baseline.
-Read CLAUDE.md / AGENTS.md, docs/claude-handoff.md, PROJECT_BRIEF.md,
-CLAUDE_WORKFLOW.md and PR-010 in PR_ROADMAP.md. Inspect current Git status
-and the actual code. Plan PR-010 only: catalogue and inventory read model.
-Do not implement yet. Propose the smallest complete slice, API/data contracts,
-migration and rollback, tenant/permission rules, fake fixtures and acceptance tests.
-Use focused local checks and GitHub CI for broad validation; avoid repeated
-full local test/build loops. Wait for my approval before coding.
-```
+Run focused local checks (ruff, small database-free tests) and let GitHub CI run the full
+API/web/browser matrix. Inspect real failures; don't repeat full local suites. Required CI
+must pass before merge. Keep all deployment, shared-database, credential, paid-resource and
+customer-communication approval gates.

@@ -29,6 +29,7 @@ class Permission(enum.StrEnum):
     QUOTATIONS_WRITE = "quotations.write"  # draft, edit, revise, record outcome, cancel
     QUOTATIONS_APPROVE = "quotations.approve"  # approve; discounts above the policy limit
     QUOTATIONS_MANAGE = "quotations.manage"  # numbering, validity and discount policy
+    AI_USAGE_READ = "ai.usage.read"  # the workspace's AI spend, budget and call history
 
 
 _MEMBER = frozenset(
@@ -55,6 +56,7 @@ _ADMIN = _MEMBER | {
     Permission.INBOX_MANAGE,
     Permission.QUOTATIONS_APPROVE,
     Permission.QUOTATIONS_MANAGE,
+    Permission.AI_USAGE_READ,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

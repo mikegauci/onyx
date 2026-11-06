@@ -1,11 +1,23 @@
 """Application settings, validated at startup from environment variables."""
 
+from decimal import Decimal
 from functools import lru_cache
 from typing import Annotated, Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+AI_PROVIDERS = frozenset({"openai", "anthropic", "fake"})
+
+
+class AIModelPrice(BaseModel):
+    """List price in USD per million tokens. Decimal strings, never floats."""
+
+    model_config = ConfigDict(frozen=True)
+
+    input_usd_per_mtok: Decimal = Field(ge=0, max_digits=12, decimal_places=6)
+    output_usd_per_mtok: Decimal = Field(ge=0, max_digits=12, decimal_places=6)
 
 
 class Settings(BaseSettings):
@@ -39,6 +51,41 @@ class Settings(BaseSettings):
         default=None,
         description="SQLAlchemy URL for the schema-owner role used only by Alembic and seeding.",
     )
+    # --- AI gateway (server only; nothing here is ever sent to a browser) ---------------------
+    openai_api_key: SecretStr | None = Field(default=None, description="OpenAI API key.")
+    anthropic_api_key: SecretStr | None = Field(default=None, description="Anthropic API key.")
+    ai_default_model: str | None = Field(
+        default=None,
+        description="'<provider>:<model>' used when a workload has no override. Unset locally "
+        "means the fake model; unset in a deployed environment means AI is unavailable.",
+    )
+    ai_workload_models: dict[str, str] = Field(
+        default_factory=dict,
+        description='Per-workload model overrides as JSON, e.g. {"diagnostic": "openai:..."}.',
+    )
+    ai_model_prices: dict[str, AIModelPrice] = Field(
+        default_factory=dict,
+        description="USD price per million tokens for each allowed model, as JSON. A model "
+        "without a price is refused, so spend can always be computed.",
+    )
+    ai_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+    ai_max_attempts: int = Field(default=3, ge=1, le=5)
+    ai_retry_backoff_seconds: float = Field(default=0.5, ge=0, le=30)
+    ai_max_output_tokens: int = Field(default=1024, ge=16, le=32_000)
+
+    @field_validator("openai_api_key", "anthropic_api_key", mode="before")
+    @classmethod
+    def _blank_key_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("ai_default_model", mode="before")
+    @classmethod
+    def _blank_model_is_unset(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -110,6 +157,17 @@ class Settings(BaseSettings):
                 "ONYX_API_MIGRATION_DATABASE_URL must be set explicitly in a deployed environment."
             )
         return self.require_database_url()
+
+    @model_validator(mode="after")
+    def _validate_ai_models(self) -> Self:
+        refs = [self.ai_default_model, *self.ai_workload_models.values()]
+        for ref in filter(None, refs):
+            provider, _, name = ref.partition(":")
+            if provider not in AI_PROVIDERS or not name:
+                raise ValueError(f"AI model must be '<openai|anthropic|fake>:<model>': {ref!r}")
+            if provider == "fake" and self.is_deployed:
+                raise ValueError("The fake AI model is not allowed in a deployed environment.")
+        return self
 
     @model_validator(mode="after")
     def _validate_deployed_origins(self) -> Self:

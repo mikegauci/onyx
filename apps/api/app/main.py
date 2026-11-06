@@ -8,7 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.ai.gateway import AIGateway
+from app.ai.providers import ModelFactory, build_model
 from app.api.admin import router as admin_router
+from app.api.ai import router as ai_router
 from app.api.audit import router as audit_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
@@ -46,6 +49,7 @@ def create_app(
     *,
     token_verifier: TokenVerifier | None = None,
     session_factory: async_sessionmaker[AsyncSession] | None = None,
+    ai_model_factory: ModelFactory | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -59,6 +63,15 @@ def create_app(
         if session_factory is None and settings.database_url is not None:
             engine = create_engine(settings)
             app.state.session_factory = create_session_factory(engine)
+        app.state.ai_gateway = (
+            AIGateway(
+                app.state.session_factory,
+                settings,
+                model_factory=ai_model_factory or build_model,
+            )
+            if app.state.session_factory is not None
+            else None
+        )
         try:
             yield
         finally:
@@ -92,6 +105,7 @@ def create_app(
     v1.include_router(audit_router)
     v1.include_router(modules_router)
     v1.include_router(admin_router)
+    v1.include_router(ai_router)
     v1.include_router(crm_router)
     v1.include_router(catalogue_router)
     v1.include_router(inbox_router)

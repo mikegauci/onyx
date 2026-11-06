@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-009 is merged; PR-010 is the next recommended scope, subject to plan approval.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-012 are merged and PR-013 (AI gateway) is in review; PR-014 (optional) or PR-015 is next, subject to plan approval.
 
 ## Read these files first
 

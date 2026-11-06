@@ -1,6 +1,290 @@
 {
   "components": {
     "schemas": {
+      "AIBudgetOut": {
+        "properties": {
+          "alert_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Percent"
+          },
+          "monthly_limit_usd_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Limit Usd Micros"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "spent_usd_micros": {
+            "title": "Spent Usd Micros",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "period_start",
+          "monthly_limit_usd_micros",
+          "alert_percent",
+          "spent_usd_micros"
+        ],
+        "title": "AIBudgetOut",
+        "type": "object"
+      },
+      "AIBudgetUpdate": {
+        "properties": {
+          "alert_percent": {
+            "default": 80,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Alert Percent",
+            "type": "integer"
+          },
+          "monthly_limit_usd_micros": {
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Limit Usd Micros",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "monthly_limit_usd_micros"
+        ],
+        "title": "AIBudgetUpdate",
+        "type": "object"
+      },
+      "AITestCallOut": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cost_usd_micros": {
+            "title": "Cost Usd Micros",
+            "type": "integer"
+          },
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "reply": {
+            "$ref": "#/components/schemas/DiagnosticReply"
+          }
+        },
+        "required": [
+          "reply",
+          "event_id",
+          "provider",
+          "model",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd_micros",
+          "attempts",
+          "latency_ms"
+        ],
+        "title": "AITestCallOut",
+        "type": "object"
+      },
+      "AIUsageEventOut": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cost_usd_micros": {
+            "title": "Cost Usd Micros",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Kind"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UsageStatus"
+          },
+          "workload": {
+            "title": "Workload",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "finished_at",
+          "workload",
+          "provider",
+          "model",
+          "status",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd_micros",
+          "attempts",
+          "latency_ms",
+          "error_kind"
+        ],
+        "title": "AIUsageEventOut",
+        "type": "object"
+      },
+      "AIUsageSummary": {
+        "properties": {
+          "alert_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Percent"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AIUsageEventOut"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "monthly_limit_usd_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None: no budget, so AI is off.",
+            "title": "Monthly Limit Usd Micros"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "remaining_usd_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Usd Micros"
+          },
+          "spent_usd_micros": {
+            "description": "Includes reservations of calls in flight.",
+            "title": "Spent Usd Micros",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "period_start",
+          "monthly_limit_usd_micros",
+          "alert_percent",
+          "spent_usd_micros",
+          "remaining_usd_micros",
+          "events"
+        ],
+        "title": "AIUsageSummary",
+        "type": "object"
+      },
       "Acknowledgement": {
         "additionalProperties": false,
         "properties": {
@@ -1734,6 +2018,26 @@
         "title": "DeliveryStatus",
         "type": "string"
       },
+      "DiagnosticReply": {
+        "properties": {
+          "echo": {
+            "maxLength": 50,
+            "title": "Echo",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "echo"
+        ],
+        "title": "DiagnosticReply",
+        "type": "object"
+      },
       "ErrorCode": {
         "enum": [
           "bad_request",
@@ -1746,7 +2050,8 @@
           "gone",
           "validation_failed",
           "internal_error",
-          "unavailable"
+          "unavailable",
+          "budget_exceeded"
         ],
         "title": "ErrorCode",
         "type": "string"
@@ -3333,7 +3638,8 @@
           "quotations.read",
           "quotations.write",
           "quotations.approve",
-          "quotations.manage"
+          "quotations.manage",
+          "ai.usage.read"
         ],
         "title": "Permission",
         "type": "string"
@@ -4444,6 +4750,18 @@
         "title": "TotalsOut",
         "type": "object"
       },
+      "UsageStatus": {
+        "enum": [
+          "reserved",
+          "succeeded",
+          "provider_error",
+          "timeout",
+          "invalid_output",
+          "budget_blocked"
+        ],
+        "title": "UsageStatus",
+        "type": "string"
+      },
       "UserOut": {
         "properties": {
           "display_name": {
@@ -5203,6 +5521,255 @@
         ]
       }
     },
+    "/v1/admin/organizations/{slug}/ai-budget": {
+      "get": {
+        "operationId": "read_ai_budget",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIBudgetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not a platform admin, or no such resource"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Ai Budget",
+        "tags": [
+          "ai"
+        ]
+      },
+      "put": {
+        "operationId": "set_ai_budget",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIBudgetUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIBudgetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not a platform admin, or no such resource"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Ai Budget",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/v1/admin/organizations/{slug}/ai/test-call": {
+      "post": {
+        "operationId": "run_ai_test_call",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AITestCallOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not a platform admin, or no such resource"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The tenant's AI budget is exhausted or unset"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "AI unavailable or the provider failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Ai Test Call",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/v1/admin/organizations/{slug}/modules/{key}": {
       "put": {
         "operationId": "set_organization_module",
@@ -5660,6 +6227,105 @@
         "summary": "Update Workspace",
         "tags": [
           "workspaces"
+        ]
+      }
+    },
+    "/v1/w/{slug}/ai/usage": {
+      "get": {
+        "operationId": "read_ai_usage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIUsageSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Ai Usage",
+        "tags": [
+          "ai"
         ]
       }
     },

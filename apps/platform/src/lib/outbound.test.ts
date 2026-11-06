@@ -41,6 +41,7 @@ describe("draftControls", () => {
       canApprove: false,
       canReject: false,
       canSend: false,
+      canApproveAndSend: false,
     });
     expect(controls.sendHint).toMatch(/must approve/);
   });
@@ -62,8 +63,18 @@ describe("draftControls", () => {
     };
     const controls = draftControls(draft({ quote }), APPROVER);
     expect(controls.canApprove).toBe(false);
+    expect(controls.canApproveAndSend).toBe(false);
     expect(controls.approveHint).toBe("Approve the quote first.");
     expect(controls.sendHint).toBe("Approve the quote first.");
+  });
+
+  it("lets approvers approve and send in one step", () => {
+    expect(draftControls(draft(), APPROVER).canApproveAndSend).toBe(true);
+    expect(draftControls(draft({ status: "approved" }), APPROVER).canApproveAndSend).toBe(true);
+    // Approving alone is not enough: sending also needs outbound.write.
+    expect(draftControls(draft(), ["outbound.read", "outbound.approve"]).canApproveAndSend).toBe(
+      false,
+    );
   });
 
   it("offers sending only for an approved reply", () => {
@@ -79,6 +90,7 @@ describe("draftControls", () => {
         canApprove: false,
         canReject: false,
         canSend: false,
+        canApproveAndSend: false,
         sendHint: null,
       });
     },

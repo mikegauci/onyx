@@ -25,6 +25,7 @@ from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 from app.integrations import email
 from app.integrations.email import EmailConfig, EmailProvider
+from app.integrations.email.fake import FakeEmailProvider
 from app.integrations.email.resend import ResendProvider
 from app.modules.assistant.routes import router as assistant_router
 from app.modules.catalogue.routes import router as catalogue_router
@@ -54,6 +55,8 @@ def _email_config(
     assert settings.email_inbound_domain is not None  # noqa: S101
     assert settings.email_from_domain is not None  # noqa: S101
     owned = None
+    if provider is None and settings.email_provider == "fake":
+        provider = FakeEmailProvider()  # local and e2e only; refused in deployed settings
     if provider is None:
         owned = ResendProvider(
             settings.resend_api_key.get_secret_value(), timeout=settings.email_timeout_seconds

@@ -45,6 +45,8 @@ export type DraftControls = {
   canApprove: boolean;
   canReject: boolean;
   canSend: boolean;
+  /** Approve the text on screen and send it in one step (approvers who may also send). */
+  canApproveAndSend: boolean;
   /** Why the reply cannot be sent yet, for the person looking at it; null when it can. */
   sendHint: string | null;
   /** Why approval is blocked (from the API), or null. */
@@ -71,6 +73,7 @@ export function draftControls(draft: Draft, permissions: readonly string[]): Dra
     canApprove: open && approve && quoteBlock === null,
     canReject: open && approve,
     canSend: draft.status === "approved" && write,
+    canApproveAndSend: open && approve && write && quoteBlock === null,
     sendHint,
     approveHint: open && approve ? quoteBlock : null,
   };

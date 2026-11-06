@@ -84,3 +84,50 @@ export function describeEvent(event: InboxEvent): string {
   }
   return label;
 }
+
+export type Suppression = components["schemas"]["SuppressionOut"];
+export type EmailDelivery = components["schemas"]["EmailDeliveryOut"];
+export type EmailDeliveryStatus = components["schemas"]["EmailDeliveryStatus"];
+export type ComposeKind = "reply" | "customer" | "note";
+
+/**
+ * What staff may record by hand on a channel. On email, replies leave only through an approved
+ * draft, so "Log a reply" is not offered; the API refuses it (409) whatever the screen shows.
+ */
+export function composeKinds(channelKind: Channel["kind"]): ComposeKind[] {
+  return channelKind === "email" ? ["customer", "note"] : ["reply", "customer", "note"];
+}
+
+export const DELIVERY_LABEL: Record<EmailDeliveryStatus, string> = {
+  sent: "Sent",
+  delayed: "Delayed",
+  delivered: "Delivered",
+  bounced: "Bounced",
+  complained: "Marked as spam",
+  failed: "Failed",
+  suppressed: "Not sent: address blocked",
+};
+
+export const DELIVERY_VARIANT: Record<
+  EmailDeliveryStatus,
+  "info" | "warning" | "success" | "destructive"
+> = {
+  sent: "info",
+  delayed: "warning",
+  delivered: "success",
+  bounced: "destructive",
+  complained: "destructive",
+  failed: "destructive",
+  suppressed: "destructive",
+};
+
+/** Statuses after which the provider (or Onyx) blocks further email to the address. */
+export function deliveryBlocksAddress(status: EmailDeliveryStatus): boolean {
+  return status === "bounced" || status === "complained" || status === "suppressed";
+}
+
+export const SUPPRESSION_REASON_LABEL: Record<Suppression["reason"], string> = {
+  bounced: "Bounced",
+  complained: "Marked as spam",
+  manual: "Added by staff",
+};

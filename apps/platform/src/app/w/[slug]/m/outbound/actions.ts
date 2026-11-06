@@ -129,3 +129,39 @@ export async function updateExpiry(
   refresh(slug);
   return { status: "ok", message: `Drafts now stay valid for ${outcome.data.expiry_hours} hours.` };
 }
+
+/**
+ * Approve the text on screen, then send it. Two API calls, each checked by the API; if sending
+ * fails the approval stands and "Send reply" retries it (the API still sends it only once).
+ */
+export async function approveAndSendDraft(
+  slug: string,
+  draftId: string,
+  revision: number,
+  original: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const edited = text(formData, "body");
+  const approved = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/outbound/drafts/{draft_id}/approve", {
+      params: { path: { slug, draft_id: draftId } },
+      body: { revision, ...(edited && isEdited(original, edited) ? { body: edited } : {}) },
+    }),
+  );
+  if (!approved.ok) return failureState(approved);
+  const sent = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/outbound/drafts/{draft_id}/send", {
+      params: { path: { slug, draft_id: draftId } },
+    }),
+  );
+  refresh(slug);
+  if (!sent.ok) {
+    const failure = failureState(sent);
+    return {
+      ...failure,
+      message: `Approved, but not sent: ${failure.message} Use Send reply to try again.`,
+    };
+  }
+  return { status: "ok", message: "Reply approved and sent. It is now in the conversation." };
+}

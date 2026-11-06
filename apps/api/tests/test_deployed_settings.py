@@ -109,3 +109,15 @@ def test_migration_url_falls_back_locally_only() -> None:
 def test_database_urls_are_not_exposed_in_repr() -> None:
     settings = Settings(_env_file=None, database_url="postgresql+psycopg://u:hunter2@h/db")
     assert "hunter2" not in repr(settings)
+
+
+@pytest.mark.parametrize("environment", ["preview", "production"])
+def test_fake_email_provider_is_refused_when_deployed(environment: str) -> None:
+    with pytest.raises(ValidationError):
+        deployed(environment, email_provider="fake")
+
+
+def test_fake_email_provider_is_allowed_locally() -> None:
+    assert Settings(_env_file=None, environment="test", email_provider="fake").email_provider == (
+        "fake"
+    )

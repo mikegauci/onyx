@@ -43,15 +43,17 @@ files do not select models.
   - approved replies emailed once with an idempotency key;
   - delivery status and suppressions.
 
-  Migration `0016`. See `docs/platform/email.md`. Nothing has been sent through a real Resend
-  account. The Resend account, DNS, webhook registration and `0016` on preview all need the
-  owner's approval.
+  Migration `0016`. See `docs/platform/email.md`. Live on preview since 6 November 2026: an
+  inbound Gmail enquiry and an approved reply were both verified end to end.
+
+- PR-017 part 2, the email screens: the channel's inbound address, sender name and signature;
+  delivery status on emailed replies; "Approve and send"; no "Log a reply" on email
+  conversations; and a Blocked addresses page. E2E runs against an in-memory fake provider
+  (`ONYX_API_EMAIL_PROVIDER=fake`, refused when deployed). PR-017 is complete once it merges.
 
 ## Next task
 
-After part 1 merges, plan PR-017 part 2: the screens. They cover the email channel settings
-(inbound address, sender name, signature), delivery status on messages, and the suppression
-list. PR-014 stays deferred. Wait for plan approval.
+Owner selects the next PR (PR-018 pilot, or PR-014 if un-deferred). Wait for plan approval.
 
 ## Verification preference
 

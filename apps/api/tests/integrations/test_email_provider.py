@@ -10,6 +10,7 @@ import httpx
 import pytest
 
 from app.integrations.email import EmailProviderError, OutgoingEmail
+from app.integrations.email.fake import FakeEmailProvider
 from app.integrations.email.resend import ResendProvider
 from app.integrations.email.signing import TOLERANCE, WebhookSignatureError, sign, verify
 
@@ -178,3 +179,13 @@ def test_ids_that_are_not_provider_ids_never_reach_the_url() -> None:
 
     with pytest.raises(EmailProviderError, match="invalid_id"):
         asyncio.run(_provider(httpx.MockTransport(handler)).get_received("../emails"))
+
+
+def test_the_fake_provider_sends_once_per_idempotency_key() -> None:
+    fake = FakeEmailProvider()
+    first = asyncio.run(fake.send(EMAIL))
+    assert asyncio.run(fake.send(EMAIL)) == first
+    assert len(fake.sent) == 1
+    with pytest.raises(EmailProviderError) as raised:
+        asyncio.run(fake.get_received("anything"))
+    assert raised.value.retryable is False

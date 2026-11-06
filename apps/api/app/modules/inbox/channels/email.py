@@ -13,6 +13,8 @@ Inbound bodies are untrusted: HTML is reduced to plain text (no markup, scripts 
 kept), quoted history below the reply is trimmed, and the result is stored as text only.
 """
 
+import base64
+import binascii
 import html
 import re
 import secrets
@@ -29,7 +31,10 @@ from app.modules.inbox.models import BODY_MAX_LENGTH, EXTERNAL_REF_MAX_LENGTH
 
 TOKEN_BYTES = 16  # 32 hex characters
 TOKEN = re.compile(r"[0-9a-f]{32}")
-LOCAL_PART = re.compile(r"(?P<token>[0-9a-f]{32})(?:\+(?P<hint>[0-9a-f]{32}))?")
+# The hint is the conversation id in base32 (26 characters), so the whole local part stays
+# within the 64 characters RFC 5321 allows: 32 (token) + 1 ("+") + 26 = 59.
+LOCAL_PART = re.compile(r"(?P<token>[0-9a-f]{32})(?:\+(?P<hint>[a-z2-7]{26}))?")
+LOCAL_PART_MAX = 64
 MESSAGE_ID = re.compile(r"<[^<>\s]{1,250}>")
 TRUNCATED = "\n\n[Message shortened]"
 FROM_LOCAL_PART = "replies"  # answers go to the Reply-To address, never to this one
@@ -54,8 +59,21 @@ def channel_address(token: str, domain: str) -> str:
     return f"{token}@{domain}"
 
 
+def _hint(conversation_id: uuid.UUID) -> str:
+    return base64.b32encode(conversation_id.bytes).decode().rstrip("=").lower()
+
+
+def _from_hint(hint: str) -> uuid.UUID | None:
+    try:
+        return uuid.UUID(bytes=base64.b32decode(hint.upper() + "======"))
+    except (binascii.Error, ValueError):
+        return None
+
+
 def reply_address(token: str, conversation_id: uuid.UUID, domain: str) -> str:
-    return f"{token}+{conversation_id.hex}@{domain}"
+    local = f"{token}+{_hint(conversation_id)}"
+    assert len(local) <= LOCAL_PART_MAX  # noqa: S101 - fixed lengths, see LOCAL_PART
+    return f"{local}@{domain}"
 
 
 @dataclass(frozen=True)
@@ -73,7 +91,7 @@ def parse_recipient(address: str, domain: str) -> Recipient | None:
     if match is None:
         return None
     hint = match.group("hint")
-    return Recipient(match.group("token"), uuid.UUID(hex=hint) if hint else None)
+    return Recipient(match.group("token"), _from_hint(hint) if hint else None)
 
 
 class _TextExtractor(HTMLParser):

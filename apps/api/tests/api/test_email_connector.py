@@ -25,6 +25,7 @@ from app.core.db.seed import seed_id, seed_inbound_token
 from app.integrations.email import EmailProviderError, OutgoingEmail, ReceivedEmail
 from app.integrations.email.signing import sign
 from app.main import create_app
+from app.modules.inbox.channels.email import reply_address
 from tests.api.conftest import As
 from tests.auth_tokens import TokenFactory
 from tests.rls_helpers import HARBOUR as HARBOUR_ID
@@ -288,7 +289,7 @@ def test_the_payload_cannot_choose_the_tenant_or_borrow_a_conversation(
     api: TestClient, as_: As, provider: FakeProvider, owner_engine: Engine
 ) -> None:
     harbour_conversation = seed_id(f"{HARBOUR}:conversation:Menu tasting date")
-    hint = f"{LUMEN_TOKEN}+{harbour_conversation.hex}@{INBOUND}"
+    hint = reply_address(LUMEN_TOKEN, harbour_conversation, INBOUND)
     response, _ = _receive(
         api,
         provider,
@@ -310,7 +311,7 @@ def test_a_hint_for_a_conversation_the_sender_is_not_on_is_ignored(
 ) -> None:
     _receive(api, provider)
     [first] = _inbound(owner_engine)
-    hint = f"{LUMEN_TOKEN}+{first.conversation_id.hex}@{INBOUND}"
+    hint = reply_address(LUMEN_TOKEN, first.conversation_id, INBOUND)
     _receive(api, provider, to=hint, sender="someone.else@example.test")
     conversations = {r.conversation_id for r in _inbound(owner_engine)}
     assert len(conversations) == 2
@@ -419,7 +420,7 @@ def test_an_approved_reply_is_emailed_once(
     assert email.to == CLARA
     assert email.idempotency_key == f"outbound-{draft['id']}"
     assert email.headers["In-Reply-To"] == customer_id
-    assert email.reply_to == f"{LUMEN_TOKEN}+{first.conversation_id.hex}@{INBOUND}"
+    assert email.reply_to == reply_address(LUMEN_TOKEN, first.conversation_id, INBOUND)
     assert "&lt;b&gt;" in email.html
 
     [delivery] = _rows(

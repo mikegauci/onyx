@@ -423,6 +423,8 @@ def test_a_policy_found_this_run_may_be_quoted(api: TestClient, as_: As, script:
         "topic": "warranty",
         "found": True,
         "skus": [],
+        "sources": [],
+        "mode": None,
     } in response.json()["tool_calls"]
 
 

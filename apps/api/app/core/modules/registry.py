@@ -17,6 +17,7 @@ class ModuleKey(enum.StrEnum):
     ORDERS = "orders"
     ASSISTANT = "assistant"
     OUTBOUND = "outbound"
+    KNOWLEDGE = "knowledge"
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,8 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
             "Outbound replies",
             frozenset({ModuleKey.INBOX, ModuleKey.QUOTATIONS}),
         ),
+        # Tenant documents and policies, searched by staff and the assistant (PR-014).
+        ModuleSpec(ModuleKey.KNOWLEDGE, "Knowledge"),
     )
 }
 

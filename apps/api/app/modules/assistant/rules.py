@@ -26,6 +26,7 @@ class Reason(enum.StrEnum):
     REPLY_MENTIONS_AMOUNT = "reply_mentions_amount"  # prices/totals belong in the quote only
     REPLY_UNGROUNDED_SKU = "reply_ungrounded_sku"
     UNKNOWN_POLICY = "unknown_policy"  # cites a policy it did not look up, or that does not exist
+    UNKNOWN_SOURCE = "unknown_source"  # cites a document passage no search returned this run
     NO_CONTACT = "no_contact"  # the conversation has no CRM contact to quote for
     QUOTE_FAILED = "quote_failed"  # the quotation service refused the draft
     AI_UNAVAILABLE = "ai_unavailable"
@@ -47,6 +48,7 @@ REASON_TEXT: dict[Reason, str] = {
     Reason.REPLY_MENTIONS_AMOUNT: "The draft reply stated a price, amount or discount.",
     Reason.REPLY_UNGROUNDED_SKU: "The draft reply mentioned a SKU it had not looked up.",
     Reason.UNKNOWN_POLICY: "The draft relied on a policy that is not on record.",
+    Reason.UNKNOWN_SOURCE: "The draft cited a document passage it had not found.",
     Reason.NO_CONTACT: "The conversation is not linked to a CRM contact.",
     Reason.QUOTE_FAILED: "The draft quote could not be created.",
     Reason.AI_UNAVAILABLE: "AI is not available for this workspace.",
@@ -80,6 +82,7 @@ class Trace:
 
     seen_skus: set[str] = field(default_factory=set)
     found_topics: set[str] = field(default_factory=set)
+    found_sources: set[str] = field(default_factory=set)  # knowledge chunk ids returned
     calls: list[dict[str, object]] = field(default_factory=list)
 
 
@@ -90,6 +93,7 @@ class Proposal:
     reply: str
     lines: list[tuple[str, int]]  # (normalised SKU, total quantity), duplicates merged
     policies_used: list[str]
+    sources_used: list[str] = field(default_factory=list)
 
 
 def merge_lines(lines: Iterable[tuple[str, int]]) -> list[tuple[str, int]]:
@@ -144,4 +148,6 @@ def check(
         add(Reason.REPLY_UNGROUNDED_SKU)
     if any(topic not in trace.found_topics for topic in proposal.policies_used):
         add(Reason.UNKNOWN_POLICY)
+    if any(source not in trace.found_sources for source in proposal.sources_used):
+        add(Reason.UNKNOWN_SOURCE)
     return reasons

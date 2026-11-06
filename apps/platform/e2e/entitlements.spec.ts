@@ -85,6 +85,6 @@ test("tenant settings show modules read-only", async ({ page, context }) => {
   await signInAs(context, USERS.olivia);
   await page.goto(`${LUMEN}/settings/modules`);
   const table = page.getByRole("table", { name: "Modules" });
-  await expect(table.getByRole("row")).toHaveCount(8); // header + 7 modules
+  await expect(table.getByRole("row")).toHaveCount(9); // header + 8 modules
   await expect(page.getByRole("button", { name: /Enable|Disable/ })).toHaveCount(0);
 });

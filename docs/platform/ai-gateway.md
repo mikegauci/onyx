@@ -62,6 +62,16 @@ against the month's budget (fail closed). Clearing stale reservations is a follo
 
 No route returns provider keys or configuration. Everyone else gets `404` on admin routes.
 
+## Embeddings
+
+`AIGateway.embed()` turns text into 1,536-dimension vectors for knowledge search (PR-014).
+It follows the same steps as a chat call: it resolves the model and price, reserves the
+worst-case input cost, makes batches of 64 inputs with a deadline and bounded retries each,
+and finalises one usage event with the provider's token count. The workload is
+`knowledge_embedding`. It has no fallback to `ONYX_API_AI_DEFAULT_MODEL`, which is a chat
+model. Unset locally means a deterministic fake embedding model; unset when deployed means
+unavailable. See [knowledge.md](knowledge.md).
+
 ## Configuration
 
 | Variable                            | Default | Notes                                                                                                                                                           |

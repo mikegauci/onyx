@@ -34,6 +34,8 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.OUTBOUND_WRITE: {OWNER, ADMIN, MEMBER},
     Permission.OUTBOUND_APPROVE: {OWNER, ADMIN},
     Permission.OUTBOUND_MANAGE: {OWNER, ADMIN},
+    Permission.KNOWLEDGE_READ: {OWNER, ADMIN, MEMBER},
+    Permission.KNOWLEDGE_MANAGE: {OWNER, ADMIN},
 }
 
 

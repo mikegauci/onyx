@@ -24,10 +24,11 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from datetime import time as dt_time
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 from pydantic_ai import Agent, Tool, UsageLimits, capture_run_messages
+from pydantic_ai.embeddings import EmbeddingModel
 from pydantic_ai.exceptions import (
     AgentRunError,
     ModelAPIError,
@@ -45,6 +46,13 @@ from pydantic_ai.settings import ModelSettings
 from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.ai.embeddings import (
+    EMBEDDING_DIMENSIONS,
+    EMBEDDING_WORKLOAD,
+    EmbeddingFactory,
+    build_embedding_model,
+    resolve_embedding_model,
+)
 from app.ai.errors import AIBudgetExceededError, AIProviderError
 from app.ai.models import AIBudget, AIUsageEvent, UsageStatus
 from app.ai.pricing import TokenPrice, estimate_input_tokens
@@ -90,6 +98,16 @@ class AIUsage:
 
 
 @dataclass(frozen=True)
+class EmbeddingBatch:
+    vectors: list[list[float]]  # one per input, in order, EMBEDDING_DIMENSIONS long
+    usage: AIUsage
+
+
+# Inputs per provider request (OpenAI accepts more; smaller batches keep timeouts meaningful).
+EMBED_BATCH_SIZE = 64
+
+
+@dataclass(frozen=True)
 class AIResult[T: BaseModel]:
     output: T
     usage: AIUsage
@@ -127,12 +145,14 @@ class AIGateway:
         settings: Settings,
         *,
         model_factory: ModelFactory = build_model,
+        embedding_factory: EmbeddingFactory = build_embedding_model,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
         self._settings = settings
         self._model_factory = model_factory
+        self._embedding_factory = embedding_factory
         self._sleep = sleep
         self._now = now
 
@@ -216,6 +236,71 @@ class AIGateway:
         if outcome.status is not UsageStatus.SUCCEEDED:
             raise AIProviderError
         return AIResult(output=outcome.output, usage=usage)
+
+    async def embed(
+        self,
+        *,
+        organization_id: uuid.UUID,
+        texts: Sequence[str],
+        input_type: Literal["query", "document"],
+        actor_user_id: uuid.UUID | None = None,
+    ) -> EmbeddingBatch:
+        """Embed ``texts`` for one tenant: budget reserved, metered and finalised like a chat
+        call. Raises ``AIUnavailableError``, ``AIBudgetExceededError`` or ``AIProviderError``."""
+        if not texts:
+            raise ValueError("Nothing to embed.")
+        ref = resolve_embedding_model(self._settings)
+        price = price_for(self._settings, ref)
+        model = self._embedding_factory(ref, self._settings)
+        attempts = self._settings.ai_max_attempts
+        reserve = price.cost_micros(estimate_input_tokens(*texts) * attempts, 0)
+        fields = {
+            "organization_id": organization_id,
+            "workload": EMBEDDING_WORKLOAD,
+            "model": ref.ref,
+        }
+        reservation = await self._reserve(
+            organization_id, EMBEDDING_WORKLOAD, ref, reserve, actor_user_id
+        )
+        if reservation.alert is not None:
+            log_ai(
+                logging.WARNING, "ai budget alert threshold reached", **fields, **reservation.alert
+            )
+        if reservation.event_id is None:
+            log_ai(logging.WARNING, "ai call blocked by budget", **fields, status="budget_blocked")
+            raise AIBudgetExceededError(reservation.reason)
+
+        started = time.monotonic()
+        outcome = await self._embed_call(model, list(texts), input_type)
+        latency_ms = int((time.monotonic() - started) * 1000)
+        cost = price.cost_micros(outcome.input_tokens, 0)
+        await self._finalise(organization_id, reservation.event_id, outcome, cost, latency_ms)
+        usage = AIUsage(
+            event_id=reservation.event_id,
+            provider=ref.provider,
+            model=ref.name,
+            input_tokens=outcome.input_tokens,
+            output_tokens=0,
+            cost_usd_micros=cost,
+            attempts=outcome.attempts,
+            latency_ms=latency_ms,
+        )
+        log_ai(
+            logging.INFO if outcome.status is UsageStatus.SUCCEEDED else logging.WARNING,
+            "ai call finished",
+            **fields,
+            event_id=usage.event_id,
+            status=outcome.status.value,
+            input_tokens=usage.input_tokens,
+            output_tokens=0,
+            cost_usd_micros=cost,
+            attempts=usage.attempts,
+            latency_ms=latency_ms,
+            error_kind=outcome.error_kind,
+        )
+        if outcome.status is not UsageStatus.SUCCEEDED:
+            raise AIProviderError
+        return EmbeddingBatch(vectors=outcome.output, usage=usage)
 
     def worst_case_cost_micros(
         self,
@@ -411,5 +496,57 @@ class AIGateway:
             if outcome.status is UsageStatus.SUCCEEDED or not retryable:
                 break
             if attempt < settings.ai_max_attempts:
+                await self._sleep(settings.ai_retry_backoff_seconds * 2 ** (attempt - 1))
+        return outcome
+
+    async def _embed_call(
+        self,
+        model: EmbeddingModel,
+        texts: list[str],
+        input_type: Literal["query", "document"],
+    ) -> _Outcome:
+        """Embed in batches; each batch has a deadline and bounded retries for transient errors.
+        Every vector must have the stored dimensions, or the whole call is invalid output."""
+        settings = self._settings
+        outcome = _Outcome(status=UsageStatus.SUCCEEDED, output=[])
+        for start in range(0, len(texts), EMBED_BATCH_SIZE):
+            batch = texts[start : start + EMBED_BATCH_SIZE]
+            for attempt in range(1, settings.ai_max_attempts + 1):
+                outcome.attempts = max(outcome.attempts, attempt)
+                retryable = False
+                try:
+                    async with asyncio.timeout(settings.ai_timeout_seconds):
+                        result = await model.embed(
+                            batch,
+                            input_type=input_type,
+                            settings={"dimensions": EMBEDDING_DIMENSIONS},
+                        )
+                    outcome.input_tokens += result.usage.input_tokens
+                    vectors = [list(v) for v in result.embeddings]
+                    if len(vectors) != len(batch) or any(
+                        len(v) != EMBEDDING_DIMENSIONS for v in vectors
+                    ):
+                        outcome.status, outcome.error_kind = (
+                            UsageStatus.INVALID_OUTPUT,
+                            "wrong_dimensions",
+                        )
+                        return outcome
+                    outcome.output.extend(vectors)
+                    break
+                except ModelAPIError as exc:
+                    timed_out = isinstance(exc, ModelTimeoutError | ModelRequestTimeout)
+                    outcome.status = (
+                        UsageStatus.TIMEOUT if timed_out else UsageStatus.PROVIDER_ERROR
+                    )
+                    outcome.error_kind = error_kind(exc)
+                    retryable = isinstance(exc, RETRYABLE_ERRORS)
+                except TimeoutError as exc:
+                    outcome.status, outcome.error_kind = UsageStatus.TIMEOUT, error_kind(exc)
+                    retryable = True
+                except Exception as exc:  # unexpected adapter failure: record it, never leak it
+                    outcome.status, outcome.error_kind = UsageStatus.PROVIDER_ERROR, error_kind(exc)
+                if not retryable or attempt == settings.ai_max_attempts:
+                    return outcome
+                outcome.status, outcome.error_kind = UsageStatus.SUCCEEDED, None
                 await self._sleep(settings.ai_retry_backoff_seconds * 2 ** (attempt - 1))
         return outcome

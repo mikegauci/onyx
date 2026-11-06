@@ -51,9 +51,17 @@ files do not select models.
   conversations; and a Blocked addresses page. E2E runs against an in-memory fake provider
   (`ONYX_API_EMAIL_PROVIDER=fake`, refused when deployed). PR-017 is complete once it merges.
 
+- PR-014 part 1, the knowledge backend: the `knowledge` module, document upload (PDF, text,
+  Markdown; text only kept), chunking with page citations, metered embeddings through
+  `AIGateway.embed()`, hybrid keyword + pgvector search with abstention, and the assistant's
+  `search_knowledge` tool with a citation check. Migration `0017`. See
+  `docs/platform/knowledge.md`. Needs `0017` on preview and the embedding model's workload and
+  price on Render.
+
 ## Next task
 
-Owner selects the next PR (PR-018 pilot, or PR-014 if un-deferred). Wait for plan approval.
+After part 1 merges, plan PR-014 part 2: the Knowledge page (upload, list, replace, delete, a
+search box with page citations) and cited sources on assistant runs. Wait for plan approval.
 
 ## Verification preference
 

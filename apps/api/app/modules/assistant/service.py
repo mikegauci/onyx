@@ -31,10 +31,11 @@ from app.modules.assistant.rules import (
     check,
     merge_lines,
 )
-from app.modules.assistant.tools import TOOLS, AssistantDeps
+from app.modules.assistant.tools import AssistantDeps, tools_for
 from app.modules.catalogue import public as catalogue
 from app.modules.inbox import public as inbox
 from app.modules.inbox.models import ConversationStatus, Handler, MessageDirection
+from app.modules.knowledge import public as knowledge
 from app.modules.outbound import public as outbound
 from app.modules.quotations import public as quotations
 
@@ -45,6 +46,8 @@ WORKLOAD = "sales_assistant"
 MAX_REQUESTS = 8
 # The most one request may add to the context from tool results (10 products, a policy).
 TOOL_CONTEXT_TOKENS = 3000
+# Added when search_knowledge is available: up to 4 passages of 1,500 characters.
+KNOWLEDGE_CONTEXT_TOKENS = 2000
 
 
 def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
@@ -130,7 +133,10 @@ class AssistantService:
             tenant=self.tenant,
             price_list=await catalogue.get_price_list(self.db, self.tenant, None),
             trace=Trace(),
+            gateway=gateway,
         )
+        knowledge_enabled = await knowledge.is_enabled(self.db, self.workspace)
+        tools = tools_for(knowledge_enabled=knowledge_enabled)
         result: AIResult[schemas.AssistantOutput] | None = None
         failure: Reason | None = None
         try:
@@ -141,10 +147,11 @@ class AssistantService:
                 instructions=INSTRUCTIONS,
                 prompt=build_prompt(thread),
                 actor_user_id=self.actor,
-                tools=TOOLS,
+                tools=tools,
                 deps=deps,
                 max_requests=MAX_REQUESTS,
-                tool_context_tokens=TOOL_CONTEXT_TOKENS,
+                tool_context_tokens=TOOL_CONTEXT_TOKENS
+                + (KNOWLEDGE_CONTEXT_TOKENS if knowledge_enabled else 0),
             )
         except AIBudgetExceededError:
             failure = Reason.BUDGET_EXCEEDED
@@ -243,6 +250,7 @@ class AssistantService:
             reply=output.reply_draft,
             lines=merge_lines(lines),
             policies_used=[t.strip().lower() for t in output.policies_used],
+            sources_used=[s.strip().lower() for s in output.sources_used],
         )
 
     async def _facts(self, deps: AssistantDeps, skus: list[str]) -> dict[str, SkuFacts]:

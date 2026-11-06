@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.ai.embeddings import EmbeddingFactory, build_embedding_model
 from app.ai.gateway import AIGateway
 from app.ai.providers import ModelFactory, build_model
 from app.api.admin import router as admin_router
@@ -32,6 +33,7 @@ from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
 from app.modules.inbox.email_connector import EmailConnector
 from app.modules.inbox.routes import router as inbox_router
+from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.outbound.routes import router as outbound_router
 from app.modules.quotations.routes import router as quotations_router
 
@@ -85,6 +87,7 @@ def create_app(
     token_verifier: TokenVerifier | None = None,
     session_factory: async_sessionmaker[AsyncSession] | None = None,
     ai_model_factory: ModelFactory | None = None,
+    ai_embedding_factory: EmbeddingFactory | None = None,
     email_provider: EmailProvider | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
@@ -104,6 +107,7 @@ def create_app(
                 app.state.session_factory,
                 settings,
                 model_factory=ai_model_factory or build_model,
+                embedding_factory=ai_embedding_factory or build_embedding_model,
             )
             if app.state.session_factory is not None
             else None
@@ -158,6 +162,7 @@ def create_app(
     v1.include_router(quotations_router)
     v1.include_router(assistant_router)
     v1.include_router(outbound_router)
+    v1.include_router(knowledge_router)
     v1.include_router(webhooks_router)
     app.include_router(v1)
     return app

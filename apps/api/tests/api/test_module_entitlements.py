@@ -60,6 +60,7 @@ def test_catalogue_lists_every_module_with_this_tenants_flags(api: TestClient, a
         "catalogue": True,
         "crm": True,
         "inbox": True,
+        "knowledge": False,
         "orders": False,
         "outbound": False,
         "quotations": True,

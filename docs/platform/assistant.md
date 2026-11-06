@@ -24,6 +24,8 @@ it per tenant, and the tenant needs an AI budget (see [ai-gateway.md](ai-gateway
      stock and when stock was observed.
    - `check_stock(skus)`: latest stock per SKU, or unknown. Never zero by default.
    - `get_policy(topic)`: the tenant's written policy, or "not on record".
+   - `search_knowledge(query)`, only with the `knowledge` module on: up to 4 passages from the
+     tenant's documents, each with a `source_id`. See [knowledge.md](knowledge.md).
 3. The model returns a structured proposal: `draft_quote` or `escalate`, lines (SKU, quantity),
    a reply draft, confidence and the policies it relied on.
 4. The rules check it against what the tools returned **in this run** and the catalogue **as it
@@ -44,6 +46,7 @@ it per tenant, and the tenant needs an AI budget (see [ai-gateway.md](ai-gateway
    | `reply_mentions_amount`                                | The reply states a price, amount, percentage or discount |
    | `reply_ungrounded_sku`                                 | The reply names a SKU no tool returned                   |
    | `unknown_policy`                                       | Relies on a policy it did not find this run              |
+   | `unknown_source`                                       | Cites a document passage no search returned this run     |
    | `no_contact`                                           | The conversation has no CRM contact                      |
    | `quote_failed`                                         | The quotations service refused the draft                 |
    | `budget_exceeded`, `ai_unavailable`, `provider_failed` | The AI call did not happen or failed                     |

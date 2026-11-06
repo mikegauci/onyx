@@ -163,7 +163,16 @@ export async function createChannel(
   const outcome = await mutateApi((api) =>
     api.POST("/v1/w/{slug}/inbox/channels", {
       params: { path: { slug } },
-      body: { kind, name: text(formData, "name") },
+      body: {
+        kind,
+        name: text(formData, "name"),
+        ...(kind === "email"
+          ? {
+              from_name: optionalText(formData, "from_name"),
+              signature: optionalText(formData, "signature"),
+            }
+          : {}),
+      },
     }),
   );
   if (!outcome.ok) return failureState(outcome);
@@ -185,4 +194,57 @@ export async function setChannelDisabled(
   );
   if (!outcome.ok) return failureState(outcome);
   return done(slug, disabled ? "Channel disabled." : "Channel enabled.");
+}
+
+/** An email channel's sender name and signature; an empty field clears it. */
+export async function updateEmailSettings(
+  slug: string,
+  channelId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const outcome = await mutateApi((api) =>
+    api.PATCH("/v1/w/{slug}/inbox/channels/{channel_id}", {
+      params: { path: { slug, channel_id: channelId } },
+      body: {
+        from_name: optionalText(formData, "from_name"),
+        signature: optionalText(formData, "signature"),
+      },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  return done(slug, "Sender details saved.");
+}
+
+// --- suppressions ----------------------------------------------------------------------------
+
+/** Stop emailing an address. Approved replies to it are refused until it is released. */
+export async function addSuppression(
+  slug: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/inbox/suppressions", {
+      params: { path: { slug } },
+      body: { address: text(formData, "address"), note: optionalText(formData, "note") },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  return done(slug, "Address blocked. Onyx will not email it.");
+}
+
+export async function releaseSuppression(
+  slug: string,
+  suppressionId: string,
+  _prev: FormState,
+): Promise<FormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/inbox/suppressions/{suppression_id}/release", {
+      params: { path: { slug, suppression_id: suppressionId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  return done(slug, "Address released. Onyx can email it again.");
 }

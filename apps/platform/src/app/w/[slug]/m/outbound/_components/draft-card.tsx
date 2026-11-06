@@ -23,6 +23,7 @@ import { quotationsPath } from "@/lib/quotations";
 
 import { FormStatus, SELECT_CLASS } from "../../../settings/form-status";
 import {
+  approveAndSendDraft,
   approveDraft,
   createDraft,
   rejectDraft,
@@ -137,7 +138,11 @@ export function DraftCard({
     IDLE,
   );
   const [sendState, send, sending] = useActionState(sendDraft.bind(null, slug, draft.id), IDLE);
-  const busy = revising || approving || rejecting || sending;
+  const [bothState, approveAndSend, both] = useActionState(
+    approveAndSendDraft.bind(null, slug, draft.id, draft.current_revision, draft.body),
+    IDLE,
+  );
+  const busy = revising || approving || rejecting || sending || both;
   const editable = controls.canEdit || controls.canApprove;
 
   return (
@@ -207,6 +212,14 @@ export function DraftCard({
             </Button>
           </form>
         ) : null}
+        {controls.canApproveAndSend && (draft.status === "pending" || edited) ? (
+          <form action={approveAndSend}>
+            <input type="hidden" name="body" value={text} />
+            <Button type="submit" variant="secondary" disabled={busy}>
+              {both ? "Sending…" : edited ? "Approve edit and send" : "Approve and send"}
+            </Button>
+          </form>
+        ) : null}
         {controls.canSend ? (
           <form action={send}>
             <Button type="submit" disabled={busy || edited}>
@@ -239,6 +252,7 @@ export function DraftCard({
       <FormStatus state={reviseState} />
       <FormStatus state={approveState} />
       <FormStatus state={sendState} />
+      <FormStatus state={bothState} />
 
       {controls.canReject ? (
         <details>

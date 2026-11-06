@@ -8,6 +8,9 @@ import { crmPath, formatInZone } from "@/lib/crm";
 import { getMe } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
 import {
+  DELIVERY_LABEL,
+  DELIVERY_VARIANT,
+  deliveryBlocksAddress,
   describeEvent,
   inboxPath,
   messageHeading,
@@ -146,6 +149,27 @@ export default async function ConversationPage({
                       ? " · recorded, not sent by Onyx"
                       : ""}
                   </p>
+                  {message.delivery ? (
+                    <div className="mt-1 flex flex-col gap-1 text-xs">
+                      <p className="flex flex-wrap items-center gap-2">
+                        <Badge variant={DELIVERY_VARIANT[message.delivery.status]}>
+                          {DELIVERY_LABEL[message.delivery.status]}
+                        </Badge>
+                        <span className="text-muted-foreground">
+                          Emailed to {message.delivery.recipient} ·{" "}
+                          <time dateTime={message.delivery.status_at}>
+                            {formatInZone(message.delivery.status_at, zone)}
+                          </time>
+                        </span>
+                      </p>
+                      {deliveryBlocksAddress(message.delivery.status) ? (
+                        <p role="note" className="bg-warning/20 rounded px-2 py-1">
+                          Onyx will not email this address again until it is released under Blocked
+                          addresses.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ol>

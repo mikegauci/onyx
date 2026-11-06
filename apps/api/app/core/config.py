@@ -85,6 +85,10 @@ class Settings(BaseSettings):
         default=None, description="Verified sending domain, e.g. reply.onyx.mt."
     )
     email_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    email_provider: Literal["resend", "fake"] = Field(
+        default="resend",
+        description="'fake' records sends in memory for local and e2e runs; never deployed.",
+    )
 
     @field_validator(
         "openai_api_key",
@@ -206,6 +210,12 @@ class Settings(BaseSettings):
                 raise ValueError(f"AI model must be '<openai|anthropic|fake>:<model>': {ref!r}")
             if provider == "fake" and self.is_deployed:
                 raise ValueError("The fake AI model is not allowed in a deployed environment.")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_email_provider(self) -> Self:
+        if self.email_provider == "fake" and self.is_deployed:
+            raise ValueError("The fake email provider is not allowed in a deployed environment.")
         return self
 
     @model_validator(mode="after")

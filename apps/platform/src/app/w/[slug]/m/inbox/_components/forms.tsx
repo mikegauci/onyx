@@ -10,6 +10,8 @@ import {
   type Assignee,
   type Channel,
   CHANNEL_KIND_LABEL,
+  type ComposeKind,
+  composeKinds,
   type ConversationDetail,
   STATUS_ACTION,
 } from "@/lib/inbox";
@@ -24,6 +26,7 @@ import {
   linkContact,
   postMessage,
   setChannelDisabled,
+  updateEmailSettings,
 } from "../actions";
 
 const TEXTAREA_CLASS =
@@ -54,7 +57,13 @@ export function NewConversationForm({
       <FormStatus state={state} />
       <input type="hidden" name="idempotency_key" value={key} />
       <FormField id="channel_id" label="Channel" error={errors.channel_id}>
-        <select id="channel_id" name="channel_id" className={SELECT_CLASS} required>
+        <select
+          id="channel_id"
+          name="channel_id"
+          className={SELECT_CLASS}
+          required
+          defaultValue={(channels.find((c) => c.kind === "manual") ?? channels[0])?.id}
+        >
           {channels.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -105,11 +114,11 @@ export function NewConversationForm({
   );
 }
 
-const KIND_LABEL = {
+const KIND_LABEL: Record<ComposeKind, string> = {
   reply: "Log a reply",
   customer: "Log a customer message",
   note: "Add an internal note",
-} as const;
+};
 
 export function ComposeForm({
   slug,
@@ -122,8 +131,10 @@ export function ComposeForm({
     postMessage.bind(null, slug, conversation.id),
     IDLE,
   );
-  const [kind, setKind] = useState<keyof typeof KIND_LABEL>(
-    conversation.status === "closed" ? "note" : "reply",
+  const kinds = composeKinds(conversation.channel.kind);
+  const email = conversation.channel.kind === "email";
+  const [kind, setKind] = useState<ComposeKind>(
+    conversation.status === "closed" || !kinds.includes("reply") ? "note" : "reply",
   );
   const [initialKey] = useState(newKey);
   const form = useRef<HTMLFormElement>(null);
@@ -141,7 +152,7 @@ export function ComposeForm({
       <input ref={keyInput} type="hidden" name="idempotency_key" defaultValue={initialKey} />
       <fieldset className="flex flex-wrap gap-4">
         <legend className="sr-only">Message type</legend>
-        {(Object.keys(KIND_LABEL) as (keyof typeof KIND_LABEL)[]).map((k) => (
+        {kinds.map((k) => (
           <label key={k} className="flex items-center gap-2 text-sm">
             <input
               type="radio"
@@ -164,6 +175,12 @@ export function ComposeForm({
           className={TEXTAREA_CLASS}
         />
       </FormField>
+      {email ? (
+        <p className="text-muted-foreground text-xs">
+          To answer the customer by email, use Reply for approval. The approved text is emailed from
+          Onyx.
+        </p>
+      ) : null}
       {kind === "reply" ? (
         <p className="text-muted-foreground text-xs">
           Onyx records the reply; it does not send it. Use this after replying by phone or in
@@ -186,7 +203,7 @@ export function ComposeForm({
           {pending ? "Saving…" : KIND_LABEL[kind]}
         </Button>
       </div>
-      {closed ? (
+      {closed && !email ? (
         <p className="text-muted-foreground text-xs">Reopen the conversation to log a reply.</p>
       ) : null}
     </form>
@@ -374,18 +391,30 @@ export function LinkContactForm({
 
 export function ChannelForm({ slug }: { slug: string }) {
   const [state, action, pending] = useActionState(createChannel.bind(null, slug), IDLE);
+  const [kind, setKind] = useState<Channel["kind"]>("manual");
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state.status === "ok") form.current?.reset();
   }, [state]);
   return (
-    <form ref={form} action={action} className="flex max-w-md flex-col gap-3">
+    <form
+      ref={form}
+      action={action}
+      onReset={() => setKind("manual")}
+      className="flex max-w-md flex-col gap-3"
+    >
       <FormStatus state={state} />
       <FormField id="channel-name" label="Channel name" error={state.fieldErrors?.name}>
         <Input id="channel-name" name="name" required maxLength={100} placeholder="Shop phone" />
       </FormField>
       <FormField id="channel-kind" label="Kind" error={state.fieldErrors?.kind}>
-        <select id="channel-kind" name="kind" className={SELECT_CLASS} defaultValue="manual">
+        <select
+          id="channel-kind"
+          name="kind"
+          className={SELECT_CLASS}
+          value={kind}
+          onChange={(e) => setKind(e.target.value as Channel["kind"])}
+        >
           {(Object.keys(CHANNEL_KIND_LABEL) as Channel["kind"][]).map((k) => (
             <option key={k} value={k}>
               {CHANNEL_KIND_LABEL[k]}
@@ -393,10 +422,14 @@ export function ChannelForm({ slug }: { slug: string }) {
           ))}
         </select>
       </FormField>
-      <p className="text-muted-foreground text-xs">
-        Only phone / in-person channels work today. Email, WhatsApp and website channels can be
-        added now and will connect in a later release.
-      </p>
+      {kind === "email" ? (
+        <EmailSenderFields errors={state.fieldErrors} />
+      ) : (
+        <p className="text-muted-foreground text-xs">
+          Phone / in-person and email channels work today. WhatsApp and website channels can be
+          added now and will connect in a later release.
+        </p>
+      )}
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? "Saving…" : "Add channel"}
       </Button>
@@ -424,5 +457,84 @@ export function ChannelToggle({ slug, channel }: { slug: string; channel: Channe
         {disabled ? "Enable" : "Disable"}
       </Button>
     </form>
+  );
+}
+
+function EmailSenderFields({
+  errors,
+  channel,
+}: {
+  errors?: Record<string, string | undefined>;
+  channel?: Channel;
+}) {
+  const id = channel ? `-${channel.id}` : "";
+  return (
+    <>
+      <FormField
+        id={`from_name${id}`}
+        label="Sender name"
+        hint="Customers see this as who the email is from. Empty uses the workspace name."
+        error={errors?.from_name}
+      >
+        <Input
+          id={`from_name${id}`}
+          name="from_name"
+          maxLength={100}
+          defaultValue={channel?.from_name ?? ""}
+        />
+      </FormField>
+      <FormField
+        id={`signature${id}`}
+        label="Signature"
+        hint="Added below every emailed reply."
+        error={errors?.signature}
+      >
+        <textarea
+          id={`signature${id}`}
+          name="signature"
+          maxLength={1000}
+          defaultValue={channel?.signature ?? ""}
+          className={TEXTAREA_CLASS}
+        />
+      </FormField>
+    </>
+  );
+}
+
+/** The sender name and signature of an email channel. */
+export function EmailSettingsForm({ slug, channel }: { slug: string; channel: Channel }) {
+  const [state, action, pending] = useActionState(
+    updateEmailSettings.bind(null, slug, channel.id),
+    IDLE,
+  );
+  return (
+    <form action={action} className="flex max-w-md flex-col gap-3" noValidate>
+      <FormStatus state={state} />
+      <EmailSenderFields errors={state.fieldErrors} channel={channel} />
+      <Button type="submit" variant="outline" disabled={pending} className="self-start">
+        {pending ? "Saving…" : "Save sender details"}
+      </Button>
+    </form>
+  );
+}
+
+/** Copy the channel's inbound address; the address stays visible and selectable without it. */
+export function CopyAddress({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <code className="bg-muted rounded px-2 py-1 text-xs break-all">{address}</code>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          void navigator.clipboard?.writeText(address).then(() => setCopied(true));
+        }}
+        aria-label={`Copy address ${address}`}
+      >
+        {copied ? "Copied" : "Copy"}
+      </Button>
+    </div>
   );
 }

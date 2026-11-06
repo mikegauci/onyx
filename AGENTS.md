@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 are merged; PR-017 part 1 (email connector backend) is merged.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 are merged; PR-017 part 1 (email connector backend) is merged; part 2 (email screens) follows.
 
 ## Read these files first
 

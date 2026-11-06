@@ -58,6 +58,12 @@ export default defineConfig({
         ONYX_API_DATABASE_URL: E2E.databaseUrl,
         ONYX_API_SUPABASE_URL: E2E.authUrl,
         ONYX_API_CORS_ORIGINS: E2E.appUrl,
+        // Email channels connected to the in-memory fake provider: nothing is sent anywhere.
+        ONYX_API_EMAIL_PROVIDER: "fake",
+        ONYX_API_RESEND_API_KEY: "re_e2e_unused",
+        ONYX_API_RESEND_WEBHOOK_SECRET: "whsec_ZTJlLXVudXNlZC1zZWNyZXQ=",
+        ONYX_API_EMAIL_INBOUND_DOMAIN: "in.onyx.test",
+        ONYX_API_EMAIL_FROM_DOMAIN: "reply.onyx.test",
       },
     },
     {

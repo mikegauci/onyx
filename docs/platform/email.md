@@ -4,13 +4,9 @@ Email channels receive customer emails into the inbox and send approved replies.
 provider. All Resend code is in `app/integrations/email/`, behind a provider-neutral
 `EmailProvider` contract, so the inbox never calls Resend directly.
 
-**Nothing has been sent or received through a real Resend account yet.** The tests use a fake
-provider. Live use needs the owner's approval for:
-
-- the Resend account and API key;
-- DNS for the receiving and sending domains;
-- the webhook registration;
-- applying migration `0016` to `onyx-preview`.
+Preview has been live since 6 November 2026 (domains `in.onyx.mt` and `reply.onyx.mt`), and a
+real inbound email and approved reply were verified there. Tests and E2E use fake providers;
+production needs its own owner approval.
 
 ## Configuration
 
@@ -21,6 +17,7 @@ provider. Live use needs the owner's approval for:
 | `ONYX_API_EMAIL_INBOUND_DOMAIN`  | Receiving domain for channel addresses (`in.onyx.mt`) |
 | `ONYX_API_EMAIL_FROM_DOMAIN`     | Verified sending domain (`reply.onyx.mt`)             |
 | `ONYX_API_EMAIL_TIMEOUT_SECONDS` | Per-call timeout, default 10                          |
+| `ONYX_API_EMAIL_PROVIDER`        | `resend` (default) or `fake` (local and E2E only)     |
 
 All four of the first settings must be set. If any is missing, email channels report
 `connected: false` and refuse to record or send (`409`), and the webhook answers `503`. The
@@ -42,6 +39,28 @@ One Resend account serves every tenant. No credentials are stored per tenant.
   conversation.
 - The channel's `from_name` defaults to the workspace name. Its optional `signature` is added
   below every reply. Both are email-only settings (`422` on other channels).
+
+## Screens
+
+- **Channels** (`inbox.manage`): an email channel shows the address customers write to, with a
+  Copy button, and its sender name and signature (an empty field clears it).
+- **Conversation:** on email channels, staff can log a customer message or a note, but not a
+  reply. Replies go through "Reply for approval". Each emailed reply shows its delivery status,
+  recipient and time; a bounce, complaint or provider suppression also says the address is now
+  blocked.
+- **Approve and send** (`outbound.approve` and `outbound.write`): approves the text on screen,
+  then sends it. These are two API calls. If sending fails, the approval stands and "Send
+  reply" retries it; the idempotency key still sends it once.
+- **Blocked addresses** (`inbox.read`): the active suppressions. `inbox.write` adds one by hand;
+  `inbox.manage` releases one, after confirming.
+- **New conversation** defaults to the first phone / in-person channel.
+
+## Fake provider (local and E2E)
+
+`ONYX_API_EMAIL_PROVIDER=fake`, with the four settings set to placeholder values, connects
+email channels to an in-memory provider (`app/integrations/email/fake.py`): one email per
+idempotency key, nothing leaves the process, nothing is ever received. Settings refuse it in
+`preview` and `production`. Playwright uses it.
 
 ## Inbound
 

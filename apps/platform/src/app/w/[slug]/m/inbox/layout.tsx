@@ -24,6 +24,7 @@ export default async function InboxLayout({ children, params }: Props) {
   if (workspace.permissions.includes("inbox.manage")) {
     sections.push({ href: inboxPath(slug, "channels"), label: "Channels" });
   }
+  sections.push({ href: inboxPath(slug, "suppressions"), label: "Blocked addresses" });
 
   return (
     <div className="flex flex-col gap-6">

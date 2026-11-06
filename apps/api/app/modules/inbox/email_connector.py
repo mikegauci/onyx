@@ -321,7 +321,7 @@ class EmailConnector:
                 Message.external_message_id.in_(candidates),
             )
         )
-        found: dict[str, uuid.UUID] = {ref: cid for ref, cid in rows.tuples() if ref}
+        found: dict[str, uuid.UUID] = {ref: cid for ref, cid in rows.all() if ref}
         rows = await db.execute(
             select(EmailDelivery.rfc_message_id, Message.conversation_id)
             .join(
@@ -335,7 +335,7 @@ class EmailConnector:
                 EmailDelivery.rfc_message_id.in_(candidates),
             )
         )
-        for ref, conversation_id in rows.tuples():
+        for ref, conversation_id in rows.all():
             if ref:
                 found.setdefault(ref, conversation_id)
         for ref in candidates:

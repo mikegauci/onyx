@@ -212,12 +212,27 @@ def test_app_role_cannot_delete_or_move_rows(owner_engine: Engine, statement: st
         conn.execute(text(statement))
 
 
-def test_worker_role_has_no_crm_access_yet(owner_engine: Engine) -> None:
+def test_worker_role_reads_only_its_tenants_contacts(owner_engine: Engine) -> None:
+    """The email connector (PR-017) matches senders to contacts; it never writes CRM data."""
+    with as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn:
+        orgs = conn.execute(text("SELECT DISTINCT organization_id FROM crm_contacts")).scalars()
+        assert set(orgs) == {LUMEN_ID}
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "UPDATE crm_contacts SET full_name = 'x'",
+        "DELETE FROM crm_contacts",
+        "SELECT count(*) FROM crm_leads",
+    ],
+)
+def test_worker_role_cannot_write_crm_or_read_leads(owner_engine: Engine, statement: str) -> None:
     with (
         pytest.raises(ProgrammingError, match="permission denied"),
         as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn,
     ):
-        conn.execute(text("SELECT count(*) FROM crm_contacts"))
+        conn.execute(text(statement))
 
 
 # --- module disabled -------------------------------------------------------------------------

@@ -117,7 +117,7 @@ def _webhook(api: TestClient, event: dict[str, Any], *, event_id: str | None = N
     body = json.dumps(event).encode()
     event_id = event_id or f"msg_{uuid.uuid4().hex}"
     stamp = int(time.time())
-    return api.post(
+    response = api.post(
         "/v1/webhooks/resend",
         content=body,
         headers={
@@ -127,6 +127,8 @@ def _webhook(api: TestClient, event: dict[str, Any], *, event_id: str | None = N
             "svix-signature": sign(SECRET, event_id, stamp, body),
         },
     )
+    assert response.status_code in (200, 503), response.text  # never a crash
+    return response
 
 
 def _receive(

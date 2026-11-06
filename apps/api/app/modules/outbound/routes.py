@@ -41,15 +41,15 @@ SEND_ERRORS: dict[int | str, dict[str, Any]] = {
 }
 
 
-@router.get("/settings", response_model=schemas.SettingsOut)
-async def read_outbound_settings(workspace: Reader, db: DbDep) -> schemas.SettingsOut:
+@router.get("/settings", response_model=schemas.OutboundSettingsOut)
+async def read_outbound_settings(workspace: Reader, db: DbDep) -> schemas.OutboundSettingsOut:
     return await OutboundService(db, workspace).settings()
 
 
-@router.put("/settings", response_model=schemas.SettingsOut)
+@router.put("/settings", response_model=schemas.OutboundSettingsOut)
 async def update_outbound_settings(
-    body: schemas.SettingsUpdate, workspace: Manager, db: DbDep
-) -> schemas.SettingsOut:
+    body: schemas.OutboundSettingsUpdate, workspace: Manager, db: DbDep
+) -> schemas.OutboundSettingsOut:
     return await OutboundService(db, workspace).update_settings(body)
 
 
@@ -99,7 +99,7 @@ async def revise_outbound_draft(
     "/drafts/{draft_id}/approve", response_model=schemas.DraftDetail, responses=CHANGE_ERRORS
 )
 async def approve_outbound_draft(
-    draft_id: uuid.UUID, body: schemas.ApproveRequest, workspace: Approver, db: DbDep
+    draft_id: uuid.UUID, body: schemas.DraftApproveRequest, workspace: Approver, db: DbDep
 ) -> schemas.DraftDetail:
     return await OutboundService(db, workspace).approve(draft_id, body)
 

@@ -322,7 +322,7 @@
           "actor": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__crm__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -448,6 +448,28 @@
           "message"
         ],
         "title": "ApiError",
+        "type": "object"
+      },
+      "ApproveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge": {
+            "items": {
+              "$ref": "#/components/schemas/Acknowledgement"
+            },
+            "title": "Acknowledge",
+            "type": "array"
+          },
+          "version": {
+            "description": "The version being approved; guards against a stale view",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "ApproveRequest",
         "type": "object"
       },
       "AssignRequest": {
@@ -1435,7 +1457,7 @@
           "assignee": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -1596,7 +1618,7 @@
           "assignee": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -2016,6 +2038,36 @@
         "title": "DiagnosticReply",
         "type": "object"
       },
+      "DraftApproveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Edit and approve in one step: approves this new text",
+            "title": "Body"
+          },
+          "revision": {
+            "description": "The revision on screen; refused if the draft has moved on",
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "title": "DraftApproveRequest",
+        "type": "object"
+      },
       "DraftCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2062,7 +2114,7 @@
           "approved_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2102,7 +2154,7 @@
           "created_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2128,7 +2180,7 @@
           "decided_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2161,7 +2213,7 @@
           "quote": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__QuoteRef"
+                "$ref": "#/components/schemas/DraftQuoteRef"
               },
               {
                 "type": "null"
@@ -2202,7 +2254,7 @@
           "sent_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2285,7 +2337,7 @@
           "approved_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2325,7 +2377,7 @@
           "created_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2351,7 +2403,7 @@
           "decided_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2384,7 +2436,7 @@
           "quote": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__QuoteRef"
+                "$ref": "#/components/schemas/DraftQuoteRef"
               },
               {
                 "type": "null"
@@ -2417,7 +2469,7 @@
           "sent_by": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -2473,6 +2525,60 @@
         "title": "DraftOut",
         "type": "object"
       },
+      "DraftQuoteRef": {
+        "properties": {
+          "approved_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The version approved with the reply",
+            "title": "Approved Version"
+          },
+          "blocked": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteBlockOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the reply cannot be approved with this quote yet"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "version",
+          "approved_version",
+          "blocked"
+        ],
+        "title": "DraftQuoteRef",
+        "type": "object"
+      },
       "DraftStatus": {
         "enum": [
           "pending",
@@ -2484,6 +2590,25 @@
         ],
         "title": "DraftStatus",
         "type": "string"
+      },
+      "DraftUserRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "DraftUserRef",
+        "type": "object"
       },
       "ErrorCode": {
         "enum": [
@@ -2579,7 +2704,7 @@
           "actor": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -3181,7 +3306,7 @@
           "owner": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__crm__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -3717,7 +3842,7 @@
           "author": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__inbox__schemas__UserRef"
+                "$ref": "#/components/schemas/UserRef"
               },
               {
                 "type": "null"
@@ -4012,6 +4137,36 @@
           "modules"
         ],
         "title": "OrganizationSummary",
+        "type": "object"
+      },
+      "OutboundSettingsOut": {
+        "properties": {
+          "expiry_hours": {
+            "description": "How long a draft can wait for approval and sending",
+            "title": "Expiry Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiry_hours"
+        ],
+        "title": "OutboundSettingsOut",
+        "type": "object"
+      },
+      "OutboundSettingsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "expiry_hours": {
+            "maximum": 720.0,
+            "minimum": 1.0,
+            "title": "Expiry Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiry_hours"
+        ],
+        "title": "OutboundSettingsUpdate",
         "type": "object"
       },
       "OutcomeRequest": {
@@ -4933,6 +5088,25 @@
         "title": "QuotePage",
         "type": "object"
       },
+      "QuoteRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number"
+        ],
+        "title": "QuoteRef",
+        "type": "object"
+      },
       "QuoteStatus": {
         "enum": [
           "draft",
@@ -5142,7 +5316,7 @@
           "author": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__UserRef"
+                "$ref": "#/components/schemas/DraftUserRef"
               },
               {
                 "type": "null"
@@ -5226,7 +5400,7 @@
           "quote": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/app__modules__assistant__schemas__QuoteRef"
+                "$ref": "#/components/schemas/QuoteRef"
               },
               {
                 "type": "null"
@@ -5311,6 +5485,77 @@
           }
         },
         "title": "Sender",
+        "type": "object"
+      },
+      "SettingsOut": {
+        "properties": {
+          "max_discount_percent": {
+            "title": "Max Discount Percent",
+            "type": "string"
+          },
+          "number_prefix": {
+            "title": "Number Prefix",
+            "type": "string"
+          },
+          "validity_days": {
+            "title": "Validity Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number_prefix",
+          "validity_days",
+          "max_discount_percent"
+        ],
+        "title": "SettingsOut",
+        "type": "object"
+      },
+      "SettingsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "max_discount_percent": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Discount Percent"
+          },
+          "number_prefix": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{1,10}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number Prefix"
+          },
+          "validity_days": {
+            "anyOf": [
+              {
+                "maximum": 365.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity Days"
+          }
+        },
+        "title": "SettingsUpdate",
         "type": "object"
       },
       "SourceOut": {
@@ -5530,6 +5775,32 @@
           "display_name"
         ],
         "title": "UserOut",
+        "type": "object"
+      },
+      "UserRef": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "UserRef",
         "type": "object"
       },
       "VariantLookup": {
@@ -6033,25 +6304,6 @@
         "title": "WorkspaceUpdate",
         "type": "object"
       },
-      "app__modules__assistant__schemas__QuoteRef": {
-        "properties": {
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "number": {
-            "title": "Number",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "number"
-        ],
-        "title": "QuoteRef",
-        "type": "object"
-      },
       "app__modules__catalogue__schemas__ArchiveRequest": {
         "additionalProperties": false,
         "properties": {
@@ -6076,284 +6328,6 @@
           "archived"
         ],
         "title": "ArchiveRequest",
-        "type": "object"
-      },
-      "app__modules__crm__schemas__UserRef": {
-        "properties": {
-          "display_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
-          },
-          "user_id": {
-            "format": "uuid",
-            "title": "User Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "display_name"
-        ],
-        "title": "UserRef",
-        "type": "object"
-      },
-      "app__modules__inbox__schemas__UserRef": {
-        "properties": {
-          "display_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
-          },
-          "user_id": {
-            "format": "uuid",
-            "title": "User Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "display_name"
-        ],
-        "title": "UserRef",
-        "type": "object"
-      },
-      "app__modules__outbound__schemas__ApproveRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "body": {
-            "anyOf": [
-              {
-                "maxLength": 10000,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Edit and approve in one step: approves this new text",
-            "title": "Body"
-          },
-          "revision": {
-            "description": "The revision on screen; refused if the draft has moved on",
-            "minimum": 1.0,
-            "title": "Revision",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "revision"
-        ],
-        "title": "ApproveRequest",
-        "type": "object"
-      },
-      "app__modules__outbound__schemas__QuoteRef": {
-        "properties": {
-          "approved_version": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The version approved with the reply",
-            "title": "Approved Version"
-          },
-          "blocked": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/QuoteBlockOut"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Why the reply cannot be approved with this quote yet"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "number": {
-            "title": "Number",
-            "type": "string"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "number",
-          "status",
-          "version",
-          "approved_version",
-          "blocked"
-        ],
-        "title": "QuoteRef",
-        "type": "object"
-      },
-      "app__modules__outbound__schemas__SettingsOut": {
-        "properties": {
-          "expiry_hours": {
-            "description": "How long a draft can wait for approval and sending",
-            "title": "Expiry Hours",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expiry_hours"
-        ],
-        "title": "SettingsOut",
-        "type": "object"
-      },
-      "app__modules__outbound__schemas__SettingsUpdate": {
-        "additionalProperties": false,
-        "properties": {
-          "expiry_hours": {
-            "maximum": 720.0,
-            "minimum": 1.0,
-            "title": "Expiry Hours",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expiry_hours"
-        ],
-        "title": "SettingsUpdate",
-        "type": "object"
-      },
-      "app__modules__outbound__schemas__UserRef": {
-        "properties": {
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "label": {
-            "title": "Label",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "label"
-        ],
-        "title": "UserRef",
-        "type": "object"
-      },
-      "app__modules__quotations__schemas__ApproveRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "acknowledge": {
-            "items": {
-              "$ref": "#/components/schemas/Acknowledgement"
-            },
-            "title": "Acknowledge",
-            "type": "array"
-          },
-          "version": {
-            "description": "The version being approved; guards against a stale view",
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "version"
-        ],
-        "title": "ApproveRequest",
-        "type": "object"
-      },
-      "app__modules__quotations__schemas__SettingsOut": {
-        "properties": {
-          "max_discount_percent": {
-            "title": "Max Discount Percent",
-            "type": "string"
-          },
-          "number_prefix": {
-            "title": "Number Prefix",
-            "type": "string"
-          },
-          "validity_days": {
-            "title": "Validity Days",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "number_prefix",
-          "validity_days",
-          "max_discount_percent"
-        ],
-        "title": "SettingsOut",
-        "type": "object"
-      },
-      "app__modules__quotations__schemas__SettingsUpdate": {
-        "additionalProperties": false,
-        "properties": {
-          "max_discount_percent": {
-            "anyOf": [
-              {
-                "maximum": 100.0,
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Discount Percent"
-          },
-          "number_prefix": {
-            "anyOf": [
-              {
-                "pattern": "^[A-Z]{1,10}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Number Prefix"
-          },
-          "validity_days": {
-            "anyOf": [
-              {
-                "maximum": 365.0,
-                "minimum": 1.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Validity Days"
-          }
-        },
-        "title": "SettingsUpdate",
         "type": "object"
       }
     },
@@ -14142,7 +14116,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__ApproveRequest"
+                "$ref": "#/components/schemas/DraftApproveRequest"
               }
             }
           },
@@ -14594,7 +14568,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsOut"
+                  "$ref": "#/components/schemas/OutboundSettingsOut"
                 }
               }
             },
@@ -14678,7 +14652,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsUpdate"
+                "$ref": "#/components/schemas/OutboundSettingsUpdate"
               }
             }
           },
@@ -14689,7 +14663,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__modules__outbound__schemas__SettingsOut"
+                  "$ref": "#/components/schemas/OutboundSettingsOut"
                 }
               }
             },
@@ -15268,7 +15242,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__modules__quotations__schemas__ApproveRequest"
+                "$ref": "#/components/schemas/ApproveRequest"
               }
             }
           },
@@ -16420,7 +16394,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsOut"
+                  "$ref": "#/components/schemas/SettingsOut"
                 }
               }
             },
@@ -16504,7 +16478,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsUpdate"
+                "$ref": "#/components/schemas/SettingsUpdate"
               }
             }
           },
@@ -16515,7 +16489,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__modules__quotations__schemas__SettingsOut"
+                  "$ref": "#/components/schemas/SettingsOut"
                 }
               }
             },

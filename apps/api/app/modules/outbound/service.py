@@ -204,11 +204,15 @@ class OutboundService:
     async def _settings_row(self) -> Settings | None:
         return await self.db.scalar(select(Settings).where(Settings.organization_id == self.org))
 
-    async def settings(self) -> schemas.SettingsOut:
+    async def settings(self) -> schemas.OutboundSettingsOut:
         row = await self._settings_row()
-        return schemas.SettingsOut(expiry_hours=row.expiry_hours if row else DEFAULT_EXPIRY_HOURS)
+        return schemas.OutboundSettingsOut(
+            expiry_hours=row.expiry_hours if row else DEFAULT_EXPIRY_HOURS
+        )
 
-    async def update_settings(self, body: schemas.SettingsUpdate) -> schemas.SettingsOut:
+    async def update_settings(
+        self, body: schemas.OutboundSettingsUpdate
+    ) -> schemas.OutboundSettingsOut:
         row = await self._settings_row()
         before = row.expiry_hours if row else DEFAULT_EXPIRY_HOURS
         if row is None:
@@ -225,7 +229,7 @@ class OutboundService:
             target_id=self.org,
             details={"expiry_hours": {"from": before, "to": body.expiry_hours}},
         )
-        return schemas.SettingsOut(expiry_hours=row.expiry_hours)
+        return schemas.OutboundSettingsOut(expiry_hours=row.expiry_hours)
 
     # --- reading ---------------------------------------------------------------------------
 
@@ -266,13 +270,17 @@ class OutboundService:
             ],
         )
 
-    async def _users(self, ids: Sequence[uuid.UUID | None]) -> dict[uuid.UUID, schemas.UserRef]:
+    async def _users(
+        self, ids: Sequence[uuid.UUID | None]
+    ) -> dict[uuid.UUID, schemas.DraftUserRef]:
         wanted = {i for i in ids if i is not None}
         if not wanted:
             return {}
         rows = await self.db.execute(select(User.id, User.display_name).where(User.id.in_(wanted)))
         found = {row.id: row.display_name for row in rows}
-        return {i: schemas.UserRef(id=i, label=found.get(i) or "Former member") for i in wanted}
+        return {
+            i: schemas.DraftUserRef(id=i, label=found.get(i) or "Former member") for i in wanted
+        }
 
     async def _outs(self, drafts: Sequence[Draft]) -> list[schemas.DraftOut]:
         if not drafts:
@@ -360,7 +368,7 @@ class OutboundService:
         today: Any,
         *,
         open_: bool,
-    ) -> schemas.QuoteRef | None:
+    ) -> schemas.DraftQuoteRef | None:
         if info is None:
             return None
         state = _quote_state(info)
@@ -369,7 +377,7 @@ class OutboundService:
             if state is not None and open_ and draft.status is DraftStatus.PENDING
             else None
         )
-        return schemas.QuoteRef(
+        return schemas.DraftQuoteRef(
             id=info.id,
             number=info.number,
             status=info.status,
@@ -528,7 +536,7 @@ class OutboundService:
         return await self._detail(draft)
 
     async def approve(
-        self, draft_id: uuid.UUID, body: schemas.ApproveRequest
+        self, draft_id: uuid.UUID, body: schemas.DraftApproveRequest
     ) -> schemas.DraftDetail:
         draft = await self._draft(draft_id, lock=True)
         if not can_approve(draft.status):
@@ -658,5 +666,5 @@ class OutboundService:
         return await self._detail(draft), False
 
 
-def _ref(users: dict[uuid.UUID, schemas.UserRef], user_id: uuid.UUID | None) -> Any:
+def _ref(users: dict[uuid.UUID, schemas.DraftUserRef], user_id: uuid.UUID | None) -> Any:
     return users.get(user_id) if user_id is not None else None

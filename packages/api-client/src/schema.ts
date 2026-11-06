@@ -1393,7 +1393,7 @@ export interface components {
         ActivityKind: "created" | "updated" | "status_changed" | "note" | "imported" | "archived" | "restored";
         /** ActivityOut */
         ActivityOut: {
-            actor: components["schemas"]["app__modules__crm__schemas__UserRef"] | null;
+            actor: components["schemas"]["UserRef"] | null;
             /** Body */
             body: string | null;
             /** Details */
@@ -1434,6 +1434,16 @@ export interface components {
             message: string;
             /** Request Id */
             request_id?: string | null;
+        };
+        /** ApproveRequest */
+        ApproveRequest: {
+            /** Acknowledge */
+            acknowledge?: components["schemas"]["Acknowledgement"][];
+            /**
+             * Version
+             * @description The version being approved; guards against a stale view
+             */
+            version: number;
         };
         /** AssignRequest */
         AssignRequest: {
@@ -1784,7 +1794,7 @@ export interface components {
         ConversationDetail: {
             /** Allowed Statuses */
             allowed_statuses: components["schemas"]["ConversationStatus"][];
-            assignee: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
+            assignee: components["schemas"]["UserRef"] | null;
             channel: components["schemas"]["ChannelRef"];
             contact: components["schemas"]["ContactRef"] | null;
             /**
@@ -1846,7 +1856,7 @@ export interface components {
         ConversationStatus: "open" | "waiting_on_customer" | "closed";
         /** ConversationSummary */
         ConversationSummary: {
-            assignee: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
+            assignee: components["schemas"]["UserRef"] | null;
             channel: components["schemas"]["ChannelRef"];
             contact: components["schemas"]["ContactRef"] | null;
             /**
@@ -2001,6 +2011,19 @@ export interface components {
              */
             status: "ok";
         };
+        /** DraftApproveRequest */
+        DraftApproveRequest: {
+            /**
+             * Body
+             * @description Edit and approve in one step: approves this new text
+             */
+            body?: string | null;
+            /**
+             * Revision
+             * @description The revision on screen; refused if the draft has moved on
+             */
+            revision: number;
+        };
         /** DraftCreate */
         DraftCreate: {
             /** Body */
@@ -2015,7 +2038,7 @@ export interface components {
         DraftDetail: {
             /** Approved At */
             approved_at: string | null;
-            approved_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            approved_by: components["schemas"]["DraftUserRef"] | null;
             /** Approved Revision */
             approved_revision: number | null;
             /**
@@ -2035,12 +2058,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            created_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            created_by: components["schemas"]["DraftUserRef"] | null;
             /** Current Revision */
             current_revision: number;
             /** Decided At */
             decided_at: string | null;
-            decided_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            decided_by: components["schemas"]["DraftUserRef"] | null;
             /**
              * Expires At
              * Format: date-time
@@ -2053,7 +2076,7 @@ export interface components {
              */
             id: string;
             origin: components["schemas"]["DraftOrigin"];
-            quote: components["schemas"]["app__modules__outbound__schemas__QuoteRef"] | null;
+            quote: components["schemas"]["DraftQuoteRef"] | null;
             /** Rejection Reason */
             rejection_reason: string | null;
             /**
@@ -2063,7 +2086,7 @@ export interface components {
             revisions: components["schemas"]["RevisionOut"][];
             /** Sent At */
             sent_at: string | null;
-            sent_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            sent_by: components["schemas"]["DraftUserRef"] | null;
             /** Sent Message Id */
             sent_message_id: string | null;
             /** @description Current state; an open draft that no longer holds shows as expired */
@@ -2084,7 +2107,7 @@ export interface components {
         DraftOut: {
             /** Approved At */
             approved_at: string | null;
-            approved_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            approved_by: components["schemas"]["DraftUserRef"] | null;
             /** Approved Revision */
             approved_revision: number | null;
             /**
@@ -2104,12 +2127,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            created_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            created_by: components["schemas"]["DraftUserRef"] | null;
             /** Current Revision */
             current_revision: number;
             /** Decided At */
             decided_at: string | null;
-            decided_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            decided_by: components["schemas"]["DraftUserRef"] | null;
             /**
              * Expires At
              * Format: date-time
@@ -2122,12 +2145,12 @@ export interface components {
              */
             id: string;
             origin: components["schemas"]["DraftOrigin"];
-            quote: components["schemas"]["app__modules__outbound__schemas__QuoteRef"] | null;
+            quote: components["schemas"]["DraftQuoteRef"] | null;
             /** Rejection Reason */
             rejection_reason: string | null;
             /** Sent At */
             sent_at: string | null;
-            sent_by: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            sent_by: components["schemas"]["DraftUserRef"] | null;
             /** Sent Message Id */
             sent_message_id: string | null;
             /** @description Current state; an open draft that no longer holds shows as expired */
@@ -2138,11 +2161,42 @@ export interface components {
              */
             updated_at: string;
         };
+        /** DraftQuoteRef */
+        DraftQuoteRef: {
+            /**
+             * Approved Version
+             * @description The version approved with the reply
+             */
+            approved_version: number | null;
+            /** @description Why the reply cannot be approved with this quote yet */
+            blocked: components["schemas"]["QuoteBlockOut"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /** Status */
+            status: string;
+            /** Version */
+            version: number;
+        };
         /**
          * DraftStatus
          * @enum {string}
          */
         DraftStatus: "pending" | "approved" | "sent" | "rejected" | "expired" | "superseded";
+        /** DraftUserRef */
+        DraftUserRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+        };
         /**
          * ErrorCode
          * @enum {string}
@@ -2170,7 +2224,7 @@ export interface components {
         EventKind: "created" | "assigned" | "unassigned" | "status_changed" | "handed_to_staff" | "handed_to_assistant" | "contact_linked" | "lead_linked" | "subject_changed";
         /** EventOut */
         EventOut: {
-            actor: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
+            actor: components["schemas"]["UserRef"] | null;
             /** Details */
             details: {
                 [key: string]: unknown;
@@ -2435,7 +2489,7 @@ export interface components {
             lost_reason: string | null;
             /** Notes */
             notes: string | null;
-            owner: components["schemas"]["app__modules__crm__schemas__UserRef"] | null;
+            owner: components["schemas"]["UserRef"] | null;
             source: components["schemas"]["LeadSource"];
             status: components["schemas"]["LeadStatus"];
             /**
@@ -2610,7 +2664,7 @@ export interface components {
         MessageKind: "reply" | "customer" | "note";
         /** MessageOut */
         MessageOut: {
-            author: components["schemas"]["app__modules__inbox__schemas__UserRef"] | null;
+            author: components["schemas"]["UserRef"] | null;
             author_kind: components["schemas"]["AuthorKind"];
             /** Body */
             body: string;
@@ -2731,6 +2785,19 @@ export interface components {
             status: string;
             /** Timezone */
             timezone: string;
+        };
+        /** OutboundSettingsOut */
+        OutboundSettingsOut: {
+            /**
+             * Expiry Hours
+             * @description How long a draft can wait for approval and sending
+             */
+            expiry_hours: number;
+        };
+        /** OutboundSettingsUpdate */
+        OutboundSettingsUpdate: {
+            /** Expiry Hours */
+            expiry_hours: number;
         };
         /** OutcomeRequest */
         OutcomeRequest: {
@@ -3058,6 +3125,16 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** QuoteRef */
+        QuoteRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+        };
         /**
          * QuoteStatus
          * @enum {string}
@@ -3139,7 +3216,7 @@ export interface components {
         };
         /** RevisionOut */
         RevisionOut: {
-            author: components["schemas"]["app__modules__outbound__schemas__UserRef"] | null;
+            author: components["schemas"]["DraftUserRef"] | null;
             author_kind: components["schemas"]["DraftOrigin"];
             /** Body */
             body: string;
@@ -3175,7 +3252,7 @@ export interface components {
             /** Note Message Id */
             note_message_id: string | null;
             outcome: components["schemas"]["RunOutcome"];
-            quote: components["schemas"]["app__modules__assistant__schemas__QuoteRef"] | null;
+            quote: components["schemas"]["QuoteRef"] | null;
             /** Reasons */
             reasons: components["schemas"]["ReasonOut"][];
             /** Tool Calls */
@@ -3197,6 +3274,24 @@ export interface components {
             name?: string | null;
             /** Phone */
             phone?: string | null;
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            /** Max Discount Percent */
+            max_discount_percent: string;
+            /** Number Prefix */
+            number_prefix: string;
+            /** Validity Days */
+            validity_days: number;
+        };
+        /** SettingsUpdate */
+        SettingsUpdate: {
+            /** Max Discount Percent */
+            max_discount_percent?: number | string | null;
+            /** Number Prefix */
+            number_prefix?: string | null;
+            /** Validity Days */
+            validity_days?: number | null;
         };
         /**
          * SourceOut
@@ -3276,6 +3371,16 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /** UserRef */
+        UserRef: {
+            /** Display Name */
+            display_name: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /**
          * VariantLookup
@@ -3473,16 +3578,6 @@ export interface components {
              */
             timezone?: string | null;
         };
-        /** QuoteRef */
-        app__modules__assistant__schemas__QuoteRef: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: string;
-        };
         /** ArchiveRequest */
         app__modules__catalogue__schemas__ArchiveRequest: {
             /**
@@ -3495,111 +3590,6 @@ export interface components {
         app__modules__crm__schemas__ArchiveRequest: {
             /** Archived */
             archived: boolean;
-        };
-        /** UserRef */
-        app__modules__crm__schemas__UserRef: {
-            /** Display Name */
-            display_name: string | null;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-        };
-        /** UserRef */
-        app__modules__inbox__schemas__UserRef: {
-            /** Display Name */
-            display_name: string | null;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-        };
-        /** ApproveRequest */
-        app__modules__outbound__schemas__ApproveRequest: {
-            /**
-             * Body
-             * @description Edit and approve in one step: approves this new text
-             */
-            body?: string | null;
-            /**
-             * Revision
-             * @description The revision on screen; refused if the draft has moved on
-             */
-            revision: number;
-        };
-        /** QuoteRef */
-        app__modules__outbound__schemas__QuoteRef: {
-            /**
-             * Approved Version
-             * @description The version approved with the reply
-             */
-            approved_version: number | null;
-            /** @description Why the reply cannot be approved with this quote yet */
-            blocked: components["schemas"]["QuoteBlockOut"] | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: string;
-            /** Status */
-            status: string;
-            /** Version */
-            version: number;
-        };
-        /** SettingsOut */
-        app__modules__outbound__schemas__SettingsOut: {
-            /**
-             * Expiry Hours
-             * @description How long a draft can wait for approval and sending
-             */
-            expiry_hours: number;
-        };
-        /** SettingsUpdate */
-        app__modules__outbound__schemas__SettingsUpdate: {
-            /** Expiry Hours */
-            expiry_hours: number;
-        };
-        /** UserRef */
-        app__modules__outbound__schemas__UserRef: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Label */
-            label: string;
-        };
-        /** ApproveRequest */
-        app__modules__quotations__schemas__ApproveRequest: {
-            /** Acknowledge */
-            acknowledge?: components["schemas"]["Acknowledgement"][];
-            /**
-             * Version
-             * @description The version being approved; guards against a stale view
-             */
-            version: number;
-        };
-        /** SettingsOut */
-        app__modules__quotations__schemas__SettingsOut: {
-            /** Max Discount Percent */
-            max_discount_percent: string;
-            /** Number Prefix */
-            number_prefix: string;
-            /** Validity Days */
-            validity_days: number;
-        };
-        /** SettingsUpdate */
-        app__modules__quotations__schemas__SettingsUpdate: {
-            /** Max Discount Percent */
-            max_discount_percent?: number | string | null;
-            /** Number Prefix */
-            number_prefix?: string | null;
-            /** Validity Days */
-            validity_days?: number | null;
         };
     };
     responses: never;
@@ -8856,7 +8846,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__modules__outbound__schemas__ApproveRequest"];
+                "application/json": components["schemas"]["DraftApproveRequest"];
             };
         };
         responses: {
@@ -9188,7 +9178,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsOut"];
+                    "application/json": components["schemas"]["OutboundSettingsOut"];
                 };
             };
             /** @description Not authenticated */
@@ -9249,7 +9239,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsUpdate"];
+                "application/json": components["schemas"]["OutboundSettingsUpdate"];
             };
         };
         responses: {
@@ -9259,7 +9249,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__outbound__schemas__SettingsOut"];
+                    "application/json": components["schemas"]["OutboundSettingsOut"];
                 };
             };
             /** @description Not authenticated */
@@ -9623,7 +9613,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__modules__quotations__schemas__ApproveRequest"];
+                "application/json": components["schemas"]["ApproveRequest"];
             };
         };
         responses: {
@@ -10405,7 +10395,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsOut"];
+                    "application/json": components["schemas"]["SettingsOut"];
                 };
             };
             /** @description Not authenticated */
@@ -10466,7 +10456,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsUpdate"];
+                "application/json": components["schemas"]["SettingsUpdate"];
             };
         };
         responses: {
@@ -10476,7 +10466,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__quotations__schemas__SettingsOut"];
+                    "application/json": components["schemas"]["SettingsOut"];
                 };
             };
             /** @description Not authenticated */

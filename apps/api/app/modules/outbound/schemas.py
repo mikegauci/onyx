@@ -34,11 +34,11 @@ class _Input(BaseModel):
 # --- settings --------------------------------------------------------------------------------
 
 
-class SettingsOut(BaseModel):
+class OutboundSettingsOut(BaseModel):
     expiry_hours: int = Field(description="How long a draft can wait for approval and sending")
 
 
-class SettingsUpdate(_Input):
+class OutboundSettingsUpdate(_Input):
     expiry_hours: int = Field(ge=1, le=MAX_EXPIRY_HOURS)
 
 
@@ -57,7 +57,7 @@ class RevisionCreate(_Input):
     base_revision: RevisionNumber
 
 
-class ApproveRequest(_Input):
+class DraftApproveRequest(_Input):
     revision: RevisionNumber
     body: Body | None = Field(
         default=None, description="Edit and approve in one step: approves this new text"
@@ -71,7 +71,7 @@ class RejectRequest(_Input):
 # --- outputs ---------------------------------------------------------------------------------
 
 
-class UserRef(BaseModel):
+class DraftUserRef(BaseModel):
     id: uuid.UUID
     label: str
 
@@ -86,7 +86,7 @@ class ExpiryOut(BaseModel):
     message: str
 
 
-class QuoteRef(BaseModel):
+class DraftQuoteRef(BaseModel):
     id: uuid.UUID
     number: str
     status: str
@@ -101,7 +101,7 @@ class RevisionOut(BaseModel):
     revision: int
     body: str
     author_kind: DraftOrigin
-    author: UserRef | None
+    author: DraftUserRef | None
     created_at: datetime
 
 
@@ -115,19 +115,19 @@ class DraftOut(BaseModel):
     )
     current_revision: int
     body: str = Field(description="The current revision's text")
-    quote: QuoteRef | None
+    quote: DraftQuoteRef | None
     expires_at: datetime
     expiry: ExpiryOut | None
     approved_revision: int | None
-    approved_by: UserRef | None
+    approved_by: DraftUserRef | None
     approved_at: datetime | None
     rejection_reason: str | None
-    decided_by: UserRef | None
+    decided_by: DraftUserRef | None
     decided_at: datetime | None
     sent_message_id: uuid.UUID | None
-    sent_by: UserRef | None
+    sent_by: DraftUserRef | None
     sent_at: datetime | None
-    created_by: UserRef | None
+    created_by: DraftUserRef | None
     created_at: datetime
     updated_at: datetime
 

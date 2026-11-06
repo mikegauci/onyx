@@ -56,6 +56,7 @@ def _audit(engine: Engine, org: Any) -> list[dict[str, Any]]:
 def test_catalogue_lists_every_module_with_this_tenants_flags(api: TestClient, as_: As) -> None:
     modules = api.get(f"/v1/w/{LUMEN}/modules", headers=as_.seeded(OLIVIA)).json()
     assert {m["key"]: m["enabled"] for m in modules} == {
+        "assistant": False,
         "catalogue": True,
         "crm": True,
         "inbox": True,

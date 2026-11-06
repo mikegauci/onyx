@@ -15,6 +15,7 @@ class ModuleKey(enum.StrEnum):
     INBOX = "inbox"
     QUOTATIONS = "quotations"
     ORDERS = "orders"
+    ASSISTANT = "assistant"
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,12 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
             frozenset({ModuleKey.CRM, ModuleKey.CATALOGUE}),
         ),
         ModuleSpec(ModuleKey.ORDERS, "Orders", frozenset({ModuleKey.QUOTATIONS})),
+        # Reads inbox threads and the catalogue, and drafts quotes (PR-015).
+        ModuleSpec(
+            ModuleKey.ASSISTANT,
+            "Sales assistant",
+            frozenset({ModuleKey.INBOX, ModuleKey.CATALOGUE, ModuleKey.QUOTATIONS}),
+        ),
     )
 }
 

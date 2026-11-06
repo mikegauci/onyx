@@ -261,7 +261,8 @@ class Message(Base):
             "(direction = 'inbound') = (author_kind = 'customer')", name="inbound_from_customer"
         ),
         CheckConstraint(
-            "direction <> 'note' OR author_kind IN ('staff', 'system')", name="note_author"
+            "direction <> 'note' OR author_kind IN ('staff', 'system', 'assistant')",
+            name="note_author",
         ),
         CheckConstraint(
             "(direction = 'inbound') = (delivery_status = 'received')", name="delivery_matches"

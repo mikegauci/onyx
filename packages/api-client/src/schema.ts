@@ -176,6 +176,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/assistant/conversations/{conversation_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assistant Runs */
+        get: operations["list_assistant_runs"];
+        put?: never;
+        /** Run Assistant */
+        post: operations["run_assistant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/assistant/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assistant Policies */
+        get: operations["list_assistant_policies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/assistant/policies/{topic}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Assistant Policy */
+        put: operations["put_assistant_policy"];
+        post?: never;
+        /** Delete Assistant Policy */
+        delete: operations["delete_assistant_policy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/audit": {
         parameters: {
             query?: never;
@@ -2314,7 +2367,7 @@ export interface components {
          * ModuleKey
          * @enum {string}
          */
-        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders";
+        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant";
         /** ModuleOut */
         ModuleOut: {
             /** Description */
@@ -2426,7 +2479,28 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "ai.usage.read";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "ai.usage.read";
+        /** PolicyOut */
+        PolicyOut: {
+            /** Body */
+            body: string;
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PolicyUpsert */
+        PolicyUpsert: {
+            /** Body */
+            body: string;
+            /** Title */
+            title: string;
+        };
         /** PostMessageResult */
         PostMessageResult: {
             conversation: components["schemas"]["ConversationDetail"];
@@ -2692,6 +2766,16 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** QuoteRef */
+        QuoteRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+        };
         /**
          * QuoteStatus
          * @enum {string}
@@ -2732,6 +2816,11 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /**
+         * Reason
+         * @enum {string}
+         */
+        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
         /** Ref */
         Ref: {
             /**
@@ -2742,6 +2831,41 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** RunOut */
+        RunOut: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Cost Usd Micros */
+            cost_usd_micros: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string | null;
+            /** Note Message Id */
+            note_message_id: string | null;
+            outcome: components["schemas"]["RunOutcome"];
+            quote: components["schemas"]["QuoteRef"] | null;
+            /** Reasons */
+            reasons: components["schemas"]["Reason"][];
+            /** Tool Calls */
+            tool_calls: components["schemas"]["ToolCallOut"][];
+        };
+        /**
+         * RunOutcome
+         * @enum {string}
+         */
+        RunOutcome: "drafted" | "escalated";
         /**
          * Sender
          * @description Who wrote a customer message, when it is not an existing CRM contact.
@@ -2813,6 +2937,17 @@ export interface components {
          * @enum {string}
          */
         SubjectType: "customer" | "contact" | "lead";
+        /** ToolCallOut */
+        ToolCallOut: {
+            /** Found */
+            found?: boolean | null;
+            /** Skus */
+            skus?: string[];
+            /** Tool */
+            tool: string;
+            /** Topic */
+            topic?: string | null;
+        };
         /** TotalsOut */
         TotalsOut: {
             discount: components["schemas"]["Money"];
@@ -3774,6 +3909,356 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_assistant_runs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    run_assistant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conversation closed, or no customer message yet */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_assistant_policies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyOut"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_assistant_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_assistant_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
             403: {
                 headers: {
                     [name: string]: unknown;

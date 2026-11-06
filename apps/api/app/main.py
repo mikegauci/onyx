@@ -22,6 +22,7 @@ from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.modules.assistant.routes import router as assistant_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
 from app.modules.inbox.routes import router as inbox_router
@@ -110,6 +111,7 @@ def create_app(
     v1.include_router(catalogue_router)
     v1.include_router(inbox_router)
     v1.include_router(quotations_router)
+    v1.include_router(assistant_router)
     app.include_router(v1)
     return app
 

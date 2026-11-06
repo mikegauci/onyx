@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import String, cast, func, select
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -56,6 +56,7 @@ class SkuInfo:
     price: PriceInfo | None  # None: no price on this list ("not provided")
     vat: VatInfo | None  # None: the product has no VAT rate
     stock_available: int | None  # total of the latest observations; None: unknown
+    stock_observed_at: datetime | None = None  # the most recent of those observations
 
 
 def _list(price_list: PriceList) -> PriceListInfo:
@@ -172,8 +173,12 @@ async def get_skus(
     ).all()
     price_by = {p.variant_id: p for p in prices}
     stock_by: dict[uuid.UUID, int] = {}
+    observed_by: dict[uuid.UUID, datetime] = {}
     for level in stock:
         stock_by[level.variant_id] = stock_by.get(level.variant_id, 0) + level.quantity_available
+        seen = observed_by.get(level.variant_id)
+        if seen is None or level.observed_at > seen:
+            observed_by[level.variant_id] = level.observed_at
     out: dict[uuid.UUID, SkuInfo] = {}
     for variant, product, vat in rows:
         price = price_by.get(variant.id)
@@ -189,5 +194,57 @@ async def get_skus(
             else None,
             vat=_vat(vat) if vat is not None else None,
             stock_available=stock_by.get(variant.id),
+            stock_observed_at=observed_by.get(variant.id),
         )
     return out
+
+
+SEARCH_MAX_RESULTS = 10
+
+
+async def search_variant_ids(
+    db: AsyncSession, tenant: TenantContext, query: str, *, limit: int = SEARCH_MAX_RESULTS
+) -> list[uuid.UUID]:
+    """Active SKUs whose product or variant text contains every word of ``query``.
+
+    Plain case-insensitive matching over name, brand, category, description, SKU, variant name
+    and attribute values; the most recently updated first. No match means an empty list.
+    """
+    words = [w for w in query.lower().split() if w][:8]
+    if not words:
+        return []
+    org = tenant.organization_id
+    haystack = func.lower(
+        func.concat_ws(
+            " ",
+            Product.name,
+            Product.brand,
+            Product.category,
+            Product.description,
+            Product.code,
+            Variant.sku,
+            Variant.name,
+            cast(Variant.attributes, String),
+        )
+    )
+    statement = (
+        select(Variant.id)
+        .join(Product, (Product.id == Variant.product_id) & (Product.organization_id == org))
+        .where(
+            Variant.organization_id == org,
+            Variant.archived_at.is_(None),
+            Product.archived_at.is_(None),
+            *(haystack.contains(word, autoescape=True) for word in words),
+        )
+        .order_by(Variant.updated_at.desc(), Variant.id)
+        .limit(min(max(limit, 1), SEARCH_MAX_RESULTS))
+    )
+    return list((await db.scalars(statement)).all())
+
+
+def normalise_sku(raw: str) -> str | None:
+    """The catalogue's canonical form of a SKU code, or None when it cannot be one."""
+    try:
+        return normalise_code(raw)
+    except FieldError:
+        return None

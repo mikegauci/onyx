@@ -32,7 +32,7 @@ erDiagram
 | `organizations`        | tenant root              | A workspace (`/w/{slug}`)                            | `slug` unique; `status` active/suspended; `timezone` default `Europe/Malta`                                                              |
 | `users`                | user                     | Staff profile                                        | `email` citext unique; `auth_subject` unique, links to Supabase Auth in PR-004 (no FK to `auth` schema)                                  |
 | `memberships`          | tenant                   | Role of a user in one organisation                   | unique (`organization_id`, `user_id`); `role` owner/admin/member                                                                         |
-| `modules`              | shared reference         | Module catalogue                                     | seeded by the migration: crm, catalogue, inbox, quotations, orders                                                                       |
+| `modules`              | shared reference         | Module catalogue                                     | seeded by migrations: crm, catalogue, inbox, quotations, orders, assistant                                                               |
 | `organization_modules` | tenant                   | Entitlement + tenant config                          | PK (`organization_id`, `module_key`); `enabled` default false                                                                            |
 | `audit_entries`        | tenant (null = platform) | Who did what                                         | **append-only** (trigger blocks UPDATE/DELETE); `request_id` correlates with logs (PR-006); `metadata` must not hold full message bodies |
 | `outbox_events`        | tenant                   | Events written in the same transaction as the change | unique (`organization_id`, `idempotency_key`); partial index on pending `available_at`                                                   |
@@ -162,6 +162,14 @@ Known limits:
 - `app_admin_ai_budget(slug)` / `app_admin_set_ai_budget(slug, limit, alert, request_id)`
   (SECURITY DEFINER, `onyx_app`): platform admins only (`42501` otherwise); setting writes an
   `ai.budget.updated` audit entry in the same transaction. See `docs/platform/ai-gateway.md`.
+
+### Sales assistant (PR-015, migration `0014`)
+
+- `assistant_policies` and `assistant_runs`: standard tenant policies gated by the `assistant`
+  module, with composite same-tenant foreign keys to conversations, quotes and messages.
+- `onyx_app` manages policies, and may only read and insert runs (a run is written once).
+- `ck_inbox_messages_note_author` now allows notes authored by the assistant.
+  See `docs/platform/assistant.md`.
 
 ### Deployed role setup (owner action, before the first deployed database)
 

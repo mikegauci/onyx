@@ -6,6 +6,7 @@ export const MODULES: Record<string, { label: string; arrives: string }> = {
   quotations: { label: "Quotations", arrives: "PR-012" },
   orders: { label: "Orders", arrives: "PR-022" },
   assistant: { label: "Sales assistant", arrives: "PR-015" },
+  outbound: { label: "Outbound replies", arrives: "PR-016" },
 };
 
 export function moduleLabel(key: string): string {

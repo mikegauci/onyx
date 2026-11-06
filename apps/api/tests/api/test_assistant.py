@@ -621,3 +621,57 @@ def test_rls_hides_runs_and_policies_from_other_tenants(
         assert conn.execute(text("SELECT count(*) FROM assistant_policies")).scalar_one() == 0
     with as_role(owner_engine, "onyx_app", email=SAM, organization_id=LUMEN_ID) as conn:
         assert conn.execute(text("SELECT count(*) FROM assistant_runs")).scalar_one() == 1
+
+
+# --- with outbound replies (PR-016) ----------------------------------------------------------
+
+
+@pytest.mark.usefixtures("enabled")
+def test_with_outbound_on_the_reply_waits_for_approval_and_its_quote(
+    api: TestClient, as_: As, script: Script, owner_engine: Engine
+) -> None:
+    _admin(api, as_, f"{LUMEN}/modules/outbound", {"enabled": True})
+    outbound_before = _outbound(owner_engine)
+    script.steps = [
+        tool("search_products", query="arc pendant brass"),
+        final(reply_draft=GOOD_REPLY, lines=[{"sku": "ARC-P-30-BRS", "quantity": 1}]),
+    ]
+    run = _run(api, as_, CHANDELIER, MIA)
+    assert run.status_code == 201, run.text
+    quote = run.json()["quote"]
+
+    base = f"/v1/w/{LUMEN}/outbound"
+    drafts = api.get(
+        f"{base}/drafts", params={"conversation_id": str(CHANDELIER)}, headers=as_.seeded(MIA)
+    ).json()
+    assert len(drafts) == 1
+    draft = drafts[0]
+    assert (draft["origin"], draft["status"], draft["body"]) == ("assistant", "pending", GOOD_REPLY)
+    assert draft["quote"]["id"] == quote["id"]
+    assert draft["quote"]["blocked"]["code"] == "quote_not_approved"
+
+    # The unapproved AI reply and its draft quote cannot go out.
+    send = api.post(f"{base}/drafts/{draft['id']}/send", headers=as_.seeded(MIA))
+    assert send.status_code == 409
+    approve = api.post(
+        f"{base}/drafts/{draft['id']}/approve", json={"revision": 1}, headers=as_.seeded(OLIVIA)
+    )
+    assert approve.status_code == 409
+    assert _outbound(owner_engine) == outbound_before
+
+    detail = api.get(f"{base}/drafts/{draft['id']}", headers=as_.seeded(MIA)).json()
+    assert [(r["author_kind"], r["author"]) for r in detail["revisions"]] == [("assistant", None)]
+
+    # A second run replaces the open draft rather than stacking a second one.
+    script.steps = [
+        tool("search_products", query="arc pendant brass"),
+        final(reply_draft=GOOD_REPLY, lines=[{"sku": "ARC-P-30-BRS", "quantity": 2}]),
+    ]
+    assert _run(api, as_, CHANDELIER, MIA).status_code == 201
+    statuses = sorted(
+        d["status"]
+        for d in api.get(
+            f"{base}/drafts", params={"conversation_id": str(CHANDELIER)}, headers=as_.seeded(MIA)
+        ).json()
+    )
+    assert statuses == ["pending", "superseded"]

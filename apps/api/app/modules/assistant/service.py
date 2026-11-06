@@ -35,6 +35,7 @@ from app.modules.assistant.tools import TOOLS, AssistantDeps
 from app.modules.catalogue import public as catalogue
 from app.modules.inbox import public as inbox
 from app.modules.inbox.models import ConversationStatus, Handler, MessageDirection
+from app.modules.outbound import public as outbound
 from app.modules.quotations import public as quotations
 
 logger = logging.getLogger("onyx.assistant")
@@ -79,16 +80,28 @@ def _escalation_note(reasons: Sequence[Reason], model_reason: str) -> str:
     return "\n".join(lines)
 
 
-def _draft_note(reply: str, quote: quotations.DraftQuote, line_count: int) -> str:
+def _draft_note(
+    reply: str, quote: quotations.DraftQuote, line_count: int, *, for_approval: bool
+) -> str:
     noun = "line" if line_count == 1 else "lines"
+    heading = (
+        "Draft reply from the assistant, waiting for approval (not sent):"
+        if for_approval
+        else "Draft reply from the assistant (not sent; review before replying):"
+    )
+    after = (
+        "Approve the quote, then approve the reply before it is sent."
+        if for_approval
+        else "Check and approve the quote before sending it."
+    )
     return "\n".join(
         [
-            "Draft reply from the assistant (not sent; review before replying):",
+            heading,
             "",
             reply or "(no reply text)",
             "",
             f"Draft quote {quote.number} with {line_count} {noun}. Onyx calculated the prices, "
-            "VAT and totals from the catalogue. Check and approve the quote before sending it.",
+            f"VAT and totals from the catalogue. {after}",
         ]
     )
 
@@ -172,9 +185,14 @@ class AssistantService:
                 if quote is None:
                     reasons = [Reason.QUOTE_FAILED]
 
+        reply = result.output.reply_draft.strip() if result is not None else ""
+        # With outbound replies on, a drafted reply waits for approval there (PR-016).
+        for_approval = (
+            quote is not None and bool(reply) and await outbound.is_enabled(self.db, self.workspace)
+        )
         if quote is not None and result is not None:
             run.outcome, run.quote_id = RunOutcome.DRAFTED, quote.id
-            body = _draft_note(result.output.reply_draft, quote, line_count)
+            body = _draft_note(reply, quote, line_count, for_approval=for_approval)
         else:
             body = _escalation_note(reasons, model_reason)
         run.reasons = [r.value for r in reasons]
@@ -183,6 +201,15 @@ class AssistantService:
         )
         self.db.add(run)
         await self.db.flush()
+        if for_approval and quote is not None:
+            await outbound.propose_reply(
+                self.db,
+                self.workspace,
+                conversation_id=thread.conversation_id,
+                body=reply,
+                quote_id=quote.id,
+                run_id=run.id,
+            )
 
         if run.outcome is RunOutcome.ESCALATED and thread.handler is Handler.ASSISTANT:
             summary = "; ".join(REASON_TEXT[r] for r in reasons)[:500] or "Needs a person."

@@ -1,15 +1,18 @@
-"""The inbox's public interface for other modules (the sales assistant, PR-015).
+"""The inbox's public interface for other modules (the sales assistant and outbound replies).
 
 Callers read a conversation's customer-facing thread, add an internal note written by the
-assistant, and hand a conversation back to staff. Nothing here sends anything to a customer.
-Every function filters on the bound tenant explicitly, on top of row-level security.
+assistant, hand a conversation back to staff, and (outbound, PR-016) send a reply that staff
+approved. ``send_reply`` is the only function here that reaches a customer, and only the
+outbound module calls it, after its approval checks. Every function filters on the bound
+tenant explicitly, on top of row-level security.
 """
 
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.deps import WorkspaceAccess
@@ -130,3 +133,67 @@ async def hand_to_staff(
         schemas.HandoffRequest(handler=Handler.STAFF, reason=reason[:REASON_MAX_LENGTH]),
     )
     return True
+
+
+async def latest_inbound(
+    db: AsyncSession, tenant: TenantContext, conversation_ids: Sequence[uuid.UUID]
+) -> dict[uuid.UUID, datetime]:
+    """When the newest customer message on each conversation was recorded (if any)."""
+    if not conversation_ids:
+        return {}
+    rows = await db.execute(
+        select(Message.conversation_id, func.max(Message.recorded_at).label("latest"))
+        .where(
+            Message.organization_id == tenant.organization_id,
+            Message.conversation_id.in_(list(conversation_ids)),
+            Message.direction == MessageDirection.INBOUND,
+        )
+        .group_by(Message.conversation_id)
+    )
+    return {row.conversation_id: row.latest for row in rows}
+
+
+async def subjects(
+    db: AsyncSession, tenant: TenantContext, conversation_ids: Sequence[uuid.UUID]
+) -> dict[uuid.UUID, str]:
+    """Conversation subjects by id, for conversations in this tenant."""
+    if not conversation_ids:
+        return {}
+    rows = await db.execute(
+        select(Conversation.id, Conversation.subject).where(
+            Conversation.organization_id == tenant.organization_id,
+            Conversation.id.in_(list(conversation_ids)),
+        )
+    )
+    return {row.id: row.subject for row in rows}
+
+
+@dataclass(frozen=True)
+class SentReply:
+    message_id: uuid.UUID
+    duplicate: bool  # the key was used before; nothing new was sent
+
+
+async def send_reply(
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    conversation_id: uuid.UUID,
+    body: str,
+    *,
+    idempotency_key: str,
+) -> SentReply:
+    """Send an approved reply through the conversation's channel, as the signed-in user.
+
+    The key makes it send once: a repeat returns the stored message. A closed conversation or
+    an unconnected channel is refused (409). The conversation then waits on the customer.
+    """
+    message, duplicate = await InboxService(db, workspace).post_message(
+        conversation_id,
+        schemas.MessageCreate(
+            kind=schemas.MessageKind.REPLY,
+            body=body,
+            idempotency_key=idempotency_key,
+            set_status=ConversationStatus.WAITING_ON_CUSTOMER,
+        ),
+    )
+    return SentReply(message_id=message.id, duplicate=duplicate)

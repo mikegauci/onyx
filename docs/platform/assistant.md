@@ -56,6 +56,9 @@ it per tenant, and the tenant needs an AI budget (see [ai-gateway.md](ai-gateway
    usage event, cost, quote and note) and audited as `assistant.run.drafted` or
    `assistant.run.escalated`. Message text and tool output are not stored in the run.
 
+With the `outbound` module on (PR-016), a drafted run also files its reply as a pending draft
+that an approver must approve, after the quote, before it is sent. See [outbound.md](outbound.md).
+
 Staff start runs; nothing runs automatically on new messages yet (that needs the worker in
 PR-020). A run makes several model requests inside one API request, so it can take 10–30 s.
 

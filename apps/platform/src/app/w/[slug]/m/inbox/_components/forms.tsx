@@ -394,12 +394,15 @@ export function ChannelForm({ slug }: { slug: string }) {
   const [kind, setKind] = useState<Channel["kind"]>("manual");
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state.status !== "ok") return;
-    form.current?.reset();
-    setKind("manual");
+    if (state.status === "ok") form.current?.reset();
   }, [state]);
   return (
-    <form ref={form} action={action} className="flex max-w-md flex-col gap-3">
+    <form
+      ref={form}
+      action={action}
+      onReset={() => setKind("manual")}
+      className="flex max-w-md flex-col gap-3"
+    >
       <FormStatus state={state} />
       <FormField id="channel-name" label="Channel name" error={state.fieldErrors?.name}>
         <Input id="channel-name" name="name" required maxLength={100} placeholder="Shop phone" />

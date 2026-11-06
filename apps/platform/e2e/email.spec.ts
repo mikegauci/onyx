@@ -90,7 +90,9 @@ test("staff block an address and only an owner can release it", async ({ browser
   await page.goto(`${LUMEN}/m/inbox/suppressions`);
   page.once("dialog", (dialog) => void dialog.accept());
   await page.getByRole("button", { name: `Release ${address}` }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Address released" })).toBeVisible();
+  // Released addresses leave the list (the row, and its status message, are removed).
+  await expect(page.getByRole("row").filter({ hasText: address })).toHaveCount(0);
+  await page.reload();
   await expect(page.getByRole("row").filter({ hasText: address })).toHaveCount(0);
   await owner.close();
 });

@@ -13,10 +13,13 @@ files do not select models.
   ([#19](https://github.com/mikegauci/onyx/pull/19)).
 - PR-013 AI gateway merged ([#20](https://github.com/mikegauci/onyx/pull/20)), migration `0013`.
   See `docs/platform/ai-gateway.md`.
-- PR-015 part 1, the sales assistant backend, is on branch `feat/sales-assistant` (see its
-  GitHub PR): read-only tools, deterministic grounding/price/stock/reply checks, draft quotes
-  through the quotations service, escalation notes, opt-in live evals
-  (`make eval-assistant yes=1`). Migration `0014`. See `docs/platform/assistant.md`.
+- PR-015 part 1, the sales assistant backend, merged ([#21](https://github.com/mikegauci/onyx/pull/21)):
+  read-only tools, deterministic grounding/price/stock/reply checks, draft quotes through the
+  quotations service, escalation notes, opt-in live evals (`make eval-assistant yes=1`).
+  Migration `0014`. See `docs/platform/assistant.md`.
+- PR-015 part 2, the dashboard screens, is on branch `feat/assistant-inbox-panel` (see its
+  GitHub PR): the "Sales assistant" panel on inbox conversations, assistant-labelled notes and
+  the Sales assistant page with policy texts. No migration.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
@@ -26,9 +29,8 @@ files do not select models.
 
 ## Next task
 
-After part 1 merges: plan PR-015 part 2, the inbox "Draft with assistant" panel (run, show
-the note, quote link and reasons) and the policy settings page. PR-014 stays deferred. Wait
-for plan approval.
+After part 2 merges, PR-015 is complete. Plan PR-016 (approval and outbound sending) when the
+owner selects it. PR-014 stays deferred. Wait for plan approval.
 
 ## Verification preference
 

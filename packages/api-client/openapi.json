@@ -4575,6 +4575,24 @@
         "title": "Reason",
         "type": "string"
       },
+      "ReasonOut": {
+        "description": "Why a run went to staff: a stable code and the text staff read.",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/Reason"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ReasonOut",
+        "type": "object"
+      },
       "Ref": {
         "properties": {
           "id": {
@@ -4653,7 +4671,7 @@
           },
           "reasons": {
             "items": {
-              "$ref": "#/components/schemas/Reason"
+              "$ref": "#/components/schemas/ReasonOut"
             },
             "title": "Reasons",
             "type": "array"

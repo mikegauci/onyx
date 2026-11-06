@@ -1,4 +1,4 @@
-import { toResult, withApi } from "./api-client";
+import { mutateApi, toResult, withApi } from "./api-client";
 
 vi.mock("server-only", () => ({}));
 const token = vi.hoisted(() => ({ value: null as string | null }));
@@ -66,5 +66,40 @@ describe("withApi", () => {
     });
     const result = await withApi((api) => api.GET("/v1/me"), fetchImpl);
     expect(result).toMatchObject({ ok: false, status: "unavailable" });
+  });
+});
+
+describe("mutateApi", () => {
+  it("treats 204 No Content as success", async () => {
+    token.value = "tok";
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(null, { status: 204 }));
+    const result = await mutateApi(
+      (api) =>
+        api.DELETE("/v1/w/{slug}/assistant/policies/{topic}", {
+          params: { path: { slug: "lumen", topic: "delivery" } },
+        }),
+      fetchImpl,
+    );
+    expect(result).toEqual({ ok: true, data: undefined });
+  });
+
+  it("keeps the API error body on failure", async () => {
+    token.value = "tok";
+    const body = { error: { code: "conflict", message: "Reopen it first.", request_id: "r1" } };
+    const fetchImpl = vi.fn<typeof fetch>(
+      async () =>
+        new Response(JSON.stringify(body), {
+          status: 409,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    const result = await mutateApi(
+      (api) =>
+        api.POST("/v1/w/{slug}/assistant/conversations/{conversation_id}/runs", {
+          params: { path: { slug: "lumen", conversation_id: "c1" } },
+        }),
+      fetchImpl,
+    );
+    expect(result).toMatchObject({ ok: false, status: 409, requestId: "r1" });
   });
 });

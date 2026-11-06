@@ -28,6 +28,7 @@ import {
 import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 import { cn } from "@onyx/ui/lib/utils";
 import {
+  Bot,
   Building2,
   Contact,
   FileText,
@@ -56,6 +57,7 @@ const ICONS = {
   inbox: Inbox,
   quotations: FileText,
   orders: ShoppingCart,
+  assistant: Bot,
   settings: Settings,
   organizations: Building2,
   status: Gauge,

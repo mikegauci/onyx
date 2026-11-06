@@ -56,7 +56,7 @@ def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
         id=run.id,
         conversation_id=run.conversation_id,
         outcome=run.outcome,
-        reasons=[Reason(r) for r in run.reasons],
+        reasons=[_reason_out(r) for r in run.reasons],
         quote=quote,
         note_message_id=run.note_message_id,
         tool_calls=[schemas.ToolCallOut.model_validate(c) for c in run.tool_calls],
@@ -64,6 +64,11 @@ def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
         cost_usd_micros=run.cost_usd_micros,
         created_at=run.created_at,
     )
+
+
+def _reason_out(code: str) -> schemas.ReasonOut:
+    reason = Reason(code)
+    return schemas.ReasonOut(code=reason, message=REASON_TEXT[reason])
 
 
 def _escalation_note(reasons: Sequence[Reason], model_reason: str) -> str:

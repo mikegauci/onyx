@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013 are merged; PR-015 part 1 (sales assistant backend) is in review, then PR-015 part 2 (inbox screen), subject to plan approval.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013 and PR-015 part 1 (sales assistant backend) are merged; PR-015 part 2 (assistant screens) is in review.
 
 ## Read these files first
 

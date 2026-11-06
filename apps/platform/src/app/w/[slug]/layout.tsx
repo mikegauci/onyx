@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
-import { AppShell, type NavGroup } from "@/components/shell/app-shell";
+import { AppShell, type IconName, type NavGroup } from "@/components/shell/app-shell";
 import { WorkspaceSwitcher } from "@/components/shell/workspace-switcher";
 import { getMe, getWorkspace } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
@@ -66,10 +66,11 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   );
 }
 
-const ICON_FOR_MODULE: Record<string, "crm" | "catalogue" | "inbox" | "quotations" | "orders"> = {
+const ICON_FOR_MODULE: Record<string, IconName> = {
   crm: "crm",
   catalogue: "catalogue",
   inbox: "inbox",
   quotations: "quotations",
   orders: "orders",
+  assistant: "assistant",
 };

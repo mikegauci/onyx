@@ -34,6 +34,7 @@ export type MutationOutcome<T> =
 export async function mutateApi<T>(
   call: (api: ApiClient) => Promise<CallResult<T>>,
   fetchImpl: typeof fetch = fetch,
+  timeoutMs: number = TIMEOUT_MS,
 ): Promise<MutationOutcome<T>> {
   const token = await getAccessToken();
   const requestId = newRequestId();
@@ -43,11 +44,14 @@ export async function mutateApi<T>(
     accessToken: token,
     requestId,
     fetch: (input) =>
-      fetchImpl(input, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) }),
+      fetchImpl(input, { cache: "no-store", signal: AbortSignal.timeout(timeoutMs) }),
   });
   try {
     const result = await call(api);
-    if (result.response.ok && result.data !== undefined) return { ok: true, data: result.data };
+    // 204 No Content has no body; it is still a success.
+    if (result.response.ok && (result.data !== undefined || result.response.status === 204)) {
+      return { ok: true, data: result.data as T };
+    }
     const error = apiErrorOf(result.error);
     return {
       ok: false,

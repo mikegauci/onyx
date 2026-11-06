@@ -18,6 +18,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 
 import { Pager } from "../../../crm/_components/list-controls";
 import { contactOptions, param, recordId, type SearchParams } from "../../../crm/data";
+import { ReplyPanel } from "../../../outbound/_components/reply-panel";
 import { AssistantPanel } from "../../_components/assistant-panel";
 import {
   AssignForm,
@@ -83,6 +84,9 @@ export default async function ConversationPage({
     );
     runs = requireOk(result, path).slice(0, 5);
   }
+  // Shown when the module is on; the API checks the module and permissions on every request.
+  const showReplies =
+    workspace.modules.includes("outbound") && workspace.permissions.includes("outbound.read");
   // The API returns newest first; read the conversation top to bottom.
   const timeline = [...page.items].reverse();
 
@@ -150,6 +154,16 @@ export default async function ConversationPage({
         </section>
 
         <aside className="flex flex-col gap-6" aria-label="Conversation details">
+          {showReplies ? (
+            <ReplyPanel
+              slug={slug}
+              conversation={record}
+              permissions={workspace.permissions}
+              modules={workspace.modules}
+              timezone={zone}
+              path={path}
+            />
+          ) : null}
           {canRunAssistant ? (
             <AssistantPanel
               slug={slug}

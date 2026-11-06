@@ -26,8 +26,12 @@ async function restoreLumen() {
   }
 }
 
-// The sales assistant depends on Quotations; keep it off so Quotations can be disabled.
-test.beforeEach(() => setLumenModule("assistant", false));
+// The sales assistant and outbound replies depend on Quotations; keep them off so Quotations
+// can be disabled.
+test.beforeEach(async () => {
+  await setLumenModule("assistant", false);
+  await setLumenModule("outbound", false);
+});
 test.afterEach(restoreLumen);
 
 test("disabling CRM hides it and denies it for that tenant only", async ({ browser }) => {

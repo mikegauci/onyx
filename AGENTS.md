@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013 and PR-015 are merged; PR-016 part 1 (approval and outbound sending backend) is in review.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 part 1 (approval and outbound sending backend) are merged; PR-016 part 2 (approval screens) is in review.
 
 ## Read these files first
 

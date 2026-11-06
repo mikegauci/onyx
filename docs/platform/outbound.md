@@ -140,4 +140,25 @@ owner's approval.
 - `tests/api/test_assistant.py`: with `outbound` on, an assistant reply waits as a pending
   draft, cannot be sent or approved while its quote is a draft, and a new run supersedes it.
 
-The dashboard screens (approvals queue, draft panel on conversations) are part 2 of PR-016.
+- `apps/platform/src/lib/outbound.test.ts`: which buttons each role sees in each state.
+- `apps/platform/e2e/outbound.spec.ts`: a member drafts a reply and cannot approve or send
+  it; the owner edits and approves it from the queue, both revisions stay visible, and it is
+  sent into the conversation. A reply with a draft quote cannot be approved or sent, even by
+  the owner.
+
+## Screens
+
+- **Inbox conversation:** a "Reply for approval" panel in the right column when the module is
+  on. It shows the conversation's latest draft with its status, quote and expiry, and a form
+  to write a reply (optionally with one of the contact's draft or approved quotes) when no
+  draft is open. Members can edit; admins and owners also see **Approve reply** (or
+  **Approve edited text** after changing it) and **Reject this reply**. **Send reply**
+  appears only once the reply is approved, and is disabled while the text has unsaved edits.
+- **Outbound replies page** (`/w/{slug}/m/outbound`): replies waiting for approval, approved
+  ones ready to send, and recently sent ones. Admins and owners set the draft expiry here.
+- **Draft page** (`/w/{slug}/m/outbound/drafts/{id}`): the same controls, a link to the
+  conversation, and every revision with its author and time.
+
+The dashboard only shows what the API returns; reasons and blocks come from the API. Hiding
+a button is a convenience: the API checks the permission, state, revision, expiry and quote
+on every request.

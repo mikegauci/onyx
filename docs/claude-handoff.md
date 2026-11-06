@@ -26,17 +26,18 @@ files do not select models.
   go-ahead.
 
 - PR-015 part 2 merged ([#22](https://github.com/mikegauci/onyx/pull/22)). PR-015 is complete.
-- PR-016 part 1, approval and outbound sending backend, is on branch `feat/outbound-approvals`
-  (see its GitHub PR): the `outbound` module, drafts with revisions, approve/edit/reject,
+- PR-016 part 1 merged ([#23](https://github.com/mikegauci/onyx/pull/23)): the `outbound` module, drafts with revisions, approve/edit/reject,
   expiry, send once through the inbox adapter with an outbox event, and assistant drafts
   waiting for approval. Migration `0015`. See `docs/platform/outbound.md`.
 
+- PR-016 part 2, the screens, is on branch `feat/outbound-approval-screens` (see its GitHub
+  PR): the "Reply for approval" panel on conversations, the Outbound replies page and the
+  draft page. No migration.
+
 ## Next task
 
-After part 1 merges, build PR-016 part 2 (approved plan): an approvals queue page and a draft
-panel on inbox conversations (revision history, edit / approve / reject / send), plus a
-Playwright test that a member cannot approve and an unapproved AI quote cannot be sent.
-PR-014 stays deferred.
+After part 2 merges, PR-016 is complete. Plan PR-017 (email connector) when the owner selects
+it. PR-014 stays deferred. Wait for plan approval.
 
 ## Verification preference
 

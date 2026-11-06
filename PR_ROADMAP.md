@@ -17,7 +17,8 @@ Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for requirements, [AGENTS.md](AGENTS.m
 - **PR-013 complete and merged:** [GitHub PR #20](https://github.com/mikegauci/onyx/pull/20), AI gateway, per-tenant usage and fail-closed budgets, migration `0013`. See [docs/platform/ai-gateway.md](docs/platform/ai-gateway.md).
 - **PR-015 part 1 complete and merged:** [GitHub PR #21](https://github.com/mikegauci/onyx/pull/21), grounded sales assistant backend, tools, deterministic checks and evaluations, migration `0014`. See [docs/platform/assistant.md](docs/platform/assistant.md).
 - **PR-015 complete and merged:** part 2 [GitHub PR #22](https://github.com/mikegauci/onyx/pull/22), inbox assistant panel, assistant-labelled notes and the policies page; no migration. PR-014 is deferred.
-- **PR-016 part 1 implemented (in review):** outbound drafts, staff approval, expiry and send-once, migration `0015`. See [docs/platform/outbound.md](docs/platform/outbound.md). Part 2 (screens) follows.
+- **PR-016 part 1 complete and merged:** [GitHub PR #23](https://github.com/mikegauci/onyx/pull/23), outbound drafts, staff approval, expiry and send-once, migration `0015`. See [docs/platform/outbound.md](docs/platform/outbound.md).
+- **PR-016 part 2 implemented (in review):** reply panel on conversations, outbound replies page and draft page; no migration.
 - Use focused local checks and GitHub CI for broad validation. Avoid repeated local full-suite/build/browser loops; inspect CI failures and rerun only affected checks.
 
 ## Delivery contract

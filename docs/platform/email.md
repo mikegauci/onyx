@@ -38,7 +38,7 @@ One Resend account serves every tenant. No credentials are stored per tenant.
   `{token}@{inbound domain}`. The token is the only thing that routes an email to a tenant.
   It is created with the channel and is never derived from anything else.
 - Replies go out from `"{from name}" <replies@{from domain}>`. Their Reply-To is
-  `{token}+{conversation id}@{inbound domain}`, so the customer's answer comes back to the same
+  `{token}+{conversation id in base32}@{inbound domain}` (59 characters before the `@`, within the 64 that email allows), so the customer's answer comes back to the same
   conversation.
 - The channel's `from_name` defaults to the workspace name. Its optional `signature` is added
   below every reply. Both are email-only settings (`422` on other channels).

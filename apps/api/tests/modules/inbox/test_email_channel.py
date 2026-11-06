@@ -59,6 +59,17 @@ def test_recipient_parsing_reads_only_our_domain_and_shape() -> None:
     assert parse_recipient(f"{TOKEN}@sub.{DOMAIN}", DOMAIN) is None
     assert parse_recipient(f"sales@{DOMAIN}", DOMAIN) is None
     assert parse_recipient(f"{TOKEN}+nothex@{DOMAIN}", DOMAIN) is None
+    assert parse_recipient(f"{TOKEN}+{conversation.hex}@{DOMAIN}", DOMAIN) is None  # too long
+
+
+def test_every_reply_address_fits_the_local_part_limit() -> None:
+    for _ in range(200):
+        conversation = uuid.uuid4()
+        address = reply_address(new_inbound_token(), conversation, DOMAIN)
+        assert len(address.split("@")[0]) <= 64
+        parsed = parse_recipient(address, DOMAIN)
+        assert parsed is not None
+        assert parsed.conversation_hint == conversation
 
 
 def test_inbound_email_is_normalised_and_quoted_history_trimmed() -> None:
@@ -135,7 +146,9 @@ def test_composed_reply_escapes_html_threads_and_routes_replies_back() -> None:
     )
     assert email.subject == "Re: Chandelier"
     assert email.from_address == '"Lumen Lighting x" <replies@reply.onyx.test>'
-    assert email.reply_to == f"{TOKEN}+{conversation.hex}@{DOMAIN}"
+    assert email.reply_to == reply_address(TOKEN, conversation, DOMAIN)
+    local = email.reply_to.split("@")[0]
+    assert len(local) <= 64  # RFC 5321; Resend refuses longer local parts
     assert email.text.endswith("Lumen Lighting\n+356 2100 0000")
     assert "&lt;b&gt;Price&lt;/b&gt;" in email.html
     assert "<b>" not in email.html

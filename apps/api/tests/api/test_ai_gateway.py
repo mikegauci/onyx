@@ -340,7 +340,7 @@ def test_concurrent_calls_cannot_overspend(
             )
 
         try:
-            return await asyncio.gather(_one(), _one(), return_exceptions=True)
+            return list(await asyncio.gather(_one(), _one(), return_exceptions=True))
         finally:
             await engine.dispose()
 

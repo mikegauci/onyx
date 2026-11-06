@@ -62,7 +62,9 @@ def test_selecting_a_workspace_you_do_not_belong_to_is_rejected(probe: TestClien
 def test_tenant_headers_and_query_parameters_are_ignored(probe: TestClient, as_: As) -> None:
     headers = {**as_.seeded(OLIVIA), "X-Organization-Id": str(HARBOUR)}
     response = probe.get(
-        "/v1/w/lumen-lighting-test/_tenant", headers=headers, params={"organization_id": HARBOUR}
+        "/v1/w/lumen-lighting-test/_tenant",
+        headers=headers,
+        params={"organization_id": str(HARBOUR)},
     )
     assert response.status_code == 200
     assert response.json()["bound"] == str(LUMEN)

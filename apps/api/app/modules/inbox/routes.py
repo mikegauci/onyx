@@ -223,3 +223,31 @@ async def list_events(
         conversation_id, limit=limit, cursor=cursor
     )
     return schemas.EventPage(items=items, next_cursor=next_cursor)
+
+
+# --- email suppressions ----------------------------------------------------------------------
+
+
+@router.get("/suppressions", response_model=schemas.SuppressionList)
+async def list_suppressions(workspace: Reader, db: DbDep) -> schemas.SuppressionList:
+    """Addresses this workspace does not email (bounces, complaints, customer requests)."""
+    return schemas.SuppressionList(items=await InboxService(db, workspace).list_suppressions())
+
+
+@router.post(
+    "/suppressions",
+    response_model=schemas.SuppressionOut,
+    status_code=status.HTTP_201_CREATED,
+    responses=CONFLICT,
+)
+async def add_suppression(
+    body: schemas.SuppressionCreate, workspace: Writer, db: DbDep
+) -> schemas.SuppressionOut:
+    return await InboxService(db, workspace).add_suppression(body)
+
+
+@router.post("/suppressions/{suppression_id}/release", status_code=status.HTTP_204_NO_CONTENT)
+async def release_suppression(suppression_id: uuid.UUID, workspace: Manager, db: DbDep) -> Response:
+    """Email the address again (for example after the customer fixed their mailbox)."""
+    await InboxService(db, workspace).release_suppression(suppression_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

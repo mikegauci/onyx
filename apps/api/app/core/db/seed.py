@@ -490,6 +490,10 @@ SEED_INBOX: dict[str, tuple[SeedConversation, ...]] = {
 }
 
 
+def seed_inbound_token(slug: str, channel_name: str) -> str:
+    return seed_id(f"{slug}:channel-token:{channel_name}").hex
+
+
 def seed_inbox(connection: Connection) -> None:
     for slug, channels in SEED_INBOX_CHANNELS.items():
         org_id = seed_id(slug)
@@ -501,6 +505,10 @@ def seed_inbox(connection: Connection) -> None:
                     organization_id=org_id,
                     kind=kind,
                     name=name,
+                    # Fake organisations only: a fixed token keeps tests deterministic.
+                    inbound_token=seed_inbound_token(slug, name)
+                    if kind is ChannelKind.EMAIL
+                    else None,
                 )
                 .on_conflict_do_nothing()
             )

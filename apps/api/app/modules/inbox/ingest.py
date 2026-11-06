@@ -227,7 +227,9 @@ class InboxIngest:
         subject: str | None = None,
         contact: crm.ContactSummary | None = None,
         lead_id: uuid.UUID | None = None,
+        match_contact: bool = True,
     ) -> IngestResult:
+        """Store one customer message. ``match_contact=False`` for senders that may be forged."""
         if channel.disabled_at is not None:
             raise ChannelDisabledError
         if inbound.external_message_id is not None:
@@ -237,7 +239,7 @@ class InboxIngest:
                     await self._conversation(existing.conversation_id), existing, False, True
                 )
 
-        if contact is None:
+        if contact is None and match_contact:
             contact = await crm.find_contact_by_identity(
                 self.db, self.tenant, email=inbound.sender_email, phone=inbound.sender_phone
             )

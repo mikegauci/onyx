@@ -36,8 +36,12 @@ CHANGE_ERRORS: dict[int | str, dict[str, Any]] = {
 SEND_ERRORS: dict[int | str, dict[str, Any]] = {
     409: {
         **_ERROR,
-        "description": "Not approved, expired, conversation closed or channel not connected",
+        "description": (
+            "Not approved, expired, conversation closed, channel not connected, "
+            "no email address, or the address is suppressed"
+        ),
     },
+    503: {**_ERROR, "description": "The email provider did not accept it; nothing was sent"},
 }
 
 

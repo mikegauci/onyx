@@ -73,12 +73,51 @@ class Settings(BaseSettings):
     ai_retry_backoff_seconds: float = Field(default=0.5, ge=0, le=30)
     ai_max_output_tokens: int = Field(default=1024, ge=16, le=32_000)
 
-    @field_validator("openai_api_key", "anthropic_api_key", mode="before")
+    # Email connector (Resend). All four set = email channels connected; otherwise they refuse.
+    resend_api_key: SecretStr | None = Field(default=None, description="Resend API key.")
+    resend_webhook_secret: SecretStr | None = Field(
+        default=None, description="Signing secret (whsec_...) of the Resend webhook."
+    )
+    email_inbound_domain: str | None = Field(
+        default=None, description="Receiving domain for channel addresses, e.g. in.onyx.mt."
+    )
+    email_from_domain: str | None = Field(
+        default=None, description="Verified sending domain, e.g. reply.onyx.mt."
+    )
+    email_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+
+    @field_validator(
+        "openai_api_key",
+        "anthropic_api_key",
+        "resend_api_key",
+        "resend_webhook_secret",
+        mode="before",
+    )
     @classmethod
     def _blank_key_is_unset(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip():
             return None
         return value
+
+    @field_validator("email_inbound_domain", "email_from_domain", mode="before")
+    @classmethod
+    def _email_domain(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = value.strip().lower() or None
+            if value is not None and (
+                "@" in value or "/" in value or "." not in value or value.startswith(".")
+            ):
+                raise ValueError("Use a bare domain name, e.g. in.onyx.mt.")
+        return value
+
+    @property
+    def email_configured(self) -> bool:
+        return None not in (
+            self.resend_api_key,
+            self.resend_webhook_secret,
+            self.email_inbound_domain,
+            self.email_from_domain,
+        )
 
     @field_validator("ai_default_model", mode="before")
     @classmethod

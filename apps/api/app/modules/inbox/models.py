@@ -80,6 +80,25 @@ class AuthorKind(enum.StrEnum):
 class DeliveryStatus(enum.StrEnum):
     RECEIVED = "received"  # inbound, stored
     LOGGED = "logged"  # recorded by staff; nothing was sent by Onyx
+    SENT = "sent"  # an email the provider accepted; live status in ``EmailDelivery``
+
+
+class EmailDeliveryStatus(enum.StrEnum):
+    """The latest provider report for one outbound email."""
+
+    SENT = "sent"  # accepted by the provider
+    DELIVERED = "delivered"
+    DELAYED = "delayed"
+    BOUNCED = "bounced"
+    COMPLAINED = "complained"  # the recipient marked it as spam
+    FAILED = "failed"
+    SUPPRESSED = "suppressed"  # the provider refused the address
+
+
+class SuppressionReason(enum.StrEnum):
+    BOUNCED = "bounced"  # a permanent bounce
+    COMPLAINED = "complained"
+    MANUAL = "manual"  # staff: the customer asked not to be emailed
 
 
 class EventKind(enum.StrEnum):
@@ -114,13 +133,17 @@ def _same_tenant(column: str, table: str, name: str) -> ForeignKeyConstraint:
 
 
 class Channel(Base):
-    """Where messages come from. Only ``manual`` has a working adapter in PR-011."""
+    """Where messages come from. ``manual`` always works; ``email`` once the provider is set."""
 
     __tablename__ = "inbox_channels"
     __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
         UniqueConstraint("organization_id", "name"),
+        UniqueConstraint("inbound_token"),
+        CheckConstraint(
+            "(kind = 'email') = (inbound_token IS NOT NULL)", name="email_has_inbound_token"
+        ),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -133,6 +156,11 @@ class Channel(Base):
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
     disabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Email only: the random local part of the channel's inbound address. It is the credential
+    # that routes a verified inbound email to this tenant, so it is never derived from anything.
+    inbound_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    from_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    signature: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
 
 class Conversation(Base):
@@ -325,5 +353,101 @@ class Event(Base):
     actor_user_id: Mapped[uuid.UUID | None] = _user_fk()
     request_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class EmailDelivery(Base):
+    """One outbound email: the provider's ids and its latest delivery status.
+
+    Staff transactions insert it with the message; only the connector (``onyx_worker``)
+    updates the status, from verified provider webhooks.
+    """
+
+    __tablename__ = "inbox_email_deliveries"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "message_id"),
+        UniqueConstraint("provider", "provider_message_id"),
+        _same_tenant(
+            "message_id", "inbox_messages", "fk_inbox_email_deliveries_message_same_tenant"
+        ),
+        _same_tenant(
+            "channel_id", "inbox_channels", "fk_inbox_email_deliveries_channel_same_tenant"
+        ),
+        Index(
+            "ix_inbox_email_deliveries_rfc_message",
+            "organization_id",
+            "channel_id",
+            "rfc_message_id",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider_message_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    rfc_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    recipient: Mapped[str] = mapped_column(String(ADDRESS_MAX_LENGTH), nullable=False)
+    status: Mapped[EmailDeliveryStatus] = mapped_column(
+        str_enum(EmailDeliveryStatus, "inbox_email_delivery_status"), nullable=False
+    )
+    detail: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    status_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class Suppression(Base):
+    """An address this tenant must not email. Released (not deleted) when staff lift it."""
+
+    __tablename__ = "inbox_suppressions"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        CheckConstraint("address = lower(address)", name="address_lower"),
+        Index(
+            "uq_inbox_suppressions_active",
+            "organization_id",
+            "address",
+            unique=True,
+            postgresql_where=text("released_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    address: Mapped[str] = mapped_column(String(ADDRESS_MAX_LENGTH), nullable=False)
+    reason: Mapped[SuppressionReason] = mapped_column(
+        str_enum(SuppressionReason, "inbox_suppression_reason"), nullable=False
+    )
+    note: Mapped[str | None] = mapped_column(String(REASON_MAX_LENGTH), nullable=True)
+    created_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
+    created_at: Mapped[datetime] = created_at_column()
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    released_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
+
+
+class WebhookEvent(Base):
+    """A provider webhook already processed for this tenant. Retries are recognised here."""
+
+    __tablename__ = "inbox_webhook_events"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "provider", "event_id"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    event_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    received_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

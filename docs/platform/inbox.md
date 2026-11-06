@@ -2,9 +2,9 @@
 
 The inbox holds a workspace's customer conversations in one place, whatever channel they came
 from. Staff see queues (mine, unassigned, all), assign conversations, change their status, hand
-them between staff and the assistant, and record what was said. **Nothing is sent to a
-customer.** Real email delivery comes with PR-017, and AI drafts only go out after staff
-approval in PR-016.
+them between staff and the assistant, and record what was said. Email channels receive and
+send through the email connector ([email.md](email.md), PR-017). Replies reach a customer only
+through an approved outbound draft (PR-016).
 
 The `inbox` module requires `crm`: conversations link to CRM contacts and leads. The API
 enforces the entitlement and permissions on every route under `/v1/w/{slug}/inbox`.
@@ -30,7 +30,8 @@ enforces the entitlement and permissions on every route under `/v1/w/{slug}/inbo
   tenant's channel, conversation, participant, contact or lead, even for the database owner.
 - The app role may only insert messages and events (no UPDATE or DELETE grants), and a trigger
   blocks UPDATE/DELETE for every role. A wrong message is corrected with a new note.
-- `onyx_worker` has no inbox grants yet; the email connector (PR-017) adds what it needs.
+- `onyx_worker` (the email connector, PR-017) reads and inserts conversations, participants,
+  messages and events in the tenant it bound. It cannot change message text or channels.
 
 ### Status and handoff
 
@@ -68,9 +69,11 @@ message can change the status in the same request (`set_status`).
   database or chooses the tenant.
 - `send(OutboundMessage)` delivers one message and returns a `DeliveryResult`.
 
-`ManualChannelAdapter` is the only adapter. It drops thread refs (staff pick the conversation)
-and its `send` delivers nothing (`logged`). Email, WhatsApp and web channels can be created now
-but report `connected: false`; recording on them returns 409.
+`ManualChannelAdapter` drops thread refs (staff pick the conversation) and its `send` delivers
+nothing (`logged`). Email channels are connected once the email provider is configured
+([email.md](email.md)). Staff can record customer messages and notes on them, but a reply goes
+out only from an approved outbound draft. WhatsApp and web channels report `connected: false`;
+recording on them returns 409.
 
 `InboxIngest` (`ingest.py`) stores an `InboundMessage` under any bound tenant, so the same code
 will serve a connector job:

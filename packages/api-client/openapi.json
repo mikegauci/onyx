@@ -867,6 +867,20 @@
       "ChannelCreate": {
         "additionalProperties": false,
         "properties": {
+          "from_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email only: sender name customers see (default: workspace)",
+            "title": "From Name"
+          },
           "kind": {
             "$ref": "#/components/schemas/ChannelKind"
           },
@@ -875,6 +889,20 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "signature": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email only: text added below every reply",
+            "title": "Signature"
           }
         },
         "required": [
@@ -934,10 +962,33 @@
             ],
             "title": "Disabled At"
           },
+          "from_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Name"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "inbound_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email only, once connected: the address customers write to",
+            "title": "Inbound Address"
           },
           "kind": {
             "$ref": "#/components/schemas/ChannelKind"
@@ -945,6 +996,17 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
           }
         },
         "required": [
@@ -995,6 +1057,19 @@
             ],
             "title": "Disabled"
           },
+          "from_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Name"
+          },
           "name": {
             "anyOf": [
               {
@@ -1007,6 +1082,19 @@
               }
             ],
             "title": "Name"
+          },
+          "signature": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
           }
         },
         "title": "ChannelUpdate",
@@ -2013,7 +2101,8 @@
       "DeliveryStatus": {
         "enum": [
           "received",
-          "logged"
+          "logged",
+          "sent"
         ],
         "title": "DeliveryStatus",
         "type": "string"
@@ -2609,6 +2698,56 @@
         ],
         "title": "DraftUserRef",
         "type": "object"
+      },
+      "EmailDeliveryOut": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Bounce type or failure reason code, no content",
+            "title": "Detail"
+          },
+          "recipient": {
+            "title": "Recipient",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmailDeliveryStatus"
+          },
+          "status_at": {
+            "format": "date-time",
+            "title": "Status At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "recipient",
+          "detail",
+          "status_at"
+        ],
+        "title": "EmailDeliveryOut",
+        "type": "object"
+      },
+      "EmailDeliveryStatus": {
+        "description": "The latest provider report for one outbound email.",
+        "enum": [
+          "sent",
+          "delivered",
+          "delayed",
+          "bounced",
+          "complained",
+          "failed",
+          "suppressed"
+        ],
+        "title": "EmailDeliveryStatus",
+        "type": "string"
       },
       "ErrorCode": {
         "enum": [
@@ -3855,6 +3994,17 @@
           "body": {
             "title": "Body",
             "type": "string"
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmailDeliveryOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Outbound email only: the provider's latest report"
           },
           "delivery_status": {
             "$ref": "#/components/schemas/DeliveryStatus"
@@ -5661,6 +5811,111 @@
           "lead"
         ],
         "title": "SubjectType",
+        "type": "string"
+      },
+      "SuppressionCreate": {
+        "additionalProperties": false,
+        "description": "Stop emailing an address, e.g. the customer asked not to be contacted by email.",
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "title": "SuppressionCreate",
+        "type": "object"
+      },
+      "SuppressionList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SuppressionOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "SuppressionList",
+        "type": "object"
+      },
+      "SuppressionOut": {
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/SuppressionReason"
+          }
+        },
+        "required": [
+          "id",
+          "address",
+          "reason",
+          "note",
+          "created_by",
+          "created_at"
+        ],
+        "title": "SuppressionOut",
+        "type": "object"
+      },
+      "SuppressionReason": {
+        "enum": [
+          "bounced",
+          "complained",
+          "manual"
+        ],
+        "title": "SuppressionReason",
         "type": "string"
       },
       "ToolCallOut": {
@@ -13373,6 +13628,290 @@
         ]
       }
     },
+    "/v1/w/{slug}/inbox/suppressions": {
+      "get": {
+        "description": "Addresses this workspace does not email (bounces, complaints, customer requests).",
+        "operationId": "list_suppressions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppressionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Suppressions",
+        "tags": [
+          "inbox"
+        ]
+      },
+      "post": {
+        "operationId": "add_suppression",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuppressionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppressionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed in the current state, or duplicate"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Suppression",
+        "tags": [
+          "inbox"
+        ]
+      }
+    },
+    "/v1/w/{slug}/inbox/suppressions/{suppression_id}/release": {
+      "post": {
+        "description": "Email the address again (for example after the customer fixed their mailbox).",
+        "operationId": "release_suppression",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suppression_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Suppression Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Release Suppression",
+        "tags": [
+          "inbox"
+        ]
+      }
+    },
     "/v1/w/{slug}/invitations": {
       "post": {
         "operationId": "create_invitation",
@@ -14515,7 +15054,7 @@
                 }
               }
             },
-            "description": "Not approved, expired, conversation closed or channel not connected"
+            "description": "Not approved, expired, conversation closed, channel not connected, no email address, or the address is suppressed"
           },
           "422": {
             "content": {
@@ -14535,7 +15074,7 @@
                 }
               }
             },
-            "description": "Authentication or database unavailable"
+            "description": "The email provider did not accept it; nothing was sent"
           }
         },
         "security": [

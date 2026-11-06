@@ -184,8 +184,10 @@ async def send_reply(
 ) -> SentReply:
     """Send an approved reply through the conversation's channel, as the signed-in user.
 
-    The key makes it send once: a repeat returns the stored message. A closed conversation or
-    an unconnected channel is refused (409). The conversation then waits on the customer.
+    The key makes it send once: a repeat returns the stored message, and the email provider
+    gets the same key, so a retry after a lost response is not sent twice either. A closed
+    conversation, an unconnected channel, a missing or suppressed email address is refused
+    (409); a provider failure sends nothing (503). The conversation then waits on the customer.
     """
     message, duplicate = await InboxService(db, workspace).post_message(
         conversation_id,
@@ -195,5 +197,6 @@ async def send_reply(
             idempotency_key=idempotency_key,
             set_status=ConversationStatus.WAITING_ON_CUSTOMER,
         ),
+        send_email=True,
     )
     return SentReply(message_id=message.id, duplicate=duplicate)

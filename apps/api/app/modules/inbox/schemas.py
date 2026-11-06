@@ -15,9 +15,11 @@ from app.modules.inbox.models import (
     ChannelKind,
     ConversationStatus,
     DeliveryStatus,
+    EmailDeliveryStatus,
     EventKind,
     Handler,
     MessageDirection,
+    SuppressionReason,
 )
 
 ChannelName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -61,14 +63,26 @@ class LeadRef(BaseModel):
 # --- channels --------------------------------------------------------------------------------
 
 
+FromName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+Signature = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
+
+
 class ChannelCreate(_Input):
     kind: ChannelKind
     name: ChannelName
+    from_name: FromName | None = Field(
+        default=None, description="Email only: sender name customers see (default: workspace)"
+    )
+    signature: Signature | None = Field(
+        default=None, description="Email only: text added below every reply"
+    )
 
 
 class ChannelUpdate(_Input):
     name: ChannelName | None = None
     disabled: bool | None = None
+    from_name: FromName | None = None
+    signature: Signature | None = None
 
 
 class ChannelOut(BaseModel):
@@ -76,6 +90,11 @@ class ChannelOut(BaseModel):
     kind: ChannelKind
     name: str
     connected: bool = Field(description="Whether Onyx can receive and record messages on it")
+    inbound_address: str | None = Field(
+        default=None, description="Email only, once connected: the address customers write to"
+    )
+    from_name: str | None = None
+    signature: str | None = None
     disabled_at: datetime | None
     created_at: datetime
 
@@ -201,7 +220,7 @@ class AssigneeList(BaseModel):
 
 
 class MessageKind(enum.StrEnum):
-    REPLY = "reply"  # staff → customer, recorded (not sent) on a manual channel
+    REPLY = "reply"  # staff → customer, recorded (not sent); email replies need approval
     CUSTOMER = "customer"  # customer → staff, recorded by staff
     NOTE = "note"  # internal
 
@@ -216,6 +235,13 @@ class MessageCreate(_Input):
     idempotency_key: IdempotencyKey | None = None
 
 
+class EmailDeliveryOut(BaseModel):
+    status: EmailDeliveryStatus
+    recipient: str
+    detail: str | None = Field(description="Bounce type or failure reason code, no content")
+    status_at: datetime
+
+
 class MessageOut(BaseModel):
     id: uuid.UUID
     direction: MessageDirection
@@ -224,6 +250,9 @@ class MessageOut(BaseModel):
     participant: ParticipantOut | None
     body: str
     delivery_status: DeliveryStatus
+    delivery: EmailDeliveryOut | None = Field(
+        default=None, description="Outbound email only: the provider's latest report"
+    )
     occurred_at: datetime
     recorded_at: datetime
 
@@ -250,3 +279,31 @@ class EventOut(BaseModel):
 class EventPage(BaseModel):
     items: list[EventOut]
     next_cursor: str | None
+
+
+# --- suppressions ----------------------------------------------------------------------------
+
+
+class SuppressionCreate(_Input):
+    """Stop emailing an address, e.g. the customer asked not to be contacted by email."""
+
+    address: str
+    note: Reason | None = None
+
+    @field_validator("address", mode="before")
+    @classmethod
+    def _address(cls, value: Any) -> Any:
+        return normalise_email(value) if isinstance(value, str) else value
+
+
+class SuppressionOut(BaseModel):
+    id: uuid.UUID
+    address: str
+    reason: SuppressionReason
+    note: str | None
+    created_by: UserRef | None
+    created_at: datetime
+
+
+class SuppressionList(BaseModel):
+    items: list[SuppressionOut]

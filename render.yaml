@@ -32,3 +32,12 @@ services:
         sync: false
       - key: ONYX_API_AI_MODEL_PRICES
         sync: false
+      # Email connector (Resend). Unset = email channels not connected (fail closed).
+      - key: ONYX_API_RESEND_API_KEY
+        sync: false
+      - key: ONYX_API_RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: ONYX_API_EMAIL_INBOUND_DOMAIN
+        sync: false
+      - key: ONYX_API_EMAIL_FROM_DOMAIN
+        sync: false

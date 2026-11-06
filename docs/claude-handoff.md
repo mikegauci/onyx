@@ -30,14 +30,23 @@ files do not select models.
   expiry, send once through the inbox adapter with an outbox event, and assistant drafts
   waiting for approval. Migration `0015`. See `docs/platform/outbound.md`.
 
-- PR-016 part 2, the screens, is on branch `feat/outbound-approval-screens` (see its GitHub
-  PR): the "Reply for approval" panel on conversations, the Outbound replies page and the
-  draft page. No migration.
+- PR-016 part 2 merged ([#24](https://github.com/mikegauci/onyx/pull/24)). PR-016 is complete.
+- PR-017 part 1, the email connector backend (Resend), is on branch `feat/email-connector`
+  (see its GitHub PR):
+  - signed webhooks, with tenant resolution from the channel's random inbound token;
+  - inbound threading;
+  - approved replies emailed once with an idempotency key;
+  - delivery status and suppressions.
+
+  Migration `0016`. See `docs/platform/email.md`. Nothing has been sent through a real Resend
+  account. The Resend account, DNS, webhook registration and `0016` on preview all need the
+  owner's approval.
 
 ## Next task
 
-After part 2 merges, PR-016 is complete. Plan PR-017 (email connector) when the owner selects
-it. PR-014 stays deferred. Wait for plan approval.
+After part 1 merges, plan PR-017 part 2: the screens. They cover the email channel settings
+(inbound address, sender name, signature), delivery status on messages, and the suppression
+list. PR-014 stays deferred. Wait for plan approval.
 
 ## Verification preference
 

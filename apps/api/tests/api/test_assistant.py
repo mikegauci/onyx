@@ -56,7 +56,9 @@ Step = Callable[[list[ModelMessage], AgentInfo], ModelResponse]
 
 def tool(name: str, **args: Any) -> Step:
     def _step(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
-        return ModelResponse(parts=[ToolCallPart(name, args)], usage=RequestUsage(200, 20))
+        return ModelResponse(
+            parts=[ToolCallPart(name, args)], usage=RequestUsage(input_tokens=200, output_tokens=20)
+        )
 
     return _step
 
@@ -67,7 +69,8 @@ def final(**output: Any) -> Step:
 
     def _step(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
         return ModelResponse(
-            parts=[ToolCallPart(info.output_tools[0].name, values)], usage=RequestUsage(300, 60)
+            parts=[ToolCallPart(info.output_tools[0].name, values)],
+            usage=RequestUsage(input_tokens=300, output_tokens=60),
         )
 
     return _step
@@ -102,9 +105,10 @@ class Script:
             if not isinstance(message, ModelRequest):
                 continue
             for part in message.parts:
-                is_prompt = isinstance(part, UserPromptPart) and isinstance(part.content, str)
-                if is_prompt and part.content not in self.prompts:
-                    self.prompts.append(str(part.content))
+                if isinstance(part, UserPromptPart):
+                    content = part.content
+                    if isinstance(content, str) and content not in self.prompts:
+                        self.prompts.append(content)
                 if isinstance(part, ToolReturnPart) and part.tool_call_id not in self._seen:
                     self._seen.add(part.tool_call_id)
                     self.tool_returns.append(_plain(part.content))

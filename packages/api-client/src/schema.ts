@@ -3708,8 +3708,18 @@ export interface components {
         ToolCallOut: {
             /** Found */
             found?: boolean | null;
+            /**
+             * Mode
+             * @description Knowledge search mode
+             */
+            mode?: string | null;
             /** Skus */
             skus?: string[];
+            /**
+             * Sources
+             * @description Knowledge chunk ids returned
+             */
+            sources?: string[];
             /** Tool */
             tool: string;
             /** Topic */

@@ -50,8 +50,9 @@ its chunks.
 `{hits, mode, abstained}`. Each hit has the chunk and document ids, the document title, the
 page (PDFs only), the passage, a score and `matched_by`.
 
-- **Keyword:** PostgreSQL full-text search (`english` configuration, `websearch_to_tsquery`,
-  GIN index), ranked by `ts_rank_cd`.
+- **Keyword:** PostgreSQL full-text search (`english` configuration, GIN index). Any word of
+  the query may match, since people ask in sentences; passages matching more words rank higher
+  (`ts_rank_cd`). Only letters and digits reach the query.
 - **Semantic:** cosine distance on the passage embeddings (pgvector HNSW index). A semantic-only
   match needs a cosine similarity of at least 0.35.
 - The two rankings are merged by reciprocal-rank fusion (k = 60).

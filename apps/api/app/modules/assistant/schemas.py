@@ -94,6 +94,8 @@ class ToolCallOut(BaseModel):
     skus: list[str] = Field(default_factory=list)
     topic: str | None = None
     found: bool | None = None
+    sources: list[str] = Field(default_factory=list, description="Knowledge chunk ids returned")
+    mode: str | None = Field(default=None, description="Knowledge search mode")
 
 
 class ReasonOut(BaseModel):

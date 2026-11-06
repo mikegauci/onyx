@@ -6,6 +6,7 @@ nothing clears it the search abstains instead of returning weak matches.
 """
 
 import logging
+import re
 import uuid
 from dataclasses import dataclass, field
 from typing import Literal
@@ -57,6 +58,43 @@ def tsvector(content: str) -> Function[str]:
     return func.to_tsvector(TEXT_SEARCH_CONFIG, content)
 
 
+_WORD = re.compile(r"[a-z0-9]+")
+MAX_TERMS = 20
+
+
+def keyword_terms(query: str) -> list[str]:
+    """Plain words from the query (letters and digits only, so they are safe in a tsquery).
+
+    Any word may match (OR): people ask in sentences, and requiring every word would miss
+    passages that answer them. PostgreSQL drops stop words, and ranking puts passages that
+    match more of the words first.
+    """
+    return list(dict.fromkeys(_WORD.findall(query.lower())))[:MAX_TERMS]
+
+
+async def _keyword(
+    db: AsyncSession, organization_id: uuid.UUID, terms: str, ranked: dict[uuid.UUID, Hit]
+) -> None:
+    tsquery = func.to_tsquery(TEXT_SEARCH_CONFIG, terms)
+    rows = await db.execute(
+        select(Chunk.id, Chunk.document_id, Document.title, Chunk.page, Chunk.content)
+        .join(
+            Document,
+            (Document.organization_id == Chunk.organization_id)
+            & (Document.id == Chunk.document_id),
+        )
+        .where(Chunk.organization_id == organization_id, Chunk.search.op("@@")(tsquery))
+        .order_by(func.ts_rank_cd(Chunk.search, tsquery).desc(), Chunk.id)
+        .limit(CANDIDATES)
+    )
+    for rank, row in enumerate(rows.all()):
+        hit = ranked.setdefault(
+            row.id, Hit(row.id, row.document_id, row.title, row.page, row.content)
+        )
+        hit.score += 1 / (RRF_K + rank + 1)
+        hit.matched_by.append("keyword")
+
+
 async def search(
     db: AsyncSession,
     organization_id: uuid.UUID,
@@ -68,24 +106,9 @@ async def search(
 ) -> SearchResult:
     ranked: dict[uuid.UUID, Hit] = {}
 
-    tsquery = func.websearch_to_tsquery(TEXT_SEARCH_CONFIG, query)
-    keyword_rows = await db.execute(
-        select(Chunk.id, Chunk.document_id, Document.title, Chunk.page, Chunk.content)
-        .join(
-            Document,
-            (Document.organization_id == Chunk.organization_id)
-            & (Document.id == Chunk.document_id),
-        )
-        .where(Chunk.organization_id == organization_id, Chunk.search.op("@@")(tsquery))
-        .order_by(func.ts_rank_cd(Chunk.search, tsquery).desc(), Chunk.id)
-        .limit(CANDIDATES)
-    )
-    for rank, row in enumerate(keyword_rows.all()):
-        hit = ranked.setdefault(
-            row.id, Hit(row.id, row.document_id, row.title, row.page, row.content)
-        )
-        hit.score += 1 / (RRF_K + rank + 1)
-        hit.matched_by.append("keyword")
+    words = keyword_terms(query)
+    if words:
+        await _keyword(db, organization_id, " | ".join(words), ranked)
 
     vector = await _query_vector(gateway, organization_id, query, actor_user_id)
     if vector is not None:

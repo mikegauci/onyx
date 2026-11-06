@@ -44,9 +44,10 @@ logger = logging.getLogger("onyx.assistant")
 WORKLOAD = "sales_assistant"
 # Model requests per attempt: a few tool round trips, the answer and one output retry.
 MAX_REQUESTS = 8
-# The most one request may add to the context from tool results (10 products, a policy, and
-# up to 4 document passages of 1,500 characters).
-TOOL_CONTEXT_TOKENS = 5000
+# The most one request may add to the context from tool results (10 products, a policy).
+TOOL_CONTEXT_TOKENS = 3000
+# Added when search_knowledge is available: up to 4 passages of 1,500 characters.
+KNOWLEDGE_CONTEXT_TOKENS = 2000
 
 
 def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
@@ -134,7 +135,8 @@ class AssistantService:
             trace=Trace(),
             gateway=gateway,
         )
-        tools = tools_for(knowledge_enabled=await knowledge.is_enabled(self.db, self.workspace))
+        knowledge_enabled = await knowledge.is_enabled(self.db, self.workspace)
+        tools = tools_for(knowledge_enabled=knowledge_enabled)
         result: AIResult[schemas.AssistantOutput] | None = None
         failure: Reason | None = None
         try:
@@ -148,7 +150,8 @@ class AssistantService:
                 tools=tools,
                 deps=deps,
                 max_requests=MAX_REQUESTS,
-                tool_context_tokens=TOOL_CONTEXT_TOKENS,
+                tool_context_tokens=TOOL_CONTEXT_TOKENS
+                + (KNOWLEDGE_CONTEXT_TOKENS if knowledge_enabled else 0),
             )
         except AIBudgetExceededError:
             failure = Reason.BUDGET_EXCEEDED

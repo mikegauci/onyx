@@ -6371,11 +6371,31 @@
             ],
             "title": "Found"
           },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Knowledge search mode",
+            "title": "Mode"
+          },
           "skus": {
             "items": {
               "type": "string"
             },
             "title": "Skus",
+            "type": "array"
+          },
+          "sources": {
+            "description": "Knowledge chunk ids returned",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
             "type": "array"
           },
           "tool": {

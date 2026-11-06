@@ -13,6 +13,7 @@ from app.modules.knowledge.extract import (
     extract,
 )
 from app.modules.knowledge.models import CHUNK_MAX_LENGTH, DocumentFormat
+from app.modules.knowledge.search import keyword_terms
 from tests.modules.knowledge.pdfs import make_pdf
 
 
@@ -95,3 +96,17 @@ def test_fake_vectors_are_normalised_and_similar_for_shared_words() -> None:
     assert sum(x * y for x, y in zip(a, b, strict=True)) > 0.99
     assert abs(sum(x * y for x, y in zip(a, c, strict=True))) < 0.5
     assert fake_vector("")[0] == 1.0
+
+
+def test_keyword_terms_are_plain_words_only() -> None:
+    assert keyword_terms("How do I clean a BRASS pendant?") == [
+        "how",
+        "do",
+        "i",
+        "clean",
+        "a",
+        "brass",
+        "pendant",
+    ]
+    assert keyword_terms("x' | ! & (y) <-> z:*") == ["x", "y", "z"]
+    assert keyword_terms("!!!") == []

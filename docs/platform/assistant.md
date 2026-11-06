@@ -1,10 +1,10 @@
-# Sales assistant (PR-015, part 1)
+# Sales assistant (PR-015)
 
 Staff ask the assistant to draft a reply and a quote for an inbox conversation. The assistant
 reads the thread, looks things up with read-only tools, and proposes a draft. **Deterministic
 backend rules decide** whether that proposal becomes a draft quote or goes to staff. Nothing is
 ever sent to a customer: the reply is an internal note and the quote stays a draft until staff
-approve it (sending is PR-016/PR-017). Part 2 adds the inbox screen and the policy settings page.
+approve it (sending is PR-016/PR-017).
 
 The `assistant` module requires `inbox`, `catalogue` and `quotations`. A platform admin enables
 it per tenant, and the tenant needs an AI budget (see [ai-gateway.md](ai-gateway.md)).
@@ -58,6 +58,19 @@ it per tenant, and the tenant needs an AI budget (see [ai-gateway.md](ai-gateway
 
 Staff start runs; nothing runs automatically on new messages yet (that needs the worker in
 PR-020). A run makes several model requests inside one API request, so it can take 10–30 s.
+
+## Screens
+
+- **Inbox conversation:** a "Sales assistant" panel in the right column, shown when the module
+  is on and the user has `assistant.run`. "Draft with assistant" starts a run (disabled while
+  it works and on closed conversations; the API refuses other cases with a message). The panel
+  lists the last 5 runs with outcome, quote link, reasons and cost. The assistant's note shows
+  in the thread as "Internal note by Assistant".
+- **Sales assistant page** (`/w/{slug}/m/assistant`): what the assistant does and the policy
+  list. Admins and owners (`assistant.manage`) add, edit and delete policies; members read them.
+
+The dashboard only displays. Reasons come from the API as `{code, message}`, so their wording
+lives in one place (`REASON_TEXT` in `rules.py`).
 
 ## API
 

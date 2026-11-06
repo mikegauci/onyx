@@ -1,5 +1,5 @@
 import { E2E } from "../playwright.config";
-import { HARBOUR, LUMEN, USERS, expect, signInAs, test } from "./fixtures";
+import { HARBOUR, LUMEN, USERS, expect, setLumenModule, signInAs, test } from "./fixtures";
 
 const ADMIN_LUMEN = "/admin/organizations/lumen-lighting-test";
 
@@ -26,6 +26,8 @@ async function restoreLumen() {
   }
 }
 
+// The sales assistant depends on Quotations; keep it off so Quotations can be disabled.
+test.beforeEach(() => setLumenModule("assistant", false));
 test.afterEach(restoreLumen);
 
 test("disabling CRM hides it and denies it for that tenant only", async ({ browser }) => {

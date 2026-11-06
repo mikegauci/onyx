@@ -91,11 +91,18 @@ class ToolCallOut(BaseModel):
     found: bool | None = None
 
 
+class ReasonOut(BaseModel):
+    """Why a run went to staff: a stable code and the text staff read."""
+
+    code: Reason
+    message: str
+
+
 class RunOut(BaseModel):
     id: uuid.UUID
     conversation_id: uuid.UUID
     outcome: RunOutcome
-    reasons: list[Reason]
+    reasons: list[ReasonOut]
     quote: QuoteRef | None
     note_message_id: uuid.UUID | None
     tool_calls: list[ToolCallOut]

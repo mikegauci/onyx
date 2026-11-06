@@ -2821,6 +2821,15 @@ export interface components {
          * @enum {string}
          */
         Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
+        /**
+         * ReasonOut
+         * @description Why a run went to staff: a stable code and the text staff read.
+         */
+        ReasonOut: {
+            code: components["schemas"]["Reason"];
+            /** Message */
+            message: string;
+        };
         /** Ref */
         Ref: {
             /**
@@ -2857,7 +2866,7 @@ export interface components {
             outcome: components["schemas"]["RunOutcome"];
             quote: components["schemas"]["QuoteRef"] | null;
             /** Reasons */
-            reasons: components["schemas"]["Reason"][];
+            reasons: components["schemas"]["ReasonOut"][];
             /** Tool Calls */
             tool_calls: components["schemas"]["ToolCallOut"][];
         };

@@ -47,6 +47,7 @@ export const CHANNEL_KIND_LABEL: Record<Channel["kind"], string> = {
 
 export function messageHeading(message: Message): string {
   if (message.direction === "note") {
+    if (message.author_kind === "assistant") return "Internal note by Assistant";
     return `Internal note by ${message.author?.display_name ?? "a former member"}`;
   }
   if (message.direction === "inbound") {

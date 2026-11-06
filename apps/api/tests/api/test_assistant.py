@@ -183,7 +183,8 @@ def _escalated(response: Any) -> list[str]:
     body = response.json()
     assert body["outcome"] == "escalated"
     assert body["quote"] is None
-    return list(body["reasons"])
+    assert all(r["message"] for r in body["reasons"])
+    return [r["code"] for r in body["reasons"]]
 
 
 # --- the happy path ------------------------------------------------------------------------

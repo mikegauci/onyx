@@ -3,6 +3,7 @@ import { cn } from "@onyx/ui/lib/utils";
 import Link from "next/link";
 
 import { withApi } from "@/lib/api-client";
+import type { AssistantRun } from "@/lib/assistant";
 import { crmPath, formatInZone } from "@/lib/crm";
 import { getMe } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
@@ -17,6 +18,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 
 import { Pager } from "../../../crm/_components/list-controls";
 import { contactOptions, param, recordId, type SearchParams } from "../../../crm/data";
+import { AssistantPanel } from "../../_components/assistant-panel";
 import {
   AssignForm,
   ComposeForm,
@@ -71,6 +73,16 @@ export default async function ConversationPage({
     staff = { assignees, me: requireOk(me, path).user.id };
     contacts = options;
   }
+  // The panel is a convenience; the API still checks the module and permission on every run.
+  const canRunAssistant =
+    workspace.modules.includes("assistant") && workspace.permissions.includes("assistant.run");
+  let runs: AssistantRun[] = [];
+  if (canRunAssistant) {
+    const result = await withApi((api) =>
+      api.GET("/v1/w/{slug}/assistant/conversations/{conversation_id}/runs", { params: ids }),
+    );
+    runs = requireOk(result, path).slice(0, 5);
+  }
   // The API returns newest first; read the conversation top to bottom.
   const timeline = [...page.items].reverse();
 
@@ -115,6 +127,9 @@ export default async function ConversationPage({
                     "rounded-md border p-3",
                     message.direction === "outbound" && "bg-secondary/40 ml-8",
                     message.direction === "note" && "border-dashed bg-transparent",
+                    message.direction === "note" &&
+                      message.author_kind === "assistant" &&
+                      "border-primary/40 bg-primary/5",
                   )}
                 >
                   <p className="text-sm font-medium">{messageHeading(message)}</p>
@@ -135,6 +150,15 @@ export default async function ConversationPage({
         </section>
 
         <aside className="flex flex-col gap-6" aria-label="Conversation details">
+          {canRunAssistant ? (
+            <AssistantPanel
+              slug={slug}
+              conversationId={record.id}
+              status={record.status}
+              runs={runs}
+              timezone={zone}
+            />
+          ) : null}
           {staff ? (
             <>
               <StatusForm slug={slug} conversation={record} />

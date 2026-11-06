@@ -190,7 +190,7 @@ def test_an_uploaded_document_is_indexed_metered_and_searchable(
     with owner_engine.connect() as conn:
         details = conn.execute(
             text(
-                "SELECT details::text FROM audit_entries WHERE organization_id = :o "
+                "SELECT metadata::text FROM audit_entries WHERE organization_id = :o "
                 "AND action = 'knowledge.document.added'"
             ),
             {"o": LUMEN_ID},

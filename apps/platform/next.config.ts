@@ -15,8 +15,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@onyx/ui", "@onyx/api-client"],
   experimental: {
-    // A 1 MB CSV plus its preview and row errors must fit in the confirmation action.
-    serverActions: { bodySizeLimit: "2mb" },
+    // A 4 MB knowledge document (the screens' limit, under Vercel's 4.5 MB request cap), and a
+    // 1 MB CSV plus its preview and row errors in the catalogue import confirmation.
+    serverActions: { bodySizeLimit: "5mb" },
   },
   // Root AGENTS.md owns project instructions; skip framework-generated agent rules.
   agentRules: false,

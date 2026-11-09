@@ -1,4 +1,4 @@
-# Claude Code handoff — 6 November 2026 (updated)
+# Claude Code handoff — 9 November 2026
 
 ## Start here
 
@@ -49,9 +49,9 @@ files do not select models.
 - PR-017 part 2, the email screens: the channel's inbound address, sender name and signature;
   delivery status on emailed replies; "Approve and send"; no "Log a reply" on email
   conversations; and a Blocked addresses page. E2E runs against an in-memory fake provider
-  (`ONYX_API_EMAIL_PROVIDER=fake`, refused when deployed). PR-017 is complete once it merges.
+  (`ONYX_API_EMAIL_PROVIDER=fake`, refused when deployed). Merged ([#29](https://github.com/mikegauci/onyx/pull/29)); PR-017 is complete.
 
-- PR-014 part 1, the knowledge backend: the `knowledge` module, document upload (PDF, text,
+- PR-014 part 1 merged ([#30](https://github.com/mikegauci/onyx/pull/30)), the knowledge backend: the `knowledge` module, document upload (PDF, text,
   Markdown; text only kept), chunking with page citations, metered embeddings through
   `AIGateway.embed()`, hybrid keyword + pgvector search with abstention, and the assistant's
   `search_knowledge` tool with a citation check. Migration `0017`. See
@@ -60,8 +60,12 @@ files do not select models.
 
 ## Next task
 
-After part 1 merges, plan PR-014 part 2: the Knowledge page (upload, list, replace, delete, a
-search box with page citations) and cited sources on assistant runs. Wait for plan approval.
+PR-014 part 2, the Knowledge screens: documents list and upload, document detail with replace
+and delete, search with page citations, and cited sources on assistant runs (migration `0018`).
+PR-014 is complete once it merges. After it merges, apply `0018` to `onyx-preview`.
+
+Then ask the owner which numbered PR to take next (PR-018, the controlled pilot, is the
+remaining pilot gate). Wait for plan approval.
 
 ## Verification preference
 

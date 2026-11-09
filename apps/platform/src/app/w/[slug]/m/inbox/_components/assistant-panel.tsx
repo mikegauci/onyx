@@ -14,6 +14,7 @@ import {
 } from "@/lib/assistant";
 import { formatInZone } from "@/lib/crm";
 import type { ConversationStatus } from "@/lib/inbox";
+import { knowledgePath, pageLabel } from "@/lib/knowledge";
 import { quotationsPath } from "@/lib/quotations";
 
 import { FormStatus } from "../../../settings/form-status";
@@ -39,6 +40,28 @@ export function RunSummary({ slug, run }: { slug: string; run: AssistantRun }) {
             <li key={reason.code}>{reason.message}</li>
           ))}
         </ul>
+      ) : null}
+      {run.sources.length > 0 ? (
+        <div>
+          <p className="text-muted-foreground text-xs">Sources</p>
+          <ul className="list-disc pl-5" aria-label="Sources">
+            {run.sources.map((source) => (
+              <li key={source.chunk_id}>
+                {source.document_id && source.document_title ? (
+                  <Link
+                    className="underline"
+                    href={knowledgePath(slug, "documents", source.document_id)}
+                  >
+                    {source.document_title}
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground">A removed document</span>
+                )}
+                {pageLabel(source.page) ? `, ${pageLabel(source.page)?.toLowerCase()}` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </div>
   );

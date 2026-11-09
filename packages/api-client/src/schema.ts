@@ -1793,6 +1793,23 @@ export interface components {
             /** Page */
             page: number | null;
         };
+        /**
+         * CitedSourceOut
+         * @description A knowledge passage the reply relied on. Document fields are null once it is gone.
+         */
+        CitedSourceOut: {
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Document Id */
+            document_id: string | null;
+            /** Document Title */
+            document_title: string | null;
+            /** Page */
+            page: number | null;
+        };
         /** ContactCreate */
         ContactCreate: {
             /** Customer Id */
@@ -3226,7 +3243,7 @@ export interface components {
              * Format: date-time
              */
             recorded_at: string;
-            source: components["schemas"]["app__modules__catalogue__schemas__SourceOut"];
+            source: components["schemas"]["SourceOut"];
             /**
              * Valid From
              * Format: date-time
@@ -3250,7 +3267,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            last_import: components["schemas"]["app__modules__catalogue__schemas__SourceOut"] | null;
+            last_import: components["schemas"]["SourceOut"] | null;
             /** Name */
             name: string;
             /**
@@ -3538,7 +3555,7 @@ export interface components {
              * Sources
              * @description Knowledge passages the reply relied on
              */
-            sources: components["schemas"]["app__modules__assistant__schemas__SourceOut"][];
+            sources: components["schemas"]["CitedSourceOut"][];
             /** Tool Calls */
             tool_calls: components["schemas"]["ToolCallOut"][];
         };
@@ -3629,6 +3646,18 @@ export interface components {
             /** Validity Days */
             validity_days?: number | null;
         };
+        /**
+         * SourceOut
+         * @description Where a value came from. ``import_run_id`` is null for values entered another way.
+         */
+        SourceOut: {
+            /** Filename */
+            filename: string | null;
+            /** Import Run Id */
+            import_run_id: string | null;
+            /** Source Exported At */
+            source_exported_at: string | null;
+        };
         /** StatusChange */
         StatusChange: {
             status: components["schemas"]["ConversationStatus"];
@@ -3651,7 +3680,7 @@ export interface components {
              * @description When Onyx stored it
              */
             recorded_at: string;
-            source: components["schemas"]["app__modules__catalogue__schemas__SourceOut"];
+            source: components["schemas"]["SourceOut"];
         };
         /**
          * SubjectType
@@ -3951,23 +3980,6 @@ export interface components {
              */
             timezone?: string | null;
         };
-        /**
-         * SourceOut
-         * @description A knowledge passage the reply relied on. Document fields are null once it is gone.
-         */
-        app__modules__assistant__schemas__SourceOut: {
-            /**
-             * Chunk Id
-             * Format: uuid
-             */
-            chunk_id: string;
-            /** Document Id */
-            document_id: string | null;
-            /** Document Title */
-            document_title: string | null;
-            /** Page */
-            page: number | null;
-        };
         /** ArchiveRequest */
         app__modules__catalogue__schemas__ArchiveRequest: {
             /**
@@ -3975,18 +3987,6 @@ export interface components {
              * @default true
              */
             archived: boolean;
-        };
-        /**
-         * SourceOut
-         * @description Where a value came from. ``import_run_id`` is null for values entered another way.
-         */
-        app__modules__catalogue__schemas__SourceOut: {
-            /** Filename */
-            filename: string | null;
-            /** Import Run Id */
-            import_run_id: string | null;
-            /** Source Exported At */
-            source_exported_at: string | null;
         };
         /** ArchiveRequest */
         app__modules__crm__schemas__ArchiveRequest: {

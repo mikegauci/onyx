@@ -60,12 +60,12 @@ def _source_ids(run: Run) -> list[uuid.UUID]:
     return ids
 
 
-def _source_out(chunk_id: uuid.UUID, ref: knowledge.SourceRef | None) -> schemas.SourceOut:
+def _source_out(chunk_id: uuid.UUID, ref: knowledge.SourceRef | None) -> schemas.CitedSourceOut:
     if ref is None:
-        return schemas.SourceOut(
+        return schemas.CitedSourceOut(
             chunk_id=chunk_id, document_id=None, document_title=None, page=None
         )
-    return schemas.SourceOut(
+    return schemas.CitedSourceOut(
         chunk_id=chunk_id,
         document_id=ref.document_id,
         document_title=ref.document_title,

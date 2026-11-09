@@ -4994,7 +4994,7 @@
             "type": "string"
           },
           "source": {
-            "$ref": "#/components/schemas/SourceOut"
+            "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
           },
           "valid_from": {
             "format": "date-time",
@@ -5075,7 +5075,7 @@
           "last_import": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/SourceOut"
+                "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
               },
               {
                 "type": "null"
@@ -5889,6 +5889,14 @@
             "title": "Reasons",
             "type": "array"
           },
+          "sources": {
+            "description": "Knowledge passages the reply relied on",
+            "items": {
+              "$ref": "#/components/schemas/app__modules__assistant__schemas__SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
           "tool_calls": {
             "items": {
               "$ref": "#/components/schemas/ToolCallOut"
@@ -5905,6 +5913,7 @@
           "quote",
           "note_message_id",
           "tool_calls",
+          "sources",
           "model",
           "cost_usd_micros",
           "created_at"
@@ -6148,53 +6157,6 @@
         "title": "SettingsUpdate",
         "type": "object"
       },
-      "SourceOut": {
-        "description": "Where a value came from. ``import_run_id`` is null for values entered another way.",
-        "properties": {
-          "filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Filename"
-          },
-          "import_run_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Import Run Id"
-          },
-          "source_exported_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Exported At"
-          }
-        },
-        "required": [
-          "import_run_id",
-          "filename",
-          "source_exported_at"
-        ],
-        "title": "SourceOut",
-        "type": "object"
-      },
       "StatusChange": {
         "additionalProperties": false,
         "properties": {
@@ -6231,7 +6193,7 @@
             "type": "string"
           },
           "source": {
-            "$ref": "#/components/schemas/SourceOut"
+            "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
           }
         },
         "required": [
@@ -7019,6 +6981,58 @@
         "title": "WorkspaceUpdate",
         "type": "object"
       },
+      "app__modules__assistant__schemas__SourceOut": {
+        "description": "A knowledge passage the reply relied on. Document fields are null once it is gone.",
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "document_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Title"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "document_id",
+          "document_title",
+          "page"
+        ],
+        "title": "SourceOut",
+        "type": "object"
+      },
       "app__modules__catalogue__schemas__ArchiveRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7029,6 +7043,53 @@
           }
         },
         "title": "ArchiveRequest",
+        "type": "object"
+      },
+      "app__modules__catalogue__schemas__SourceOut": {
+        "description": "Where a value came from. ``import_run_id`` is null for values entered another way.",
+        "properties": {
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "import_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Import Run Id"
+          },
+          "source_exported_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Exported At"
+          }
+        },
+        "required": [
+          "import_run_id",
+          "filename",
+          "source_exported_at"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "app__modules__crm__schemas__ArchiveRequest": {

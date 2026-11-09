@@ -92,6 +92,7 @@ class Run(Base):
         CheckConstraint("outcome <> 'drafted' OR quote_id IS NOT NULL", name="drafted_has_quote"),
         CheckConstraint("jsonb_typeof(reasons) = 'array'", name="reasons_array"),
         CheckConstraint("jsonb_typeof(tool_calls) = 'array'", name="tool_calls_array"),
+        CheckConstraint("jsonb_typeof(sources_used) = 'array'", name="sources_used_array"),
         Index("ix_assistant_runs_conversation", "organization_id", "conversation_id", "created_at"),
     )
 
@@ -107,6 +108,10 @@ class Run(Base):
     )
     # [{"tool": "search_products", "skus": [...]}, ...]: identifiers only.
     tool_calls: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    # Knowledge chunk ids the reply relied on, each returned by a search in this run.
+    sources_used: Mapped[list[str]] = mapped_column(
         JSONB, nullable=False, server_default=text("'[]'::jsonb")
     )
     usage_event_id: Mapped[uuid.UUID | None] = mapped_column(

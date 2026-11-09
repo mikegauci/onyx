@@ -98,6 +98,15 @@ class ToolCallOut(BaseModel):
     mode: str | None = Field(default=None, description="Knowledge search mode")
 
 
+class SourceOut(BaseModel):
+    """A knowledge passage the reply relied on. Document fields are null once it is gone."""
+
+    chunk_id: uuid.UUID
+    document_id: uuid.UUID | None
+    document_title: str | None
+    page: int | None
+
+
 class ReasonOut(BaseModel):
     """Why a run went to staff: a stable code and the text staff read."""
 
@@ -113,6 +122,7 @@ class RunOut(BaseModel):
     quote: QuoteRef | None
     note_message_id: uuid.UUID | None
     tool_calls: list[ToolCallOut]
+    sources: list[SourceOut] = Field(description="Knowledge passages the reply relied on")
     model: str | None
     cost_usd_micros: int
     created_at: datetime

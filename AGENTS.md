@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 are merged; PR-017 is merged; PR-014 part 1 (knowledge backend) is in progress.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 are merged; PR-017 and PR-014 part 1 are merged; PR-014 part 2 (knowledge screens) is in progress.
 
 ## Read these files first
 

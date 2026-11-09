@@ -50,7 +50,34 @@ TOOL_CONTEXT_TOKENS = 3000
 KNOWLEDGE_CONTEXT_TOKENS = 2000
 
 
-def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
+def _source_ids(run: Run) -> list[uuid.UUID]:
+    ids: list[uuid.UUID] = []
+    for raw in run.sources_used:
+        try:
+            ids.append(uuid.UUID(raw))
+        except ValueError:
+            continue
+    return ids
+
+
+def _source_out(chunk_id: uuid.UUID, ref: knowledge.SourceRef | None) -> schemas.CitedSourceOut:
+    if ref is None:
+        return schemas.CitedSourceOut(
+            chunk_id=chunk_id, document_id=None, document_title=None, page=None
+        )
+    return schemas.CitedSourceOut(
+        chunk_id=chunk_id,
+        document_id=ref.document_id,
+        document_title=ref.document_title,
+        page=ref.page,
+    )
+
+
+def _run_out(
+    run: Run,
+    quote_numbers: dict[uuid.UUID, str],
+    sources: dict[uuid.UUID, knowledge.SourceRef],
+) -> schemas.RunOut:
     quote = (
         schemas.QuoteRef(id=run.quote_id, number=quote_numbers.get(run.quote_id, ""))
         if run.quote_id is not None
@@ -64,6 +91,7 @@ def _run_out(run: Run, quote_numbers: dict[uuid.UUID, str]) -> schemas.RunOut:
         quote=quote,
         note_message_id=run.note_message_id,
         tool_calls=[schemas.ToolCallOut.model_validate(c) for c in run.tool_calls],
+        sources=[_source_out(i, sources.get(i)) for i in _source_ids(run)],
         model=run.model,
         cost_usd_micros=run.cost_usd_micros,
         created_at=run.created_at,
@@ -180,6 +208,10 @@ class AssistantService:
             output = result.output
             model_reason = output.escalation_reason
             proposal = self._proposal(output)
+            # Only citations a search in this run returned; an invented one escalates below.
+            run.sources_used = list(
+                dict.fromkeys(s for s in proposal.sources_used if s in deps.trace.found_sources)
+            )
             reasons = check(
                 proposal,
                 deps.trace,
@@ -237,7 +269,8 @@ class AssistantService:
             "assistant run",
             extra={"fields": {"run_id": str(run.id), "outcome": run.outcome.value}},
         )
-        return _run_out(run, {quote.id: quote.number} if quote else {})
+        sources = await knowledge.describe_sources(self.db, self.tenant, _source_ids(run))
+        return _run_out(run, {quote.id: quote.number} if quote else {}, sources)
 
     def _proposal(self, output: schemas.AssistantOutput) -> Proposal:
         lines: list[tuple[str, int]] = []
@@ -305,7 +338,10 @@ class AssistantService:
         numbers = await quotations.quote_numbers(
             self.db, self.tenant, [r.quote_id for r in runs if r.quote_id is not None]
         )
-        return [_run_out(r, numbers) for r in runs]
+        sources = await knowledge.describe_sources(
+            self.db, self.tenant, [i for r in runs for i in _source_ids(r)]
+        )
+        return [_run_out(r, numbers, sources) for r in runs]
 
     # --- policies --------------------------------------------------------------------------
 

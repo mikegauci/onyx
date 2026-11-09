@@ -1,7 +1,8 @@
 # Knowledge (PR-014)
 
 Tenant documents (care and installation guides, terms, policies) that staff and the sales
-assistant can search. Part 1 is the backend; the screens follow in part 2.
+assistant can search. Part 1 is the backend; part 2 adds the screens and the sources cited on
+assistant runs.
 
 ## Module and permissions
 
@@ -92,6 +93,34 @@ to 4 passages of at most 1,500 characters, each with a `source_id`.
   will confirm.
 - **Run records** list the returned chunk ids and the search mode, never passage text.
 
+## Screens (`/w/{slug}/m/knowledge`)
+
+- **Documents:** title, file, format, size, pages, passages, version, and who updated it and
+  when. Admins and owners also get an upload form (title and file).
+- **Document:** its details and passage previews with their page. Admins and owners can
+  replace the file (optionally with a new title) or delete it after a confirmation.
+- **Search:** the same search the assistant uses. Results show the document, page, passage and
+  how it matched. An abstention says so plainly, and keyword-only results carry a notice.
+- **File limits on screen:** PDF, `.txt` or `.md`, up to **4 MB**. The API takes 5 MB, but
+  Vercel refuses request bodies over 4.5 MB before the server action runs. The browser checks
+  the type and size first; the API checks everything again.
+- Upload and replace wait up to 90 seconds, since indexing embeds every passage in the
+  request. Duplicates link to the existing document. A `503` says AI is unavailable, and a
+  `429` says the budget is used up.
+- Search runs as a server action, so questions never appear in URLs or request logs.
+- Members see everything read-only. The API enforces every permission regardless.
+
+## Sources on assistant runs (migration `0018`)
+
+- `assistant_runs.sources_used` keeps the chunk ids the reply cited, but only ids a search in
+  that run returned (deduplicated). An invented id is never stored; it still escalates the run
+  (`unknown_source`).
+- Run responses (`POST` and `GET .../runs`) carry `sources`: each chunk id with its document id,
+  current title and page. These are resolved per request for the bound tenant only. A deleted
+  document, a disabled module or another tenant's chunk resolves to nulls, which the inbox
+  assistant panel shows as "A removed document".
+- The inbox assistant panel lists each run's sources, linking to the document.
+
 ## Data (migration `0017`)
 
 - **`knowledge_documents`:** title, file name, format, size, SHA-256 (unique per tenant),
@@ -105,8 +134,9 @@ to 4 passages of at most 1,500 characters, each with a `source_id`.
 
 ## Rollback
 
-Revert the PR. Migration `0017` downgrades by dropping both tables and the module; the `vector`
-extension (since `0001`) stays. Deployed databases use a forward fix or a backup restore.
+Revert the PR. Migration `0018` drops `assistant_runs.sources_used`. Migration `0017`
+downgrades by dropping both tables and the module; the `vector` extension (since `0001`)
+stays. Deployed databases use a forward fix or a backup restore.
 
 ## Tests
 
@@ -120,4 +150,11 @@ extension (since `0001`) stays. Deployed databases use a forward fix or a backup
   - bad uploads refused before any embedding;
   - member and owner roles, the module gate, and two-tenant isolation through the API and RLS;
   - the assistant citing found passages, an invented citation escalated, and no document tool
-    without the module.
+    without the module;
+  - cited sources kept on the run, deduplicated, surviving the document's deletion as nulls,
+    and another tenant's chunk never described.
+- `apps/platform/src/lib/knowledge.test.ts`: file checks, display helpers, duplicate and
+  outage messages.
+- `apps/platform/e2e/knowledge.spec.ts`: upload, passages, search with a citation and an
+  abstention, the member's read-only view, another tenant's not-found page, replace and delete,
+  and a refused file.

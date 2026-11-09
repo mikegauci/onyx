@@ -1793,6 +1793,23 @@ export interface components {
             /** Page */
             page: number | null;
         };
+        /**
+         * CitedSourceOut
+         * @description A knowledge passage the reply relied on. Document fields are null once it is gone.
+         */
+        CitedSourceOut: {
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Document Id */
+            document_id: string | null;
+            /** Document Title */
+            document_title: string | null;
+            /** Page */
+            page: number | null;
+        };
         /** ContactCreate */
         ContactCreate: {
             /** Customer Id */
@@ -3534,6 +3551,11 @@ export interface components {
             quote: components["schemas"]["QuoteRef"] | null;
             /** Reasons */
             reasons: components["schemas"]["ReasonOut"][];
+            /**
+             * Sources
+             * @description Knowledge passages the reply relied on
+             */
+            sources: components["schemas"]["CitedSourceOut"][];
             /** Tool Calls */
             tool_calls: components["schemas"]["ToolCallOut"][];
         };

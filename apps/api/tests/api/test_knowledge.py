@@ -444,6 +444,85 @@ def test_the_assistant_cites_passages_it_found(api: TestClient, as_: As, script:
     passage = script.tool_returns[1]["passages"][0]
     assert passage["document"] == "Care guide"
     assert "<" not in passage["text"]
+    [source] = body["sources"]
+    assert source["chunk_id"] == found[0]
+    assert source["document_title"] == passage["document"]
+
+
+def _runs(api: TestClient, as_: As, *, slug: str = LUMEN, email: str = OLIVIA) -> Any:
+    response = api.get(
+        f"/v1/w/{slug}/assistant/conversations/{CHANDELIER}/runs", headers=as_.seeded(email)
+    )
+    return response
+
+
+@pytest.mark.usefixtures("enabled")
+def test_cited_sources_are_kept_on_the_run_and_outlive_their_document(
+    api: TestClient, as_: As, script: Script
+) -> None:
+    _assistant(api, as_)
+    document = _upload(api, as_, CARE.encode()).json()
+
+    def cite(messages: Any, info: Any) -> Any:
+        ids = [p["source_id"] for p in script.tool_returns[-1]["passages"]]
+        # The same passage twice and an invented one: kept once, the invented one dropped.
+        return final(
+            reply_draft=GOOD_REPLY,
+            lines=[{"sku": "ARC-P-30-BRS", "quantity": 1}],
+            sources_used=[ids[0], ids[0].upper(), str(uuid.uuid4())],
+        )(messages, info)
+
+    script.steps = [
+        tool("search_products", query="arc pendant brass"),
+        tool("search_knowledge", query="brass pendant care"),
+        cite,
+    ]
+    body = _run(api, as_)
+    assert body["outcome"] == "escalated"
+    assert "unknown_source" in [r["code"] for r in body["reasons"]]
+    [source] = body["sources"]
+    assert source["document_id"] == document["id"]
+    assert source["document_title"] == "Care guide"
+
+    [listed] = _runs(api, as_).json()
+    assert listed["sources"] == body["sources"]
+
+    deleted = api.delete(
+        f"/v1/w/{LUMEN}/knowledge/documents/{document['id']}", headers=as_.seeded(OLIVIA)
+    )
+    assert deleted.status_code == 204
+    [gone] = _runs(api, as_).json()[0]["sources"]
+    assert gone == {
+        "chunk_id": source["chunk_id"],
+        "document_id": None,
+        "document_title": None,
+        "page": None,
+    }
+
+
+@pytest.mark.usefixtures("enabled")
+def test_a_run_never_describes_another_tenants_passage(
+    api: TestClient, as_: As, script: Script, owner_engine: Engine
+) -> None:
+    _assistant(api, as_)
+    assert _upload(api, as_, CARE.encode(), slug=HARBOUR, email=HUGO).status_code == 201
+    with owner_engine.begin() as conn:
+        foreign = conn.execute(
+            text("SELECT id FROM knowledge_chunks WHERE organization_id = :o LIMIT 1"),
+            {"o": HARBOUR_ID},
+        ).scalar_one()
+    script.steps = [final(action="escalate", escalation_reason="test")]
+    run = _run(api, as_)
+    # Stored ids are only ever ones this run's search returned; force a foreign one anyway.
+    with owner_engine.begin() as conn:
+        conn.execute(
+            text("UPDATE assistant_runs SET sources_used = CAST(:s AS jsonb) WHERE id = :id"),
+            {"s": f'["{foreign}"]', "id": run["id"]},
+        )
+    [source] = _runs(api, as_).json()[0]["sources"]
+    assert source["chunk_id"] == str(foreign)
+    assert source["document_id"] is None
+    assert source["document_title"] is None
 
 
 @pytest.mark.usefixtures("enabled")
@@ -465,6 +544,7 @@ def test_a_citation_the_search_did_not_return_goes_to_staff(
     assert body["outcome"] == "escalated"
     assert "unknown_source" in [r["code"] for r in body["reasons"]]
     assert script.tool_returns[1] == {"found": False, "passages": []}
+    assert body["sources"] == []
 
 
 def test_without_the_knowledge_module_the_assistant_has_no_document_tool(

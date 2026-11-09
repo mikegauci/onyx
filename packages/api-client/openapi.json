@@ -1131,6 +1131,58 @@
         "title": "ChunkPreview",
         "type": "object"
       },
+      "CitedSourceOut": {
+        "description": "A knowledge passage the reply relied on. Document fields are null once it is gone.",
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "document_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Title"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "document_id",
+          "document_title",
+          "page"
+        ],
+        "title": "CitedSourceOut",
+        "type": "object"
+      },
       "ContactCreate": {
         "additionalProperties": false,
         "properties": {
@@ -5889,6 +5941,14 @@
             "title": "Reasons",
             "type": "array"
           },
+          "sources": {
+            "description": "Knowledge passages the reply relied on",
+            "items": {
+              "$ref": "#/components/schemas/CitedSourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
           "tool_calls": {
             "items": {
               "$ref": "#/components/schemas/ToolCallOut"
@@ -5905,6 +5965,7 @@
           "quote",
           "note_message_id",
           "tool_calls",
+          "sources",
           "model",
           "cost_usd_micros",
           "created_at"

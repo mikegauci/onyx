@@ -13,7 +13,7 @@
 
 ## Current continuation
 
-Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-013, PR-015 and PR-016 are merged; PR-017 and PR-014 part 1 are merged; PR-014 part 2 (knowledge screens) is in progress.
+Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery status and the next planning task. PR-001–PR-017, PR-019–PR-021, PR-025, PR-026 and PR-027 part 1 are merged. The first client is now Ventur Auto Import, a car dealer; its approved work is listed in [docs/roadmap-additions.md](docs/roadmap-additions.md) (VA items) and takes priority over the retail order PRs.
 
 ## Read these files first
 
@@ -27,9 +27,9 @@ Read [docs/claude-handoff.md](docs/claude-handoff.md) for verified delivery stat
 ## Mission and boundaries
 
 - Build **one multi-tenant, modular SaaS platform** for business operations and AI automation.
-- First customer: a Malta-based lighting retailer; later verticals include catering, hospitality, construction and services.
+- First customer: Ventur Auto Import (ventur.com.mt), a Malta car dealership (changed from a lighting retailer on 2026-11-19). Later verticals include catering, hospitality, construction and services. Car-specific behaviour lives in a bounded extension, not in the shared core.
 - Reuse the same codebase for all tenants: shared core, enableable business modules, and bounded tenant/industry extensions.
-- First customer flow: enquiry → lead → verified product lookup → **draft** quote → human approval → outbound communication → accepted quote → order → stock reservation → fulfilment → notification.
+- First customer flow: enquiry (WhatsApp, web chat, email, missed call) → lead → verified vehicle lookup → reply (sent automatically only when the tenant's auto-send policy allows it, otherwise held for staff approval) → reservation and deposit → documents and finance → sale → collection → after-sale reminders.
 - Do not build a complete ERP, open-ended workflow designer, mobile apps, model training or Kubernetes unless separately authorised.
 
 ## Engineering workflow — non-negotiable
@@ -102,7 +102,7 @@ The API (FastAPI) is deployed separately (api.onyx.mt). See `docs/adr/0001-found
 
 - **Do not force the engineering model into production:** customer-facing runtime models are selected independently of the coding assistant for quality/cost/latency/privacy.
 - No direct SQL execution or privileged arbitrary tool calls by an LLM. Tools are narrow, validated, auditable and tenant-/role-scoped.
-- AI can draft and recommend; deterministic backend services own totals, price validity, stock, approvals and order state. No autonomous refunds, purchasing, stock changes or customer-facing quote sends without the policy/approval gate.
+- AI can draft and recommend; deterministic backend services own totals, price validity, stock, approvals and order state. No autonomous refunds, purchasing, stock changes or customer-facing quote sends without the policy/approval gate. Customer replies may send without approval only under the tenant's auto-send policy (VA-002): allowlisted low-risk intents, every deterministic check passed, and escalation for price offers, finance, complaints and anything uncertain. Until VA-002 merges, every AI reply is held for approval.
 - Retrieval must be grounded, filtered by tenant and able to abstain when evidence is missing. Treat product descriptions, websites, PDFs and emails as untrusted data (prompt-injection boundary).
 - Include evaluation fixtures for ambiguous requests, wrong/stale prices, insufficient inventory, tenant isolation, prompt injection, failed providers, timeouts and staff escalation.
 - Meter requests, model/provider, tokens, cost and failures per tenant; enforce safe budgets and manual support fallbacks. Never log full customer message bodies by default.

@@ -107,6 +107,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/whatsapp-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Connect Whatsapp Channel */
+        post: operations["connect_whatsapp_channel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/invitations/accept": {
         parameters: {
             query?: never;
@@ -729,6 +746,40 @@ export interface paths {
         head?: never;
         /** Update Channel */
         patch: operations["update_channel"];
+        trace?: never;
+    };
+    "/v1/w/{slug}/inbox/channels/{channel_id}/whatsapp-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Whatsapp Templates */
+        get: operations["list_whatsapp_templates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/inbox/channels/{channel_id}/whatsapp-templates/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Whatsapp Templates */
+        post: operations["sync_whatsapp_templates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/w/{slug}/inbox/conversations": {
@@ -1756,6 +1807,11 @@ export interface components {
             kind: components["schemas"]["ChannelKind"];
             /** Name */
             name: string;
+            /**
+             * Phone Number
+             * @description WhatsApp only, once connected: the business number
+             */
+            phone_number?: string | null;
             /** Signature */
             signature?: string | null;
         };
@@ -1986,6 +2042,11 @@ export interface components {
             lead: components["schemas"]["LeadRef"] | null;
             /** Participants */
             participants: components["schemas"]["ParticipantOut"][];
+            /**
+             * Reply Window Closes At
+             * @description WhatsApp only: until when a free-form reply can be sent. After it (or when null on WhatsApp) only an approved template can be sent.
+             */
+            reply_window_closes_at?: string | null;
             status: components["schemas"]["ConversationStatus"];
             /**
              * Status Changed At
@@ -2298,13 +2359,18 @@ export interface components {
         };
         /** DraftCreate */
         DraftCreate: {
-            /** Body */
-            body: string;
+            /**
+             * Body
+             * @description Free-form text
+             */
+            body?: string | null;
             /**
              * Quote Id
              * @description A quote for the conversation's contact to send with it
              */
             quote_id?: string | null;
+            /** @description WhatsApp only: an approved template instead of text */
+            template?: components["schemas"]["TemplateInput"] | null;
         };
         /** DraftDetail */
         DraftDetail: {
@@ -2363,6 +2429,8 @@ export interface components {
             sent_message_id: string | null;
             /** @description Current state; an open draft that no longer holds shows as expired */
             status: components["schemas"]["DraftStatus"];
+            /** @description The current revision's WhatsApp template, if it is one */
+            template?: components["schemas"]["TemplateRef"] | null;
             /**
              * Updated At
              * Format: date-time
@@ -2427,6 +2495,8 @@ export interface components {
             sent_message_id: string | null;
             /** @description Current state; an open draft that no longer holds shows as expired */
             status: components["schemas"]["DraftStatus"];
+            /** @description The current revision's WhatsApp template, if it is one */
+            template?: components["schemas"]["TemplateRef"] | null;
             /**
              * Updated At
              * Format: date-time
@@ -2982,6 +3052,8 @@ export interface components {
              * Format: date-time
              */
             recorded_at: string;
+            /** @description Outbound WhatsApp only: the provider's latest report */
+            whatsapp?: components["schemas"]["WhatsAppDeliveryOut"] | null;
         };
         /** MessagePage */
         MessagePage: {
@@ -3507,8 +3579,13 @@ export interface components {
              * @description The revision on screen; refused if the draft has moved on
              */
             base_revision: number;
-            /** Body */
-            body: string;
+            /**
+             * Body
+             * @description Free-form text
+             */
+            body?: string | null;
+            /** @description WhatsApp only: an approved template instead of text */
+            template?: components["schemas"]["TemplateInput"] | null;
         };
         /** RevisionOut */
         RevisionOut: {
@@ -3523,6 +3600,8 @@ export interface components {
             created_at: string;
             /** Revision */
             revision: number;
+            /** @description WhatsApp template replies: the template; body is its text */
+            template?: components["schemas"]["TemplateRef"] | null;
         };
         /** RunOut */
         RunOut: {
@@ -3689,10 +3768,13 @@ export interface components {
         SubjectType: "customer" | "contact" | "lead";
         /**
          * SuppressionCreate
-         * @description Stop emailing an address, e.g. the customer asked not to be contacted by email.
+         * @description Stop contacting an email address or WhatsApp number, e.g. the customer asked.
          */
         SuppressionCreate: {
-            /** Address */
+            /**
+             * Address
+             * @description An email address, or a phone number with country code
+             */
             address: string;
             /** Note */
             note?: string | null;
@@ -3725,7 +3807,39 @@ export interface components {
          * SuppressionReason
          * @enum {string}
          */
-        SuppressionReason: "bounced" | "complained" | "manual";
+        SuppressionReason: "bounced" | "complained" | "manual" | "opted_out";
+        /**
+         * TemplateCategory
+         * @enum {string}
+         */
+        TemplateCategory: "utility" | "marketing" | "authentication" | "other";
+        /**
+         * TemplateInput
+         * @description A WhatsApp template from the conversation's channel and its values, in order.
+         */
+        TemplateInput: {
+            /** Params */
+            params?: string[];
+            /**
+             * Template Id
+             * Format: uuid
+             */
+            template_id: string;
+        };
+        /** TemplateRef */
+        TemplateRef: {
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Params */
+            params: string[];
+            /**
+             * Template Id
+             * Format: uuid
+             */
+            template_id: string;
+        };
         /** ToolCallOut */
         ToolCallOut: {
             /** Found */
@@ -3942,6 +4056,108 @@ export interface components {
             line_id: string;
             /** Message */
             message: string;
+        };
+        /**
+         * WhatsAppChannelConnect
+         * @description Attach a WhatsApp business number to a tenant.
+         *
+         *     The number's ``phone_number_id`` is what routes incoming webhooks to the tenant, so only a
+         *     platform admin, who has checked the number belongs to this customer in Meta Business
+         *     Manager, may set it. A tenant's WhatsApp channel with this name gets the number; otherwise
+         *     a new channel is created.
+         */
+        WhatsAppChannelConnect: {
+            /** Channel Name */
+            channel_name: string;
+            /** Display Phone Number */
+            display_phone_number: string;
+            /** Phone Number Id */
+            phone_number_id: string;
+            /**
+             * Waba Id
+             * @description The WhatsApp Business account id (templates)
+             */
+            waba_id: string;
+        };
+        /** WhatsAppChannelConnected */
+        WhatsAppChannelConnected: {
+            /**
+             * Channel Id
+             * Format: uuid
+             */
+            channel_id: string;
+        };
+        /** WhatsAppDeliveryOut */
+        WhatsAppDeliveryOut: {
+            /**
+             * Detail
+             * @description The provider's error code, no content
+             */
+            detail: string | null;
+            /** Recipient */
+            recipient: string;
+            status: components["schemas"]["WhatsAppSendStatus"];
+            /**
+             * Status At
+             * Format: date-time
+             */
+            status_at: string;
+            /**
+             * Template Name
+             * @description The template sent, if it was one
+             */
+            template_name: string | null;
+        };
+        /**
+         * WhatsAppSendStatus
+         * @description One attempt to send a WhatsApp message, and then the provider's latest report.
+         * @enum {string}
+         */
+        WhatsAppSendStatus: "pending" | "sent" | "delivered" | "read" | "failed";
+        /** WhatsAppTemplateList */
+        WhatsAppTemplateList: {
+            /** Items */
+            items: components["schemas"]["WhatsAppTemplateOut"][];
+        };
+        /** WhatsAppTemplateOut */
+        WhatsAppTemplateOut: {
+            /**
+             * Body
+             * @description The template text with {{1}}, {{2}}... placeholders
+             */
+            body: string | null;
+            category: components["schemas"]["TemplateCategory"];
+            /**
+             * Channel Id
+             * Format: uuid
+             */
+            channel_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Param Count */
+            param_count: number;
+            /**
+             * Status
+             * @description The provider's review status, e.g. approved
+             */
+            status: string;
+            /**
+             * Synced At
+             * Format: date-time
+             */
+            synced_at: string;
+            /**
+             * Usable
+             * @description Approved, utility category, and only body parameters, so it can be sent
+             */
+            usable: boolean;
         };
         /** WorkspaceOut */
         WorkspaceOut: {
@@ -4367,6 +4583,77 @@ export interface operations {
                 };
             };
             /** @description Module dependency not satisfied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    connect_whatsapp_channel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhatsAppChannelConnect"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppChannelConnected"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Number or channel name already in use */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -7940,6 +8227,151 @@ export interface operations {
                 };
             };
             /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_whatsapp_templates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channel_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppTemplateList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sync_whatsapp_templates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channel_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppTemplateList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in the current state, or duplicate */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The provider did not answer; nothing changed */
             503: {
                 headers: {
                     [name: string]: unknown;

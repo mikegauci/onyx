@@ -1,4 +1,4 @@
-# Claude Code handoff — 9 November 2026
+# Claude Code handoff — 19 November 2026
 
 ## Start here
 
@@ -60,12 +60,17 @@ files do not select models.
 
 ## Next task
 
-PR-014 part 2, the Knowledge screens: documents list and upload, document detail with replace
-and delete, search with page citations, and cited sources on assistant runs (migration `0018`).
-PR-014 is complete once it merges. After it merges, apply `0018` to `onyx-preview`.
+PR-014 part 2 merged ([#31](https://github.com/mikegauci/onyx/pull/31)); PR-014 is complete.
 
-Then ask the owner which numbered PR to take next (PR-018, the controlled pilot, is the
-remaining pilot gate). Wait for plan approval.
+PR-019 part 1, the WhatsApp connector backend, is in review: platform-admin number connection,
+signed webhooks routed by business number, the 24-hour rule, utility templates on outbound
+drafts, send-once attempts recorded before calling Meta, delivery status and STOP opt-outs.
+Migration `0019`. See `docs/platform/whatsapp.md`. The owner chose PR-019 ahead of PR-018.
+
+Next: PR-019 part 2, the WhatsApp screens (channel number, reply window, template picker in
+the reply panel, delivery and read status, opted-out numbers). After both merge, apply `0018`
+and `0019` to `onyx-preview` with the owner's approval. Live use needs a Meta business account,
+app, system user token and test number from the owner.
 
 ## Verification preference
 

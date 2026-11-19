@@ -66,6 +66,31 @@ async def update_channel(
     return channel_out(await InboxService(db, workspace).update_channel(channel_id, body))
 
 
+@router.get(
+    "/channels/{channel_id}/whatsapp-templates", response_model=schemas.WhatsAppTemplateList
+)
+async def list_whatsapp_templates(
+    channel_id: uuid.UUID, workspace: Reader, db: DbDep
+) -> schemas.WhatsAppTemplateList:
+    items = await InboxService(db, workspace).list_templates(channel_id)
+    return schemas.WhatsAppTemplateList(items=items)
+
+
+@router.post(
+    "/channels/{channel_id}/whatsapp-templates/sync",
+    response_model=schemas.WhatsAppTemplateList,
+    responses={
+        **CONFLICT,
+        503: {**_ERROR, "description": "The provider did not answer; nothing changed"},
+    },
+)
+async def sync_whatsapp_templates(
+    channel_id: uuid.UUID, workspace: Manager, db: DbDep
+) -> schemas.WhatsAppTemplateList:
+    items = await InboxService(db, workspace).sync_templates(channel_id)
+    return schemas.WhatsAppTemplateList(items=items)
+
+
 @router.get("/assignees", response_model=schemas.AssigneeList)
 async def list_assignees(workspace: Reader, db: DbDep) -> schemas.AssigneeList:
     return schemas.AssigneeList(items=await InboxService(db, workspace).list_assignees())

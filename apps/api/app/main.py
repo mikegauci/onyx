@@ -24,15 +24,20 @@ from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
-from app.integrations import email
+from app.integrations import email, whatsapp
 from app.integrations.email import EmailConfig, EmailProvider
 from app.integrations.email.fake import FakeEmailProvider
 from app.integrations.email.resend import ResendProvider
+from app.integrations.whatsapp import WhatsAppConfig, WhatsAppProvider
+from app.integrations.whatsapp.fake import FakeWhatsAppProvider
+from app.integrations.whatsapp.meta import MetaProvider
 from app.modules.assistant.routes import router as assistant_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
+from app.modules.inbox import whatsapp_send
 from app.modules.inbox.email_connector import EmailConnector
 from app.modules.inbox.routes import router as inbox_router
+from app.modules.inbox.whatsapp_connector import WhatsAppConnector
 from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.outbound.routes import router as outbound_router
 from app.modules.quotations.routes import router as quotations_router
@@ -73,6 +78,33 @@ def _email_config(
     return config, owned
 
 
+def _whatsapp_config(
+    settings: Settings, provider: WhatsAppProvider | None
+) -> tuple[WhatsAppConfig | None, MetaProvider | None]:
+    """The WhatsApp provider when fully configured; otherwise WhatsApp channels stay off."""
+    if not settings.whatsapp_configured:
+        return None, None
+    assert settings.whatsapp_app_secret is not None  # noqa: S101 - whatsapp_configured
+    assert settings.whatsapp_verify_token is not None  # noqa: S101
+    assert settings.whatsapp_access_token is not None  # noqa: S101
+    owned = None
+    if provider is None and settings.whatsapp_provider == "fake":
+        provider = FakeWhatsAppProvider()  # local and e2e only; refused in deployed settings
+    if provider is None:
+        owned = MetaProvider(
+            settings.whatsapp_access_token.get_secret_value(),
+            graph_version=settings.whatsapp_graph_version,
+            timeout=settings.whatsapp_timeout_seconds,
+        )
+        provider = owned
+    config = WhatsAppConfig(
+        provider=provider,
+        app_secret=settings.whatsapp_app_secret.get_secret_value(),
+        verify_token=settings.whatsapp_verify_token.get_secret_value(),
+    )
+    return config, owned
+
+
 API_VERSION_PREFIX = "/v1"
 
 
@@ -89,6 +121,7 @@ def create_app(
     ai_model_factory: ModelFactory | None = None,
     ai_embedding_factory: EmbeddingFactory | None = None,
     email_provider: EmailProvider | None = None,
+    whatsapp_provider: WhatsAppProvider | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -119,12 +152,24 @@ def create_app(
             if email_config is not None and app.state.session_factory is not None
             else None
         )
+        whatsapp_config, owned_whatsapp = _whatsapp_config(settings, whatsapp_provider)
+        whatsapp.configure(whatsapp_config)
+        whatsapp_send.configure(app.state.session_factory)
+        app.state.whatsapp_connector = (
+            WhatsAppConnector(app.state.session_factory, whatsapp_config)
+            if whatsapp_config is not None and app.state.session_factory is not None
+            else None
+        )
         try:
             yield
         finally:
             email.configure(None)
+            whatsapp.configure(None)
+            whatsapp_send.configure(None)
             if owned is not None:
                 await owned.aclose()
+            if owned_whatsapp is not None:
+                await owned_whatsapp.aclose()
             if engine is not None:
                 await engine.dispose()
 

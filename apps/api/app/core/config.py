@@ -90,11 +90,31 @@ class Settings(BaseSettings):
         description="'fake' records sends in memory for local and e2e runs; never deployed.",
     )
 
+    # WhatsApp connector (Meta Cloud API). All three secrets set = WhatsApp channels connected.
+    whatsapp_app_secret: SecretStr | None = Field(
+        default=None, description="Meta app secret; signs webhook requests (X-Hub-Signature-256)."
+    )
+    whatsapp_verify_token: SecretStr | None = Field(
+        default=None, description="Token Meta echoes when the webhook subscription is set up."
+    )
+    whatsapp_access_token: SecretStr | None = Field(
+        default=None, description="System user access token for the WhatsApp Cloud API."
+    )
+    whatsapp_graph_version: str = Field(default="v23.0", pattern=r"^v\d{1,2}\.\d$")
+    whatsapp_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    whatsapp_provider: Literal["meta", "fake"] = Field(
+        default="meta",
+        description="'fake' records sends in memory for local and e2e runs; never deployed.",
+    )
+
     @field_validator(
         "openai_api_key",
         "anthropic_api_key",
         "resend_api_key",
         "resend_webhook_secret",
+        "whatsapp_app_secret",
+        "whatsapp_verify_token",
+        "whatsapp_access_token",
         mode="before",
     )
     @classmethod
@@ -121,6 +141,14 @@ class Settings(BaseSettings):
             self.resend_webhook_secret,
             self.email_inbound_domain,
             self.email_from_domain,
+        )
+
+    @property
+    def whatsapp_configured(self) -> bool:
+        return None not in (
+            self.whatsapp_app_secret,
+            self.whatsapp_verify_token,
+            self.whatsapp_access_token,
         )
 
     @field_validator("ai_default_model", mode="before")
@@ -216,6 +244,8 @@ class Settings(BaseSettings):
     def _validate_email_provider(self) -> Self:
         if self.email_provider == "fake" and self.is_deployed:
             raise ValueError("The fake email provider is not allowed in a deployed environment.")
+        if self.whatsapp_provider == "fake" and self.is_deployed:
+            raise ValueError("The fake WhatsApp provider is not allowed in a deployed environment.")
         return self
 
     @model_validator(mode="after")

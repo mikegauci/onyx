@@ -18,12 +18,13 @@ elsewhere). Its ``send`` delivers nothing: a reply is recorded as ``logged``.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 
 from app.core.errors import ConflictError
 from app.integrations import email as email_settings
+from app.integrations import whatsapp as whatsapp_settings
 from app.modules.crm.identity import IdentityError, normalise_email, normalise_phone
 from app.modules.inbox.models import (
     BODY_MAX_LENGTH,
@@ -170,19 +171,52 @@ class EmailStaffAdapter(ManualChannelAdapter):
         raise ChannelNotConnectedError("Email replies are sent from an approved outbound draft.")
 
 
+class WhatsAppStaffAdapter(ManualChannelAdapter):
+    """What staff record by hand on a WhatsApp channel (e.g. a message seen on a phone).
+
+    Real messages arrive through the verified webhook (``whatsapp_connector``) and replies
+    leave only through approved outbound drafts, so ``send`` is never used for WhatsApp.
+    """
+
+    kind = ChannelKind.WHATSAPP
+
+    def parse_inbound(self, payload: Mapping[str, Any], *, now: datetime) -> InboundMessage:
+        # A new conversation started by staff uses the customer's number as its thread, so the
+        # customer's WhatsApp answer joins it (see ``channels.whatsapp.thread_ref``).
+        message = normalise_inbound({**payload, "external_thread_ref": None}, now=now)
+        if message.sender_phone is None:
+            return message
+        return replace(message, external_thread_ref=f"wa:{message.sender_phone}")
+
+    async def send(self, message: OutboundMessage) -> DeliveryResult:  # pragma: no cover
+        raise ChannelNotConnectedError("WhatsApp replies are sent from an approved outbound draft.")
+
+
 ADAPTERS: dict[ChannelKind, ChannelAdapter] = {ChannelKind.MANUAL: ManualChannelAdapter()}
 _EMAIL = EmailStaffAdapter()
+_WHATSAPP = WhatsAppStaffAdapter()
+# Channels whose replies go out through a provider, and so only from an approved draft.
+PROVIDER_KINDS = frozenset({ChannelKind.EMAIL, ChannelKind.WHATSAPP})
 
 
-def channel_connected(kind: ChannelKind) -> bool:
-    """Manual channels always work; email works once the email provider is configured."""
+def channel_connected(kind: ChannelKind, *, phone_number_id: str | None = None) -> bool:
+    """Manual channels always work; email and WhatsApp once their provider is configured.
+
+    A WhatsApp channel also needs its business number, which a platform admin sets.
+    """
     if kind is ChannelKind.EMAIL:
         return email_settings.current() is not None
+    if kind is ChannelKind.WHATSAPP:
+        return whatsapp_settings.current() is not None and phone_number_id is not None
     return kind in ADAPTERS
 
 
-def adapter_for(kind: ChannelKind) -> ChannelAdapter:
-    """The adapter for a channel kind; WhatsApp and web are not connected until later PRs."""
-    if not channel_connected(kind):
+def adapter_for(kind: ChannelKind, *, phone_number_id: str | None = None) -> ChannelAdapter:
+    """The adapter for a channel kind; web chat is not connected until a later PR."""
+    if not channel_connected(kind, phone_number_id=phone_number_id):
         raise ChannelNotConnectedError
-    return _EMAIL if kind is ChannelKind.EMAIL else ADAPTERS[kind]
+    if kind is ChannelKind.EMAIL:
+        return _EMAIL
+    if kind is ChannelKind.WHATSAPP:
+        return _WHATSAPP
+    return ADAPTERS[kind]

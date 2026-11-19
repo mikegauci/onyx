@@ -143,19 +143,26 @@ class OutboundService:
             ).all()
         )
 
-    async def _current_body(self, draft: Draft) -> str:
-        body = await self.db.scalar(
-            select(Revision.body).where(
+    async def _current(self, draft: Draft) -> Revision:
+        revision = await self.db.scalar(
+            select(Revision).where(
                 Revision.organization_id == self.org,
                 Revision.draft_id == draft.id,
                 Revision.revision == draft.current_revision,
             )
         )
-        if body is None:  # pragma: no cover - every draft is created with revision 1
+        if revision is None:  # pragma: no cover - every draft is created with revision 1
             raise NotFoundError("Draft text not found.")
-        return str(body)
+        return revision
 
-    def _add_revision(self, draft: Draft, number: int, body: str, author: DraftOrigin) -> None:
+    def _add_revision(
+        self,
+        draft: Draft,
+        number: int,
+        body: str,
+        author: DraftOrigin,
+        template: inbox.RenderedTemplate | None = None,
+    ) -> None:
         self.db.add(
             Revision(
                 organization_id=self.org,
@@ -164,8 +171,28 @@ class OutboundService:
                 body=body,
                 author_kind=author,
                 author_user_id=self.actor if author is DraftOrigin.STAFF else None,
+                template_id=template.template_id if template else None,
+                template_name=template.name if template else None,
+                template_language=template.language if template else None,
+                template_params=list(template.params) if template else None,
             )
         )
+
+    async def _text_or_template(
+        self, conversation_id: uuid.UUID, body: schemas.DraftCreate | schemas.RevisionCreate
+    ) -> tuple[str, inbox.RenderedTemplate | None]:
+        """The reply text, rendered from the template when one is given (checked for sending)."""
+        if body.template is None:
+            assert body.body is not None  # noqa: S101 - the schema requires one of them
+            return body.body, None
+        rendered = await inbox.render_template(
+            self.db,
+            self.workspace,
+            conversation_id,
+            body.template.template_id,
+            body.template.params,
+        )
+        return rendered.body, rendered
 
     async def _staleness(self, draft: Draft, *, lock_quote: bool = False) -> ExpiryReason | None:
         quote = (
@@ -262,6 +289,7 @@ class OutboundService:
                 schemas.RevisionOut(
                     revision=r.revision,
                     body=r.body,
+                    template=_template_ref(r),
                     author_kind=r.author_kind,
                     author=users.get(r.author_user_id) if r.author_user_id else None,
                     created_at=r.created_at,
@@ -288,14 +316,16 @@ class OutboundService:
         conversation_ids = list({d.conversation_id for d in drafts})
         subjects = await inbox.subjects(self.db, self.tenant, conversation_ids)
         latest = await inbox.latest_inbound(self.db, self.tenant, conversation_ids)
-        bodies = {
-            (row.draft_id, row.revision): row.body
-            for row in await self.db.execute(
-                select(Revision.draft_id, Revision.revision, Revision.body).where(
-                    Revision.organization_id == self.org,
-                    Revision.draft_id.in_([d.id for d in drafts]),
+        current = {
+            (r.draft_id, r.revision): r
+            for r in (
+                await self.db.scalars(
+                    select(Revision).where(
+                        Revision.organization_id == self.org,
+                        Revision.draft_id.in_([d.id for d in drafts]),
+                    )
                 )
-            )
+            ).all()
         }
         users = await self._users(
             [
@@ -337,7 +367,10 @@ class OutboundService:
                     origin=draft.origin,
                     status=status,
                     current_revision=draft.current_revision,
-                    body=bodies.get((draft.id, draft.current_revision), ""),
+                    body=rev.body
+                    if (rev := current.get((draft.id, draft.current_revision)))
+                    else "",
+                    template=_template_ref(rev) if rev else None,
                     quote=self._quote_ref(draft, info, today, open_=status in OPEN),
                     expires_at=draft.expires_at,
                     expiry=(
@@ -415,6 +448,8 @@ class OutboundService:
         quote_id: uuid.UUID | None,
         origin: DraftOrigin,
         details: dict[str, Any] | None = None,
+        *,
+        template: inbox.RenderedTemplate | None = None,
     ) -> Draft:
         now = self._now()
         draft = Draft(
@@ -438,7 +473,7 @@ class OutboundService:
             if OPEN_PER_CONVERSATION in str(exc.orig):
                 raise DraftExistsError from exc
             raise
-        self._add_revision(draft, 1, body, origin)
+        self._add_revision(draft, 1, body, origin, template)
         await self.db.flush()
         await self._audit(
             "created",
@@ -477,8 +512,14 @@ class OutboundService:
                 raise DraftExistsError
             await self._close(existing, DraftStatus.EXPIRED, expiry_reason=reason)
             await self._audit("expired", existing, {"reason": reason.value})
+        text, template = await self._text_or_template(thread.conversation_id, body)
         draft = await self._create(
-            thread.conversation_id, body.body, body.quote_id, DraftOrigin.STAFF
+            thread.conversation_id,
+            text,
+            body.quote_id,
+            DraftOrigin.STAFF,
+            {"template": template.name} if template else None,
+            template=template,
         )
         return await self._detail(draft)
 
@@ -522,11 +563,19 @@ class OutboundService:
             raise DraftClosedError
         self._check_base(draft, body.base_revision)
         await self._refuse_if_stale(draft)
-        if body.body == await self._current_body(draft):
+        text, template = await self._text_or_template(draft.conversation_id, body)
+        current = await self._current(draft)
+        same_template = (
+            (current.template_id, current.template_params)
+            == (template.template_id, list(template.params))
+            if template
+            else current.template_id is None
+        )
+        if text == current.body and same_template:
             return await self._detail(draft)
         was_approved = draft.status is DraftStatus.APPROVED
         number = draft.current_revision + 1
-        self._add_revision(draft, number, body.body, DraftOrigin.STAFF)
+        self._add_revision(draft, number, text, DraftOrigin.STAFF, template)
         draft.current_revision = number
         self._reset_approval(draft)
         await self.db.flush()
@@ -544,7 +593,12 @@ class OutboundService:
         self._check_base(draft, body.revision)
         await self._refuse_if_stale(draft)
 
-        edited = body.body is not None and body.body != await self._current_body(draft)
+        current = await self._current(draft)
+        if body.body is not None and current.template_id is not None:
+            raise _invalid(
+                "body", "A template reply cannot be edited as text; change its values instead."
+            )
+        edited = body.body is not None and body.body != current.body
         if draft.status is DraftStatus.APPROVED and not edited:
             return await self._detail(draft)  # already approved as it is
 
@@ -615,13 +669,29 @@ class OutboundService:
         revision = draft.approved_revision
         if revision is None or revision != draft.current_revision:  # pragma: no cover - CHECK
             raise NotApprovedError
-        body = await self._current_body(draft)
+        current = await self._current(draft)
+        template: inbox.RenderedTemplate | None = None
+        if current.template_id is not None:
+            # Re-checked at send time: the template may have been paused or changed since.
+            template = await inbox.render_template(
+                self.db,
+                self.workspace,
+                draft.conversation_id,
+                current.template_id,
+                current.template_params or [],
+            )
+            if template.body != current.body:
+                raise ConflictError(
+                    "The template's wording changed since this reply was approved. Revise the "
+                    "reply and approve it again."
+                )
         sent = await inbox.send_reply(
             self.db,
             self.workspace,
             draft.conversation_id,
-            body,
+            current.body,
             idempotency_key=f"outbound-{draft.id}",
+            template=template,
         )
         draft.status = DraftStatus.SENT
         draft.sent_message_id = sent.message_id
@@ -668,3 +738,14 @@ class OutboundService:
 
 def _ref(users: dict[uuid.UUID, schemas.DraftUserRef], user_id: uuid.UUID | None) -> Any:
     return users.get(user_id) if user_id is not None else None
+
+
+def _template_ref(revision: Revision) -> schemas.TemplateRef | None:
+    if revision.template_id is None:
+        return None
+    return schemas.TemplateRef(
+        template_id=revision.template_id,
+        name=revision.template_name or "",
+        language=revision.template_language or "",
+        params=list(revision.template_params or []),
+    )

@@ -2,10 +2,12 @@
 
 import uuid
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy import select, text
+from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from app.api.modules import ModuleOut
 from app.core.auth.deps import DbDep, PlatformAdminDep
@@ -115,3 +117,76 @@ async def set_organization_module(
         },
     )
     return await _detail(db, slug)
+
+
+# --- platform admin: WhatsApp numbers --------------------------------------------------------
+
+GraphId = Annotated[str, StringConstraints(pattern=r"^\d{1,32}$")]
+
+
+class WhatsAppChannelConnect(BaseModel):
+    """Attach a WhatsApp business number to a tenant.
+
+    The number's ``phone_number_id`` is what routes incoming webhooks to the tenant, so only a
+    platform admin, who has checked the number belongs to this customer in Meta Business
+    Manager, may set it. A tenant's WhatsApp channel with this name gets the number; otherwise
+    a new channel is created.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    channel_name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)
+    ]
+    phone_number_id: GraphId
+    waba_id: GraphId = Field(description="The WhatsApp Business account id (templates)")
+    display_phone_number: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=4, max_length=32)
+    ]
+
+
+class WhatsAppChannelConnected(BaseModel):
+    channel_id: uuid.UUID
+
+
+@router.post(
+    "/organizations/{slug}/whatsapp-channels",
+    response_model=WhatsAppChannelConnected,
+    responses={
+        **ADMIN_ERRORS,
+        409: {"model": ErrorResponse, "description": "Number or channel name already in use"},
+    },
+)
+async def connect_whatsapp_channel(
+    slug: str, body: WhatsAppChannelConnect, _admin: PlatformAdminDep, db: DbDep
+) -> WhatsAppChannelConnected:
+    await _detail(db, slug)  # 404 for an unknown organisation
+    try:
+        async with db.begin_nested():
+            channel_id = await db.scalar(
+                text(
+                    "SELECT app_admin_connect_whatsapp(:slug, :name, :number, :waba, :display, "
+                    ":rid)"
+                ),
+                {
+                    "slug": slug,
+                    "name": body.channel_name,
+                    "number": body.phone_number_id,
+                    "waba": body.waba_id,
+                    "display": body.display_phone_number,
+                    "rid": request_id_var.get(),
+                },
+            )
+    except IntegrityError as exc:
+        raise ConflictError(
+            "This number is already connected, or the channel name is used by another kind "
+            "of channel."
+        ) from exc
+    except DBAPIError as exc:
+        if getattr(getattr(exc.orig, "diag", None), "sqlstate", None) == "P0001":
+            raise ConflictError(
+                "A channel with this name already exists and is not a WhatsApp channel waiting "
+                "for a number."
+            ) from exc
+        raise
+    return WhatsAppChannelConnected(channel_id=uuid.UUID(str(channel_id)))

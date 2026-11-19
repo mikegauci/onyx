@@ -41,3 +41,10 @@ services:
         sync: false
       - key: ONYX_API_EMAIL_FROM_DOMAIN
         sync: false
+      # WhatsApp connector (Meta). Unset = WhatsApp channels not connected (fail closed).
+      - key: ONYX_API_WHATSAPP_APP_SECRET
+        sync: false
+      - key: ONYX_API_WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: ONYX_API_WHATSAPP_ACCESS_TOKEN
+        sync: false

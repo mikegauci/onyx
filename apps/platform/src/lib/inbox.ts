@@ -130,4 +130,5 @@ export const SUPPRESSION_REASON_LABEL: Record<Suppression["reason"], string> = {
   bounced: "Bounced",
   complained: "Marked as spam",
   manual: "Added by staff",
+  opted_out: "Opted out on WhatsApp",
 };

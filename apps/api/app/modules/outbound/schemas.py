@@ -2,9 +2,9 @@
 
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from app.modules.outbound.lifecycle import (
     MAX_EXPIRY_HOURS,
@@ -45,15 +45,36 @@ class OutboundSettingsUpdate(_Input):
 # --- inputs ----------------------------------------------------------------------------------
 
 
-class DraftCreate(_Input):
-    body: Body
+TemplateValue = Annotated[str, StringConstraints(min_length=1, max_length=1024)]
+
+
+class TemplateInput(_Input):
+    """A WhatsApp template from the conversation's channel and its values, in order."""
+
+    template_id: uuid.UUID
+    params: list[TemplateValue] = Field(default_factory=list, max_length=20)
+
+
+class _TextOrTemplate(_Input):
+    body: Body | None = Field(default=None, description="Free-form text")
+    template: TemplateInput | None = Field(
+        default=None, description="WhatsApp only: an approved template instead of text"
+    )
+
+    @model_validator(mode="after")
+    def _one_of(self) -> Self:
+        if (self.body is None) == (self.template is None):
+            raise ValueError("Give either the reply text or a template, not both.")
+        return self
+
+
+class DraftCreate(_TextOrTemplate):
     quote_id: uuid.UUID | None = Field(
         default=None, description="A quote for the conversation's contact to send with it"
     )
 
 
-class RevisionCreate(_Input):
-    body: Body
+class RevisionCreate(_TextOrTemplate):
     base_revision: RevisionNumber
 
 
@@ -97,9 +118,19 @@ class DraftQuoteRef(BaseModel):
     )
 
 
+class TemplateRef(BaseModel):
+    template_id: uuid.UUID
+    name: str
+    language: str
+    params: list[str]
+
+
 class RevisionOut(BaseModel):
     revision: int
     body: str
+    template: TemplateRef | None = Field(
+        default=None, description="WhatsApp template replies: the template; body is its text"
+    )
     author_kind: DraftOrigin
     author: DraftUserRef | None
     created_at: datetime
@@ -115,6 +146,9 @@ class DraftOut(BaseModel):
     )
     current_revision: int
     body: str = Field(description="The current revision's text")
+    template: TemplateRef | None = Field(
+        default=None, description="The current revision's WhatsApp template, if it is one"
+    )
     quote: DraftQuoteRef | None
     expires_at: datetime
     expiry: ExpiryOut | None

@@ -52,6 +52,8 @@ EXPECTED_TABLES = {
     "inbox_webhook_events",
     "knowledge_documents",
     "knowledge_chunks",
+    "inbox_whatsapp_templates",
+    "inbox_whatsapp_sends",
 }
 
 

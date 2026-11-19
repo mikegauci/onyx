@@ -17,11 +17,13 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    Integer,
     String,
     Text,
     UniqueConstraint,
@@ -80,7 +82,7 @@ class AuthorKind(enum.StrEnum):
 class DeliveryStatus(enum.StrEnum):
     RECEIVED = "received"  # inbound, stored
     LOGGED = "logged"  # recorded by staff; nothing was sent by Onyx
-    SENT = "sent"  # an email the provider accepted; live status in ``EmailDelivery``
+    SENT = "sent"  # accepted by the provider; live status in ``EmailDelivery``/``WhatsAppSend``
 
 
 class EmailDeliveryStatus(enum.StrEnum):
@@ -98,7 +100,25 @@ class EmailDeliveryStatus(enum.StrEnum):
 class SuppressionReason(enum.StrEnum):
     BOUNCED = "bounced"  # a permanent bounce
     COMPLAINED = "complained"
-    MANUAL = "manual"  # staff: the customer asked not to be emailed
+    MANUAL = "manual"  # staff: the customer asked not to be contacted on this address
+    OPTED_OUT = "opted_out"  # the customer sent STOP (or similar) on WhatsApp
+
+
+class WhatsAppSendStatus(enum.StrEnum):
+    """One attempt to send a WhatsApp message, and then the provider's latest report."""
+
+    PENDING = "pending"  # recorded before calling the provider; outcome not known yet
+    SENT = "sent"  # accepted by the provider
+    DELIVERED = "delivered"
+    READ = "read"
+    FAILED = "failed"  # refused by the provider, or reported undeliverable
+
+
+class TemplateCategory(enum.StrEnum):
+    UTILITY = "utility"
+    MARKETING = "marketing"
+    AUTHENTICATION = "authentication"
+    OTHER = "other"
 
 
 class EventKind(enum.StrEnum):
@@ -144,6 +164,11 @@ class Channel(Base):
         CheckConstraint(
             "(kind = 'email') = (inbound_token IS NOT NULL)", name="email_has_inbound_token"
         ),
+        UniqueConstraint("phone_number_id"),
+        CheckConstraint(
+            "phone_number_id IS NULL OR (kind = 'whatsapp' AND waba_id IS NOT NULL)",
+            name="whatsapp_number",
+        ),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -161,6 +186,12 @@ class Channel(Base):
     inbound_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
     from_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     signature: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    # WhatsApp only, set by a platform admin: the provider's id of the business number. It is
+    # the credential that routes a verified webhook to this tenant. Without it the channel is
+    # not connected.
+    phone_number_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    waba_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    display_phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 
 class Conversation(Base):
@@ -451,3 +482,87 @@ class WebhookEvent(Base):
     received_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class WhatsAppTemplate(Base):
+    """A message template of a WhatsApp channel's business account, as last synced."""
+
+    __tablename__ = "inbox_whatsapp_templates"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "channel_id", "name", "language"),
+        _same_tenant(
+            "channel_id", "inbox_channels", "fk_inbox_whatsapp_templates_channel_same_tenant"
+        ),
+        CheckConstraint("param_count BETWEEN 0 AND 20", name="param_count_range"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    provider_template_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(512), nullable=False)
+    language: Mapped[str] = mapped_column(String(16), nullable=False)
+    category: Mapped[TemplateCategory] = mapped_column(
+        str_enum(TemplateCategory, "inbox_whatsapp_template_category"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False)  # the provider's status
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    param_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    supported: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    synced_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class WhatsAppSend(Base):
+    """One outbound WhatsApp message: the attempt, then the provider's id and latest status.
+
+    The attempt is committed *before* the provider is called (the Cloud API has no idempotency
+    key), so a lost response or crashed request never sends twice. The provider echoes the
+    attempt id (``biz_opaque_callback_data``) in status webhooks, which recovers the message id
+    of a send whose response was lost.
+    """
+
+    __tablename__ = "inbox_whatsapp_sends"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "idempotency_key"),
+        UniqueConstraint("organization_id", "message_id"),
+        UniqueConstraint("provider", "provider_message_id"),
+        _same_tenant("channel_id", "inbox_channels", "fk_inbox_whatsapp_sends_channel_same_tenant"),
+        # No foreign key to the conversation: the attempt is written in its own transaction
+        # while the request holds the conversation's row lock (see ``whatsapp_send``).
+        _same_tenant("message_id", "inbox_messages", "fk_inbox_whatsapp_sends_message_same_tenant"),
+        CheckConstraint(
+            "status IN ('pending', 'failed') OR provider_message_id IS NOT NULL",
+            name="sent_has_provider_id",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(EXTERNAL_REF_MAX_LENGTH), nullable=False)
+    message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    recipient: Mapped[str] = mapped_column(String(32), nullable=False)
+    template_name: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    status: Mapped[WhatsAppSendStatus] = mapped_column(
+        str_enum(WhatsAppSendStatus, "inbox_whatsapp_send_status"), nullable=False
+    )
+    detail: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    attempted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    status_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()

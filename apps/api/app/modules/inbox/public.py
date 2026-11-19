@@ -30,6 +30,7 @@ from app.modules.inbox.models import (
     MessageDirection,
 )
 from app.modules.inbox.service import InboxService
+from app.modules.inbox.service import RenderedTemplate as RenderedTemplate
 
 THREAD_MAX_MESSAGES = 20
 
@@ -181,11 +182,14 @@ async def send_reply(
     body: str,
     *,
     idempotency_key: str,
+    template: RenderedTemplate | None = None,
 ) -> SentReply:
     """Send an approved reply through the conversation's channel, as the signed-in user.
 
     The key makes it send once: a repeat returns the stored message, and the email provider
-    gets the same key, so a retry after a lost response is not sent twice either. A closed
+    gets the same key, so a retry after a lost response is not sent twice either. WhatsApp
+    has no such key; its attempts are recorded before sending instead (``whatsapp_send``).
+    ``template`` (WhatsApp only) sends an approved template instead of free-form text. A closed
     conversation, an unconnected channel, a missing or suppressed email address is refused
     (409); a provider failure sends nothing (503). The conversation then waits on the customer.
     """
@@ -197,6 +201,22 @@ async def send_reply(
             idempotency_key=idempotency_key,
             set_status=ConversationStatus.WAITING_ON_CUSTOMER,
         ),
-        send_email=True,
+        send_external=True,
+        template=template,
     )
     return SentReply(message_id=message.id, duplicate=duplicate)
+
+
+async def render_template(
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    conversation_id: uuid.UUID,
+    template_id: uuid.UUID,
+    params: Sequence[str],
+) -> RenderedTemplate:
+    """Check a WhatsApp template can be sent on this conversation and render its text.
+
+    The template must belong to the conversation's channel and be approved, utility and
+    supported; the values are checked against the provider's rules (422 names the value).
+    """
+    return await InboxService(db, workspace).render_template(conversation_id, template_id, params)

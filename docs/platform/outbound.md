@@ -4,7 +4,9 @@ A reply to a customer goes out only after a person with approval rights has appr
 exact text, and any quote it carries has been approved too. The assistant (PR-015) and staff
 both write **drafts**; approvers approve, edit or reject them; then a member sends the approved
 reply. Every step is audited. A reply on a manual channel is recorded as `logged`. On an email
-channel it is emailed once through the connector ([email.md](email.md), PR-017).
+channel it is emailed once through the connector ([email.md](email.md), PR-017). On a WhatsApp
+channel it is sent once through the WhatsApp connector, and a draft can be an approved template
+instead of text ([whatsapp.md](whatsapp.md), PR-019).
 
 The `outbound` module requires `inbox` and `quotations`. A platform admin enables it per
 tenant. The API enforces the entitlement and permissions on every route under

@@ -5,19 +5,21 @@ comes from ``WorkspaceAccess`` (never from input); queries add an explicit ``org
 filter on top of row-level security. Each change writes its conversation event and its audit
 entry in the same transaction. Audit and event details never contain message text.
 
-A reply on a manual channel is recorded as ``logged``. A reply on an email channel is sent
-through the email provider, and only when the outbound module asks for it after approval
-(``send_email=True``): staff cannot log or send an email reply directly. Suppressed addresses
-are never emailed.
+A reply on a manual channel is recorded as ``logged``. A reply on an email or WhatsApp channel
+is sent through the provider, and only when the outbound module asks for it after approval
+(``send_external=True``): staff cannot log or send such a reply directly. Suppressed addresses
+are never contacted. WhatsApp replies follow the provider's 24-hour rule: free-form text only
+within 24 hours of the customer's last message, otherwise an approved template.
 """
 
 import logging
 import uuid
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import Select, exists, or_, select
+from sqlalchemy import Select, exists, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -35,11 +37,15 @@ from app.core.errors import (
 )
 from app.core.tenancy.models import Membership, Organization, User
 from app.integrations import email as email_settings
+from app.integrations import whatsapp as whatsapp_settings
 from app.integrations.email import EmailProviderError
+from app.integrations.whatsapp import OutgoingWhatsApp, TemplateUse, WhatsAppProviderError
 from app.modules.crm import public as crm
 from app.modules.crm.pagination import encode_cursor, paginate
-from app.modules.inbox import schemas
+from app.modules.inbox import schemas, whatsapp_send
 from app.modules.inbox.channels.base import (
+    PROVIDER_KINDS,
+    ChannelNotConnectedError,
     InvalidInboundError,
     OutboundMessage,
     adapter_for,
@@ -52,6 +58,12 @@ from app.modules.inbox.channels.email import (
     compose_reply,
     message_ids,
     new_inbound_token,
+)
+from app.modules.inbox.channels.whatsapp import (
+    TemplateParamError,
+    render_template,
+    window_closes_at,
+    window_open,
 )
 from app.modules.inbox.ingest import (
     DUPLICATE_MESSAGE,
@@ -82,6 +94,9 @@ from app.modules.inbox.models import (
     Participant,
     Suppression,
     SuppressionReason,
+    TemplateCategory,
+    WhatsAppSend,
+    WhatsAppTemplate,
 )
 
 logger = logging.getLogger(__name__)
@@ -103,12 +118,46 @@ class EmailNeedsApprovalError(ConflictError):
     )
 
 
+class WhatsAppNeedsApprovalError(ConflictError):
+    default_message = (
+        "Replies on a WhatsApp channel are sent from an approved draft in Outbound replies."
+    )
+
+
+class NoWhatsAppRecipientError(ConflictError):
+    default_message = "The customer has no phone number on this conversation."
+
+
+class OutsideReplyWindowError(ConflictError):
+    default_message = (
+        "The customer's last WhatsApp message is more than 24 hours old, so only an approved "
+        "template can be sent. Nothing was sent."
+    )
+
+
+class WhatsAppSendFailedError(ServiceUnavailableError):
+    default_message = "WhatsApp did not accept the reply. Nothing was sent; try again."
+
+
+class WhatsAppSendUnconfirmedError(ServiceUnavailableError):
+    default_message = (
+        "WhatsApp did not answer in time, so it is not known whether the reply was sent. "
+        "Wait a few minutes and check the conversation before trying again."
+    )
+
+
+class TemplateNotUsableError(ConflictError):
+    default_message = "This template cannot be sent: it must be approved, utility and synced."
+
+
 class NoEmailRecipientError(ConflictError):
     default_message = "The customer has no email address on this conversation."
 
 
 class RecipientSuppressedError(ConflictError):
-    default_message = "This customer's email address is suppressed, so nothing was sent."
+    default_message = (
+        "This customer's address is suppressed (blocked or opted out), so nothing was sent."
+    )
 
 
 class EmailSendFailedError(ServiceUnavailableError):
@@ -146,6 +195,53 @@ def _user(user_id: uuid.UUID | None, name: str | None) -> schemas.UserRef | None
     return None if user_id is None else schemas.UserRef(user_id=user_id, display_name=name)
 
 
+# A provider's WhatsApp message id; staff-logged customer messages never have one, so they do
+# not open the 24-hour reply window.
+WHATSAPP_MESSAGE_ID_PREFIX = "wamid."
+
+
+@dataclass(frozen=True)
+class RenderedTemplate:
+    """An approved template with its values, and the text the customer will see."""
+
+    template_id: uuid.UUID
+    name: str
+    language: str
+    params: tuple[str, ...]
+    body: str
+
+
+def template_usable(template: WhatsAppTemplate) -> bool:
+    return (
+        template.status == "approved"
+        and template.category is TemplateCategory.UTILITY
+        and template.supported
+        and template.body is not None
+    )
+
+
+def _template_out(template: WhatsAppTemplate) -> schemas.WhatsAppTemplateOut:
+    return schemas.WhatsAppTemplateOut(
+        id=template.id,
+        channel_id=template.channel_id,
+        name=template.name,
+        language=template.language,
+        category=template.category,
+        status=template.status,
+        body=template.body,
+        param_count=template.param_count,
+        usable=template_usable(template),
+        synced_at=template.synced_at,
+    )
+
+
+def _category(value: str) -> TemplateCategory:
+    try:
+        return TemplateCategory(value)
+    except ValueError:
+        return TemplateCategory.OTHER
+
+
 def channel_out(channel: Channel) -> schemas.ChannelOut:
     config = email_settings.current()
     address = (
@@ -157,12 +253,23 @@ def channel_out(channel: Channel) -> schemas.ChannelOut:
         id=channel.id,
         kind=channel.kind,
         name=channel.name,
-        connected=channel_connected(channel.kind),
+        connected=channel_connected(channel.kind, phone_number_id=channel.phone_number_id),
         inbound_address=address,
         from_name=channel.from_name,
         signature=channel.signature,
+        phone_number=channel.display_phone_number if channel.phone_number_id else None,
         disabled_at=channel.disabled_at,
         created_at=channel.created_at,
+    )
+
+
+def _whatsapp_out(send: WhatsAppSend) -> schemas.WhatsAppDeliveryOut:
+    return schemas.WhatsAppDeliveryOut(
+        status=send.status,
+        recipient=send.recipient,
+        template_name=send.template_name,
+        detail=send.detail,
+        status_at=send.status_at,
     )
 
 
@@ -485,6 +592,11 @@ class InboxService:
             status_changed_at=conversation.status_changed_at,
             updated_at=conversation.updated_at,
             allowed_statuses=allowed_transitions(conversation.status),
+            reply_window_closes_at=(
+                window_closes_at(await self._last_whatsapp_inbound(conversation.id))
+                if channel.kind is ChannelKind.WHATSAPP
+                else None
+            ),
         )
 
     # --- conversations: links --------------------------------------------------------------
@@ -512,7 +624,7 @@ class InboxService:
     async def create_conversation(self, body: schemas.ConversationCreate) -> tuple[uuid.UUID, bool]:
         """Returns the conversation id and whether the idempotency key was already used."""
         channel = await self.get_channel(body.channel_id)
-        adapter = adapter_for(channel.kind)
+        adapter = adapter_for(channel.kind, phone_number_id=channel.phone_number_id)
         contact = await self._active_contact(body.contact_id) if body.contact_id else None
         sender = body.sender or schemas.Sender()
         if contact is None and sender.email is None and sender.phone is None:
@@ -674,18 +786,27 @@ class InboxService:
         )
 
     async def post_message(
-        self, conversation_id: uuid.UUID, body: schemas.MessageCreate, *, send_email: bool = False
+        self,
+        conversation_id: uuid.UUID,
+        body: schemas.MessageCreate,
+        *,
+        send_external: bool = False,
+        template: RenderedTemplate | None = None,
     ) -> tuple[Message, bool]:
-        """Record a message. ``send_email`` is only set by ``public.send_reply`` (outbound)."""
+        """Record a message. ``send_external`` is only set by ``public.send_reply`` (outbound)."""
         conversation = await self.get_conversation(conversation_id, lock=True)
         channel = await self.get_channel(conversation.channel_id)
         if body.kind is schemas.MessageKind.CUSTOMER:
             return await self._log_customer_message(conversation, channel, body)
-        is_email_reply = (
-            body.kind is schemas.MessageKind.REPLY and channel.kind is ChannelKind.EMAIL
+        is_provider_reply = (
+            body.kind is schemas.MessageKind.REPLY and channel.kind in PROVIDER_KINDS
         )
-        if is_email_reply and (not send_email or body.idempotency_key is None):
+        if is_provider_reply and (not send_external or body.idempotency_key is None):
+            if channel.kind is ChannelKind.WHATSAPP:
+                raise WhatsAppNeedsApprovalError
             raise EmailNeedsApprovalError
+        if template is not None and channel.kind is not ChannelKind.WHATSAPP:
+            raise ConflictError("Templates can only be sent on WhatsApp channels.")
 
         if body.idempotency_key is not None:
             existing = await self._existing_staff_message(channel.id, body.idempotency_key)
@@ -698,12 +819,19 @@ class InboxService:
             raise _invalid(exc.field, str(exc)) from exc
 
         sent: tuple[str, str, str] | None = None  # provider, provider id, recipient
+        whatsapp: whatsapp_send.Attempt | None = None
         if body.kind is schemas.MessageKind.REPLY:
             direction = MessageDirection.OUTBOUND
             if not can_post(conversation.status, direction):
                 raise ConflictError("Reopen the conversation before logging a reply.")
-            adapter = adapter_for(channel.kind)
-            if is_email_reply:
+            adapter = adapter_for(channel.kind, phone_number_id=channel.phone_number_id)
+            if is_provider_reply and channel.kind is ChannelKind.WHATSAPP:
+                assert body.idempotency_key is not None  # noqa: S101 - checked above
+                whatsapp = await self._send_whatsapp(
+                    conversation, channel, body.body, body.idempotency_key, template
+                )
+                status, external_id = DeliveryStatus.SENT, None
+            elif is_provider_reply:
                 assert body.idempotency_key is not None  # noqa: S101 - checked above
                 sent = await self._send_email(
                     conversation, channel, body.body, body.idempotency_key
@@ -757,6 +885,17 @@ class InboxService:
                 )
             )
             await self.db.flush()
+        if whatsapp is not None:
+            # The attempt row was committed on its own; link it to the message we just stored.
+            await self.db.execute(
+                update(WhatsAppSend)
+                .where(
+                    WhatsAppSend.organization_id == self.org,
+                    WhatsAppSend.id == whatsapp.id,
+                    WhatsAppSend.message_id.is_(None),
+                )
+                .values(message_id=message.id)
+            )
         if direction is MessageDirection.OUTBOUND and occurred_at > conversation.last_message_at:
             conversation.last_message_at = occurred_at
         await self._audit(
@@ -767,6 +906,8 @@ class InboxService:
                 "message_id": str(message.id),
                 "direction": direction.value,
                 **({"delivery": "email"} if sent is not None else {}),
+                **({"delivery": "whatsapp"} if whatsapp is not None else {}),
+                **({"template": template.name} if template is not None else {}),
             },
         )
         if body.set_status is not None and body.set_status is not conversation.status:
@@ -875,6 +1016,211 @@ class InboxService:
             raise EmailSendFailedError from exc
         return config.provider.name, provider_id, recipient
 
+    # --- WhatsApp --------------------------------------------------------------------------
+
+    async def _last_whatsapp_inbound(self, conversation_id: uuid.UUID) -> datetime | None:
+        """When the customer last messaged through WhatsApp itself (opens the reply window)."""
+        found: datetime | None = await self.db.scalar(
+            select(func.max(Message.occurred_at)).where(
+                Message.organization_id == self.org,
+                Message.conversation_id == conversation_id,
+                Message.direction == MessageDirection.INBOUND,
+                Message.external_message_id.startswith(WHATSAPP_MESSAGE_ID_PREFIX),
+            )
+        )
+        return found
+
+    async def _whatsapp_recipient(self, conversation: Conversation) -> str:
+        participants = (
+            await self.db.scalars(
+                select(Participant)
+                .where(
+                    Participant.organization_id == self.org,
+                    Participant.conversation_id == conversation.id,
+                )
+                .order_by(Participant.created_at)
+            )
+        ).all()
+        for participant in participants:
+            if participant.address and participant.address.startswith("+"):
+                return participant.address
+        if conversation.contact_id is not None:
+            contact = (await crm.get_contacts(self.db, self.tenant, [conversation.contact_id])).get(
+                conversation.contact_id
+            )
+            if contact is not None and contact.phone:
+                return contact.phone
+        raise NoWhatsAppRecipientError
+
+    async def _send_whatsapp(
+        self,
+        conversation: Conversation,
+        channel: Channel,
+        body: str,
+        key: str,
+        template: RenderedTemplate | None,
+    ) -> whatsapp_send.Attempt:
+        config = whatsapp_settings.current()
+        if config is None or channel.phone_number_id is None:  # pragma: no cover - adapter_for
+            raise ChannelNotConnectedError
+        recipient = await self._whatsapp_recipient(conversation)
+        if await self.is_suppressed(recipient):
+            raise RecipientSuppressedError
+        if template is None and not window_open(
+            await self._last_whatsapp_inbound(conversation.id), self._now()
+        ):
+            raise OutsideReplyWindowError
+        attempt = await whatsapp_send.begin(
+            self.org,
+            channel_id=channel.id,
+            conversation_id=conversation.id,
+            idempotency_key=key,
+            recipient=recipient,
+            template_name=template.name if template else None,
+            provider=config.provider.name,
+        )
+        if attempt.already_sent:
+            return attempt
+        message = OutgoingWhatsApp(
+            phone_number_id=channel.phone_number_id,
+            to=recipient,
+            callback_data=str(attempt.id),
+            text=None if template else body,
+            template=TemplateUse(template.name, template.language, template.params)
+            if template
+            else None,
+        )
+        fields = {"conversation_id": str(conversation.id), "attempt_id": str(attempt.id)}
+        try:
+            provider_id = await config.provider.send(message)
+        except WhatsAppProviderError as exc:
+            # No HTTP response (timeout, dropped connection): the provider may have sent it.
+            # The attempt stays pending, so a retry waits for a status report instead.
+            if exc.status is not None:
+                await whatsapp_send.fail(self.org, attempt.id, exc.code)
+            logger.warning(
+                "whatsapp send failed",
+                extra={
+                    "fields": {
+                        **fields,
+                        "code": exc.code,
+                        "status": exc.status,
+                        "retryable": exc.retryable,
+                    }
+                },
+            )
+            if exc.status is None:
+                raise WhatsAppSendUnconfirmedError from exc
+            raise WhatsAppSendFailedError from exc
+        await whatsapp_send.finish(self.org, attempt.id, provider_id)
+        logger.info("whatsapp reply sent", extra={"fields": fields})
+        return whatsapp_send.Attempt(attempt.id, provider_id, already_sent=False)
+
+    async def _channel_template(self, channel: Channel, template_id: uuid.UUID) -> WhatsAppTemplate:
+        template = await self.db.scalar(
+            select(WhatsAppTemplate).where(
+                WhatsAppTemplate.organization_id == self.org,
+                WhatsAppTemplate.channel_id == channel.id,
+                WhatsAppTemplate.id == template_id,
+            )
+        )
+        if template is None:
+            raise _invalid("template_id", "Template not found on this conversation's channel.")
+        return template
+
+    async def render_template(
+        self, conversation_id: uuid.UUID, template_id: uuid.UUID, params: Sequence[str]
+    ) -> RenderedTemplate:
+        conversation = await self.get_conversation(conversation_id)
+        channel = await self.get_channel(conversation.channel_id)
+        if channel.kind is not ChannelKind.WHATSAPP:
+            raise _invalid("template_id", "Templates can only be sent on WhatsApp channels.")
+        template = await self._channel_template(channel, template_id)
+        if not template_usable(template) or template.body is None:
+            raise TemplateNotUsableError
+        values = tuple(params)
+        try:
+            text = render_template(template.body, values, template.param_count)
+        except TemplateParamError as exc:
+            loc = "params" if exc.index is None else f"params.{exc.index}"
+            raise _invalid(loc, str(exc)) from exc
+        return RenderedTemplate(template.id, template.name, template.language, values, text)
+
+    async def list_templates(self, channel_id: uuid.UUID) -> list[schemas.WhatsAppTemplateOut]:
+        channel = await self.get_channel(channel_id)
+        if channel.kind is not ChannelKind.WHATSAPP:
+            raise NotFoundError("This channel has no WhatsApp templates.")
+        rows = await self.db.scalars(
+            select(WhatsAppTemplate)
+            .where(
+                WhatsAppTemplate.organization_id == self.org,
+                WhatsAppTemplate.channel_id == channel.id,
+            )
+            .order_by(WhatsAppTemplate.name, WhatsAppTemplate.language)
+        )
+        return [_template_out(t) for t in rows.all()]
+
+    async def sync_templates(self, channel_id: uuid.UUID) -> list[schemas.WhatsAppTemplateOut]:
+        """Replace the stored template list with the provider's current one."""
+        channel = await self.get_channel(channel_id)
+        if channel.kind is not ChannelKind.WHATSAPP:
+            raise NotFoundError("This channel has no WhatsApp templates.")
+        config = whatsapp_settings.current()
+        if config is None or channel.waba_id is None or channel.phone_number_id is None:
+            raise ChannelNotConnectedError
+        try:
+            found = await config.provider.list_templates(channel.waba_id)
+        except WhatsAppProviderError as exc:
+            logger.warning(
+                "whatsapp template sync failed",
+                extra={"fields": {"channel_id": str(channel.id), "code": exc.code}},
+            )
+            raise ServiceUnavailableError(
+                "WhatsApp did not return the templates. Nothing changed; try again."
+            ) from exc
+        existing = {
+            (t.name, t.language): t
+            for t in (
+                await self.db.scalars(
+                    select(WhatsAppTemplate)
+                    .where(
+                        WhatsAppTemplate.organization_id == self.org,
+                        WhatsAppTemplate.channel_id == channel.id,
+                    )
+                    .with_for_update()
+                )
+            ).all()
+        }
+        now = self._now()
+        seen: set[tuple[str, str]] = set()
+        for info in found:
+            key = (info.name[:512], info.language[:16])
+            if key in seen:
+                continue
+            seen.add(key)
+            row = existing.get(key)
+            if row is None:
+                row = WhatsAppTemplate(
+                    organization_id=self.org, channel_id=channel.id, name=key[0], language=key[1]
+                )
+                self.db.add(row)
+            row.provider_template_id = info.provider_id[:64]
+            row.category = _category(info.category)
+            row.status = info.status[:32] or "unknown"
+            row.body = info.body
+            row.param_count = min(info.param_count, 20)
+            row.supported = info.supported and info.param_count <= 20
+            row.synced_at = now
+        for key, row in existing.items():
+            if key not in seen:
+                row.status = "deleted"  # gone from the provider: kept for history, not usable
+                row.synced_at = now
+        await self.db.flush()
+        await self._audit(
+            "whatsapp.templates.synced", "channel", channel.id, {"templates": len(seen)}
+        )
+        return await self.list_templates(channel.id)
+
     # --- suppressions ----------------------------------------------------------------------
 
     async def list_suppressions(self) -> list[schemas.SuppressionOut]:
@@ -931,7 +1277,7 @@ class InboxService:
     async def _log_customer_message(
         self, conversation: Conversation, channel: Channel, body: schemas.MessageCreate
     ) -> tuple[Message, bool]:
-        adapter = adapter_for(channel.kind)
+        adapter = adapter_for(channel.kind, phone_number_id=channel.phone_number_id)
         try:
             inbound = adapter.parse_inbound(
                 {
@@ -988,6 +1334,21 @@ class InboxService:
             )
             names = dict(rows.all())
         sent_ids = [m.id for m in messages if m.delivery_status is DeliveryStatus.SENT]
+        whatsapp_sends = (
+            {
+                s.message_id: s
+                for s in (
+                    await self.db.scalars(
+                        select(WhatsAppSend).where(
+                            WhatsAppSend.organization_id == self.org,
+                            WhatsAppSend.message_id.in_(sent_ids),
+                        )
+                    )
+                ).all()
+            }
+            if sent_ids
+            else {}
+        )
         deliveries = (
             {
                 d.message_id: d
@@ -1025,6 +1386,9 @@ class InboxService:
                         status_at=delivery.status_at,
                     )
                     if delivery is not None
+                    else None,
+                    whatsapp=_whatsapp_out(whatsapp_sends[m.id])
+                    if m.id in whatsapp_sends
                     else None,
                     occurred_at=m.occurred_at,
                     recorded_at=m.recorded_at,

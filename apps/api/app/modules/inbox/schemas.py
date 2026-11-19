@@ -20,6 +20,8 @@ from app.modules.inbox.models import (
     Handler,
     MessageDirection,
     SuppressionReason,
+    TemplateCategory,
+    WhatsAppSendStatus,
 )
 
 ChannelName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -95,6 +97,9 @@ class ChannelOut(BaseModel):
     )
     from_name: str | None = None
     signature: str | None = None
+    phone_number: str | None = Field(
+        default=None, description="WhatsApp only, once connected: the business number"
+    )
     disabled_at: datetime | None
     created_at: datetime
 
@@ -186,6 +191,11 @@ class ConversationDetail(ConversationSummary):
     status_changed_at: datetime
     updated_at: datetime
     allowed_statuses: list[ConversationStatus]
+    reply_window_closes_at: datetime | None = Field(
+        default=None,
+        description="WhatsApp only: until when a free-form reply can be sent. After it (or "
+        "when null on WhatsApp) only an approved template can be sent.",
+    )
 
 
 class ConversationUpdate(_Input):
@@ -242,6 +252,14 @@ class EmailDeliveryOut(BaseModel):
     status_at: datetime
 
 
+class WhatsAppDeliveryOut(BaseModel):
+    status: WhatsAppSendStatus
+    recipient: str
+    template_name: str | None = Field(description="The template sent, if it was one")
+    detail: str | None = Field(description="The provider's error code, no content")
+    status_at: datetime
+
+
 class MessageOut(BaseModel):
     id: uuid.UUID
     direction: MessageDirection
@@ -252,6 +270,9 @@ class MessageOut(BaseModel):
     delivery_status: DeliveryStatus
     delivery: EmailDeliveryOut | None = Field(
         default=None, description="Outbound email only: the provider's latest report"
+    )
+    whatsapp: WhatsAppDeliveryOut | None = Field(
+        default=None, description="Outbound WhatsApp only: the provider's latest report"
     )
     occurred_at: datetime
     recorded_at: datetime
@@ -285,15 +306,17 @@ class EventPage(BaseModel):
 
 
 class SuppressionCreate(_Input):
-    """Stop emailing an address, e.g. the customer asked not to be contacted by email."""
+    """Stop contacting an email address or WhatsApp number, e.g. the customer asked."""
 
-    address: str
+    address: str = Field(description="An email address, or a phone number with country code")
     note: Reason | None = None
 
     @field_validator("address", mode="before")
     @classmethod
     def _address(cls, value: Any) -> Any:
-        return normalise_email(value) if isinstance(value, str) else value
+        if not isinstance(value, str):
+            return value
+        return normalise_email(value) if "@" in value else normalise_phone(value)
 
 
 class SuppressionOut(BaseModel):
@@ -307,3 +330,25 @@ class SuppressionOut(BaseModel):
 
 class SuppressionList(BaseModel):
     items: list[SuppressionOut]
+
+
+# --- WhatsApp templates ------------------------------------------------------------------------
+
+
+class WhatsAppTemplateOut(BaseModel):
+    id: uuid.UUID
+    channel_id: uuid.UUID
+    name: str
+    language: str
+    category: TemplateCategory
+    status: str = Field(description="The provider's review status, e.g. approved")
+    body: str | None = Field(description="The template text with {{1}}, {{2}}... placeholders")
+    param_count: int
+    usable: bool = Field(
+        description="Approved, utility category, and only body parameters, so it can be sent"
+    )
+    synced_at: datetime
+
+
+class WhatsAppTemplateList(BaseModel):
+    items: list[WhatsAppTemplateOut]

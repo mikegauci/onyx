@@ -26,7 +26,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db.base import Base, created_at_column, str_enum, updated_at_column, uuid_pk
@@ -163,6 +163,17 @@ class Revision(Base):
             "author_kind <> 'staff' OR author_user_id IS NOT NULL", name="staff_has_user"
         ),
         CheckConstraint("revision >= 1", name="revision_positive"),
+        _same_tenant(
+            "template_id",
+            "inbox_whatsapp_templates",
+            "fk_outbound_revisions_template_same_tenant",
+        ),
+        CheckConstraint(
+            "(template_id IS NULL) = (template_params IS NULL) AND "
+            "(template_id IS NULL) = (template_name IS NULL) AND "
+            "(template_id IS NULL) = (template_language IS NULL)",
+            name="template_complete",
+        ),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -174,4 +185,12 @@ class Revision(Base):
         str_enum(DraftOrigin, "outbound_revision_author"), nullable=False
     )
     author_user_id: Mapped[uuid.UUID | None] = _user_fk()
+    # WhatsApp template replies: the template and its values; ``body`` is the rendered text the
+    # customer sees, which is what staff approve.
+    template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    template_name: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    template_language: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    template_params: Mapped[list[str] | None] = mapped_column(
+        JSONB(none_as_null=True), nullable=True
+    )
     created_at: Mapped[datetime] = created_at_column()

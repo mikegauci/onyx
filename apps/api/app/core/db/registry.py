@@ -7,6 +7,7 @@ from app.core.db.base import Base
 from app.core.modules import models as module_models
 from app.core.outbox import models as outbox_models
 from app.core.storage import models as storage_models
+from app.core.tasks import models as task_models
 from app.core.tenancy import models as tenancy_models
 from app.modules.assistant import models as assistant_models
 from app.modules.catalogue import models as catalogue_models
@@ -32,6 +33,7 @@ __all__ = [
     "outbox_models",
     "quotation_models",
     "storage_models",
+    "task_models",
     "tenancy_models",
     "workflow_models",
 ]

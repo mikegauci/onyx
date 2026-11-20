@@ -194,6 +194,9 @@ class _FailingClient:
     async def start_workflow(self, *args: Any, **kwargs: Any) -> Any:
         raise RuntimeError("temporal unavailable")
 
+    def get_workflow_handle(self, workflow_id: str) -> Any:
+        raise RuntimeError("temporal unavailable")
+
 
 def test_relay_failures_retry_with_backoff_then_fail(db_url: str, owner_engine: Engine) -> None:
     event = _event(owner_engine)

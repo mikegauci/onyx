@@ -18,6 +18,8 @@ from datetime import date, datetime
 
 DEFAULT_EXPIRY_HOURS = 72
 MAX_EXPIRY_HOURS = 720  # 30 days
+DEFAULT_REMIND_AFTER_HOURS = 4  # a pending draft creates a reminder task for approvers
+DEFAULT_ESCALATE_AFTER_HOURS = 24  # then an urgent one
 
 
 class DraftStatus(enum.StrEnum):

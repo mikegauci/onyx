@@ -133,16 +133,27 @@ export async function updateExpiry(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const hours = Number(text(formData, "expiry_hours"));
+  const whole = (name: string) => {
+    const value = Number(text(formData, name));
+    return Number.isInteger(value) ? value : 0;
+  };
   const outcome = await mutateApi((api) =>
     api.PUT("/v1/w/{slug}/outbound/settings", {
       params: { path: { slug } },
-      body: { expiry_hours: Number.isInteger(hours) ? hours : 0 },
+      body: {
+        expiry_hours: whole("expiry_hours"),
+        remind_after_hours: whole("remind_after_hours"),
+        escalate_after_hours: whole("escalate_after_hours"),
+      },
     }),
   );
   if (!outcome.ok) return failureState(outcome);
   refresh(slug);
-  return { status: "ok", message: `Drafts now stay valid for ${outcome.data.expiry_hours} hours.` };
+  const saved = outcome.data;
+  return {
+    status: "ok",
+    message: `Saved. Drafts stay valid for ${saved.expiry_hours} hours; approvers get a task after ${saved.remind_after_hours} hours, marked urgent after ${saved.escalate_after_hours}.`,
+  };
 }
 
 /**

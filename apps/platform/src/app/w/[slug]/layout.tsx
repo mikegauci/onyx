@@ -6,7 +6,9 @@ import { WorkspaceSwitcher } from "@/components/shell/workspace-switcher";
 import { getMe, getWorkspace } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
 import { moduleLabel } from "@/lib/modules";
+import { withApi } from "@/lib/api-client";
 import { SETTINGS_SECTIONS, visibleSettings } from "@/lib/nav";
+import { tasksLabel } from "@/lib/tasks";
 
 import { SuspendedWorkspace } from "./suspended";
 
@@ -25,11 +27,22 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     return <SuspendedWorkspace name={listed.name} hasOthers={me.workspaces.length > 1} />;
   }
   const workspace = requireOk(await getWorkspace(slug), base);
+  // The open count is a convenience; a failure leaves the plain label.
+  const tasks = workspace.permissions.includes("tasks.read")
+    ? await withApi((api) => api.GET("/v1/w/{slug}/tasks", { params: { path: { slug } } }))
+    : null;
 
   const settings = visibleSettings(workspace.permissions);
   const nav: NavGroup[] = [
     { items: [{ href: base, label: "Overview", icon: "overview", exact: true }] },
   ];
+  if (tasks) {
+    nav[0]!.items.push({
+      href: `${base}/tasks`,
+      label: tasksLabel(tasks.ok ? tasks.data.open_count : 0),
+      icon: "tasks",
+    });
+  }
   if (workspace.modules.length > 0) {
     nav.push({
       label: "Modules",
@@ -47,6 +60,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const crumbLabels: Record<string, string> = {
     [base]: workspace.display_name ?? workspace.name,
     [`${base}/settings`]: "Settings",
+    [`${base}/tasks`]: "Tasks",
   };
   for (const key of workspace.modules) crumbLabels[`${base}/m/${key}`] = moduleLabel(key);
   for (const s of SETTINGS_SECTIONS) crumbLabels[`${base}/settings/${s.slug}`] = s.label;

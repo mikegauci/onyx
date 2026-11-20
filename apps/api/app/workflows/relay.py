@@ -19,12 +19,21 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from temporalio.common import WorkflowIDReusePolicy
 from temporalio.exceptions import WorkflowAlreadyStartedError
+from temporalio.service import RPCError, RPCStatusCode
 
 from app.core.db.rls import WORKER_ROLE
-from app.workflows.workflows import OutboxEventInput, OutboxEventWorkflow
+from app.workflows.workflows import (
+    DraftApprovalInput,
+    DraftApprovalWorkflow,
+    OutboxEventInput,
+    OutboxEventWorkflow,
+    draft_workflow_id,
+)
 
 logger = logging.getLogger("onyx.workflows.relay")
 
+DRAFT_CREATED = "outbound.draft.created"
+DRAFT_DECIDED = "outbound.draft.decided"
 RETRY_BASE_SECONDS = 5
 RETRY_MAX_SECONDS = 15 * 60
 
@@ -43,6 +52,8 @@ class Starter(Protocol):
     """The part of ``temporalio.client.Client`` the relay uses."""
 
     async def start_workflow(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def get_workflow_handle(self, workflow_id: str) -> Any: ...
 
 
 def workflow_id(event_id: uuid.UUID) -> str:
@@ -106,6 +117,12 @@ class OutboxRelay:
             return outcome
 
     async def _start(self, event: ClaimedEvent) -> None:
+        if event.event_type == DRAFT_CREATED:
+            await self._start_approval(event)
+            return
+        if event.event_type == DRAFT_DECIDED:
+            await self._signal_decision(event)
+            return
         await self._client.start_workflow(
             OutboxEventWorkflow.run,
             OutboxEventInput(
@@ -120,6 +137,41 @@ class OutboxRelay:
             # Never a second workflow for an event, even after the first one finished.
             id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,
         )
+
+    async def _start_approval(self, event: ClaimedEvent) -> None:
+        p = event.payload
+        fields = ("draft_id", "remind_at", "escalate_at", "expires_at")
+        if not all(isinstance(p.get(f), str) for f in fields):
+            logger.warning(
+                "draft event without its fields", extra={"fields": {"event_id": str(event.id)}}
+            )
+            return
+        await self._client.start_workflow(
+            DraftApprovalWorkflow.run,
+            DraftApprovalInput(
+                organization_id=str(event.organization_id),
+                draft_id=p["draft_id"],
+                remind_at=p["remind_at"],
+                escalate_at=p["escalate_at"],
+                expires_at=p["expires_at"],
+            ),
+            id=draft_workflow_id(p["draft_id"]),
+            task_queue=self._task_queue,
+            id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,
+        )
+
+    async def _signal_decision(self, event: ClaimedEvent) -> None:
+        draft_id, decision = event.payload.get("draft_id"), event.payload.get("decision")
+        if not isinstance(draft_id, str) or not isinstance(decision, str):
+            return
+        handle = self._client.get_workflow_handle(draft_workflow_id(draft_id))
+        try:
+            await handle.signal(DraftApprovalWorkflow.decide, decision)
+        except RPCError as exc:
+            # No running workflow: it already ended, or the draft predates the worker. The
+            # database is the source of truth either way, so there is nothing to deliver.
+            if exc.status is not RPCStatusCode.NOT_FOUND:
+                raise
 
     async def run_once(self) -> int:
         """Relay one batch. Returns how many events were claimed."""

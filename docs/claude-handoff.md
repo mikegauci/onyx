@@ -20,7 +20,7 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0020` (applied 20 November 2026). Owner rule: apply each PR's
+- `onyx-preview` is at `0022` (applied 20 November 2026). Owner rule: apply each PR's
   migrations to `onyx-preview` as soon as the PR merges, without asking again; production
   still needs explicit approval. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
   AI budget, and the email channel "Onyx". Email setup on preview:
@@ -86,11 +86,14 @@ resend/revoke and integration status. Migration `0020`. See `docs/platform/tenan
 
 PR-025 part 2 merged ([#35](https://github.com/mikegauci/onyx/pull/35)); PR-025 is complete.
 
-PR-020, the Temporal runtime, is in review: the worker process, the outbox relay (one workflow
-per event, `REJECT_DUPLICATE`), the first workflow (a sent reply moves an open conversation to
-"waiting on customer"), effects recorded once, replay and restart tests. Migration `0021`. See
-`docs/platform/workflows.md`. Temporal Cloud and a Render worker need the owner's approval.
-Next: PR-021 (approvals, reminders, deadlines and human tasks).
+PR-020 merged ([#36](https://github.com/mikegauci/onyx/pull/36)): the Temporal worker, the
+outbox relay and the first workflow. Migration `0021`. Temporal Cloud and a Render worker need
+the owner's approval.
+
+PR-021 is in review: a `DraftApproval` workflow per reply draft (reminder and urgent tasks for
+approvers, expiry, decisions as signals relayed from outbox events), staff **Tasks** (API,
+sidebar page) and reminder settings. Migration `0022`. See `docs/platform/workflows.md`.
+`onyx-preview` is at `0022`. Next: PR-027 production hardening.
 
 ## Verification preference
 

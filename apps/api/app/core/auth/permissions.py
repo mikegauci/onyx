@@ -38,6 +38,8 @@ class Permission(enum.StrEnum):
     KNOWLEDGE_READ = "knowledge.read"  # list and search the workspace's documents
     KNOWLEDGE_MANAGE = "knowledge.manage"  # upload, replace and delete documents
     AI_USAGE_READ = "ai.usage.read"  # the workspace's AI spend, budget and call history
+    TASKS_READ = "tasks.read"  # see the tasks meant for your role, and mark them done
+    TASKS_MANAGE = "tasks.manage"  # cancel tasks
 
 
 _MEMBER = frozenset(
@@ -54,6 +56,7 @@ _MEMBER = frozenset(
         Permission.OUTBOUND_READ,
         Permission.OUTBOUND_WRITE,
         Permission.KNOWLEDGE_READ,
+        Permission.TASKS_READ,
     }
 )
 _ADMIN = _MEMBER | {
@@ -73,6 +76,7 @@ _ADMIN = _MEMBER | {
     Permission.OUTBOUND_APPROVE,
     Permission.OUTBOUND_MANAGE,
     Permission.KNOWLEDGE_MANAGE,
+    Permission.TASKS_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

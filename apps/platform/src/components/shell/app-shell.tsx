@@ -38,6 +38,7 @@ import {
   type LucideIcon,
   Package,
   Send,
+  ListTodo,
   Settings,
   ShieldCheck,
   ShoppingCart,
@@ -64,6 +65,7 @@ const ICONS = {
   organizations: Building2,
   status: Gauge,
   admin: ShieldCheck,
+  tasks: ListTodo,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

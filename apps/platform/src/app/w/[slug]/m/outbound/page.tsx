@@ -82,7 +82,8 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
   const zone = workspace.timezone;
   const canApprove = workspace.permissions.includes("outbound.approve");
   const canManage = workspace.permissions.includes("outbound.manage");
-  const hours = requireOk(settings, path).expiry_hours;
+  const outboundSettings = requireOk(settings, path);
+  const hours = outboundSettings.expiry_hours;
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -146,9 +147,9 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
       {canManage ? (
         <section className="flex flex-col gap-3" aria-labelledby="expiry-heading">
           <h2 id="expiry-heading" className="text-lg font-medium">
-            Draft expiry
+            Draft expiry and reminders
           </h2>
-          <ExpiryForm slug={slug} hours={hours} />
+          <ExpiryForm slug={slug} settings={outboundSettings} />
         </section>
       ) : null}
     </div>

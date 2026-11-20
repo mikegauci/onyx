@@ -189,9 +189,15 @@ def test_a_member_drafts_an_approver_approves_and_it_is_sent_once(
             {"d": draft["id"]},
         ).all()
     assert tuple(message) == (REPLY, "logged", "staff", "waiting_on_customer")
-    assert len(events) == 1
-    assert events[0].event_type == "outbound.reply.sent"
-    assert events[0].payload["message_id"] == body["sent_message_id"]
+    sent = [e for e in events if e.event_type == "outbound.reply.sent"]
+    assert len(sent) == 1
+    assert sent[0].payload["message_id"] == body["sent_message_id"]
+    # The approval workflow's lifecycle events (PR-021): created, approved, sent. Ids only.
+    assert sorted((e.event_type, e.payload.get("decision")) for e in events if e not in sent) == [
+        ("outbound.draft.created", None),
+        ("outbound.draft.decided", "approved"),
+        ("outbound.draft.decided", "sent"),
+    ]
     assert "body" not in events[0].payload
 
     # A retry returns the sent draft and sends nothing new.
@@ -385,12 +391,20 @@ def test_a_new_customer_message_expires_the_draft(api: TestClient, as_: As) -> N
 def test_drafts_expire_after_the_workspace_setting(
     api: TestClient, as_: As, owner_engine: Engine
 ) -> None:
-    assert api.get(f"{_base()}/settings", headers=as_.seeded(MIA)).json() == {"expiry_hours": 72}
+    assert api.get(f"{_base()}/settings", headers=as_.seeded(MIA)).json() == {
+        "expiry_hours": 72,
+        "remind_after_hours": 4,
+        "escalate_after_hours": 24,
+    }
     assert (
         api.put(f"{_base()}/settings", json={"expiry_hours": 4}, headers=as_.seeded(MIA))
     ).status_code == 403
     updated = api.put(f"{_base()}/settings", json={"expiry_hours": 4}, headers=as_.seeded(ADAM))
-    assert updated.json() == {"expiry_hours": 4}
+    assert updated.json() == {
+        "expiry_hours": 4,
+        "remind_after_hours": 4,
+        "escalate_after_hours": 24,
+    }
 
     draft = _created(_draft(api, as_))
     with owner_engine.begin() as conn:
@@ -479,12 +493,20 @@ def test_app_role_cannot_rewrite_drafts(owner_engine: Engine, statement: str) ->
         conn.execute(text(statement))
 
 
-def test_worker_role_has_no_outbound_access_yet(owner_engine: Engine) -> None:
-    with (
-        pytest.raises(ProgrammingError, match="permission denied"),
-        as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn,
+def test_the_worker_role_reads_drafts_but_never_writes_replies(owner_engine: Engine) -> None:
+    # Approval workflows (PR-021) read drafts and expire them; they never create or edit one.
+    for sql in (
+        "INSERT INTO outbound_drafts (organization_id, conversation_id, origin, status, "
+        "current_revision, expires_at) VALUES (gen_random_uuid(), gen_random_uuid(), 'staff', "
+        "'pending', 1, now())",
+        "UPDATE outbound_drafts SET approved_by_user_id = NULL",
+        "SELECT count(*) FROM outbound_revisions",
     ):
-        conn.execute(text("SELECT count(*) FROM outbound_drafts"))
+        with (
+            pytest.raises(ProgrammingError, match="permission denied"),
+            as_role(owner_engine, "onyx_worker", organization_id=LUMEN_ID) as conn,
+        ):
+            conn.execute(text(sql))
 
 
 # --- tenants and entitlements ----------------------------------------------------------------

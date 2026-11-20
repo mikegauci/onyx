@@ -36,10 +36,16 @@ class _Input(BaseModel):
 
 class OutboundSettingsOut(BaseModel):
     expiry_hours: int = Field(description="How long a draft can wait for approval and sending")
+    remind_after_hours: int = Field(description="When a waiting draft creates a reminder task")
+    escalate_after_hours: int = Field(description="When it creates an urgent task")
 
 
 class OutboundSettingsUpdate(_Input):
+    """Omitted reminder fields keep their current values."""
+
     expiry_hours: int = Field(ge=1, le=MAX_EXPIRY_HOURS)
+    remind_after_hours: int | None = Field(default=None, ge=1, le=168)
+    escalate_after_hours: int | None = Field(default=None, ge=2, le=720)
 
 
 # --- inputs ----------------------------------------------------------------------------------

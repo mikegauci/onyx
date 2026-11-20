@@ -108,12 +108,14 @@ PR-026 part 2 merged ([#40](https://github.com/mikegauci/onyx/pull/40)); PR-026 
 Ventur docs merged ([#41](https://github.com/mikegauci/onyx/pull/41)). Earlier: Settings → Billing (plan, checkout, portal,
 AI usage with CSV) and a read-only billing section for platform admins. Migration `0024`.
 
-VA-001 part 1, vehicles and the WordPress import, is in review: the `automotive` module,
+VA-001 part 1 merged ([#42](https://github.com/mikegauci/onyx/pull/42)), vehicles and the WordPress import: the `automotive` module,
 vehicles with per-field sources, an SSRF-guarded Vehica importer (preview, idempotent apply,
 withdrawals), and the assistant's `search_vehicles` (available cars only). Migration `0025`;
 `onyx-preview` is at `0025`. See `docs/platform/automotive.md`. Needs from Ventur: which field
-marks sold or reserved; the owner's go-ahead for the first live import. Next: VA-001 part 2,
-the Vehicles and import screens.
+marks sold or reserved; the owner's go-ahead for the first live import.
+
+VA-001 part 2, the Vehicles and import screens, is in review (no migration). Next: VA-002, the
+auto-send policy for low-risk replies.
 
 **First client: Ventur Auto Import** (19 November 2026), a car dealer, replaces the lighting
 retailer. The owner's decisions:

@@ -40,6 +40,7 @@ from app.integrations.whatsapp import WhatsAppConfig, WhatsAppProvider
 from app.integrations.whatsapp.fake import FakeWhatsAppProvider
 from app.integrations.whatsapp.meta import MetaProvider
 from app.modules.assistant.routes import router as assistant_router
+from app.modules.automotive import fake_site
 from app.modules.automotive.routes import router as automotive_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
@@ -198,6 +199,9 @@ def create_app(
             if whatsapp_config is not None and app.state.session_factory is not None
             else None
         )
+        if settings.automotive_site == "fake":  # local and e2e only; refused when deployed
+            app.state.automotive_client_factory = fake_site.fake_client
+            app.state.automotive_resolver = fake_site.fake_resolver
         billing_config = _billing_config(settings, billing_provider)
         app.state.billing_config = billing_config
         app.state.billing_webhooks = (

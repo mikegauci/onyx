@@ -30,6 +30,7 @@ import { cn } from "@onyx/ui/lib/utils";
 import {
   Bot,
   Building2,
+  Car,
   Contact,
   FileText,
   Gauge,
@@ -66,6 +67,7 @@ const ICONS = {
   status: Gauge,
   admin: ShieldCheck,
   tasks: ListTodo,
+  automotive: Car,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

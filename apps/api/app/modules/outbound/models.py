@@ -31,7 +31,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db.base import Base, created_at_column, str_enum, updated_at_column, uuid_pk
 from app.modules.outbound.lifecycle import (
+    DEFAULT_ESCALATE_AFTER_HOURS,
     DEFAULT_EXPIRY_HOURS,
+    DEFAULT_REMIND_AFTER_HOURS,
     MAX_EXPIRY_HOURS,
     DraftOrigin,
     DraftStatus,
@@ -66,6 +68,11 @@ class Settings(Base):
     __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
     __table_args__ = (
         CheckConstraint(f"expiry_hours BETWEEN 1 AND {MAX_EXPIRY_HOURS}", name="expiry_range"),
+        CheckConstraint(
+            "remind_after_hours BETWEEN 1 AND 168 AND escalate_after_hours BETWEEN 2 AND 720 "
+            "AND escalate_after_hours > remind_after_hours",
+            name="reminder_order",
+        ),
     )
 
     organization_id: Mapped[uuid.UUID] = mapped_column(
@@ -73,6 +80,13 @@ class Settings(Base):
     )
     expiry_hours: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=str(DEFAULT_EXPIRY_HOURS)
+    )
+    # A draft still waiting for approval creates a reminder task, then an urgent one (PR-021).
+    remind_after_hours: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=str(DEFAULT_REMIND_AFTER_HOURS)
+    )
+    escalate_after_hours: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=str(DEFAULT_ESCALATE_AFTER_HOURS)
     )
     updated_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
     updated_at: Mapped[datetime] = updated_at_column()

@@ -16,6 +16,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.core.admin.models import PlatformAdmin
 from app.core.config import Settings
 from app.core.modules.models import OrganizationModule
+from app.core.tasks.models import Task
 from app.core.tenancy.models import Membership, MembershipRole, Organization, User
 from app.modules.catalogue.models import Price, PriceList, Product, StockLevel, Variant, VatRate
 from app.modules.crm.models import Contact, Customer, CustomerKind, Lead, LeadSource, LeadStatus
@@ -276,6 +277,30 @@ def seed(connection: Connection) -> None:
         seed_inbox(connection)
     if inspect(connection).has_table("quotations_quotes"):
         seed_quotations(connection)
+    if inspect(connection).has_table("tasks"):
+        seed_tasks(connection)
+
+
+# One open task for Lumen's admins and owners, so the Tasks page has something to show.
+SEED_TASK_TITLE = "Check the stock count for the brass pendants"
+
+
+def seed_tasks(connection: Connection) -> None:
+    slug = "lumen-lighting-test"
+    connection.execute(
+        insert(Task)
+        .values(
+            id=seed_id(f"{slug}:task:stock-count"),
+            organization_id=seed_id(slug),
+            kind="seed.example",
+            title=SEED_TASK_TITLE,
+            subject_type="organization",
+            subject_id=seed_id(slug),
+            audience="admin",
+            source_key="seed:stock-count",
+        )
+        .on_conflict_do_nothing()
+    )
 
 
 def seed_catalogue(connection: Connection) -> None:

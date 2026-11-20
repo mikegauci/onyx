@@ -21,7 +21,7 @@ from temporalio.worker import Worker
 
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
-from app.workflows.activities import Activities
+from app.workflows.activities import Activities, ApprovalActivities
 from app.workflows.relay import OutboxRelay
 from app.workflows.workflows import WORKFLOWS
 
@@ -64,7 +64,7 @@ async def run(settings: Settings) -> None:
         client,
         task_queue=settings.temporal_task_queue,
         workflows=WORKFLOWS,
-        activities=activities.all(),
+        activities=[*activities.all(), *ApprovalActivities(sessions).all()],
     )
     logger.info(
         "worker starting",

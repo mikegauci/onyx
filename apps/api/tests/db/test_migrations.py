@@ -55,6 +55,7 @@ EXPECTED_TABLES = {
     "inbox_whatsapp_templates",
     "inbox_whatsapp_sends",
     "workflow_effects",
+    "tasks",
 }
 
 

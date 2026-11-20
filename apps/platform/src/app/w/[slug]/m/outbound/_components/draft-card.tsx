@@ -470,14 +470,21 @@ export function DraftCard({
   );
 }
 
-export function ExpiryForm({ slug, hours }: { slug: string; hours: number }) {
+export function ExpiryForm({
+  slug,
+  settings,
+}: {
+  slug: string;
+  settings: { expiry_hours: number; remind_after_hours: number; escalate_after_hours: number };
+}) {
   const [state, action, pending] = useActionState(updateExpiry.bind(null, slug), IDLE);
+  const errors = state.fieldErrors ?? {};
   return (
-    <form action={action} className="flex max-w-sm flex-col gap-2" noValidate>
+    <form action={action} className="flex max-w-sm flex-col gap-3" noValidate>
       <FormField
         id="expiry_hours"
         label="Drafts stay valid for (hours)"
-        error={state.fieldErrors?.expiry_hours}
+        error={errors.expiry_hours}
       >
         <Input
           id="expiry_hours"
@@ -485,7 +492,38 @@ export function ExpiryForm({ slug, hours }: { slug: string; hours: number }) {
           type="number"
           min={1}
           max={720}
-          defaultValue={hours}
+          defaultValue={settings.expiry_hours}
+          required
+        />
+      </FormField>
+      <FormField
+        id="remind_after_hours"
+        label="Remind approvers after (hours)"
+        hint="A task appears for admins and owners when a reply still waits for approval."
+        error={errors.remind_after_hours}
+      >
+        <Input
+          id="remind_after_hours"
+          name="remind_after_hours"
+          type="number"
+          min={1}
+          max={168}
+          defaultValue={settings.remind_after_hours}
+          required
+        />
+      </FormField>
+      <FormField
+        id="escalate_after_hours"
+        label="Mark it urgent after (hours)"
+        error={errors.escalate_after_hours}
+      >
+        <Input
+          id="escalate_after_hours"
+          name="escalate_after_hours"
+          type="number"
+          min={2}
+          max={720}
+          defaultValue={settings.escalate_after_hours}
           required
         />
       </FormField>

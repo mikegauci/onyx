@@ -18,6 +18,7 @@ from app.api.audit import router as audit_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
 from app.api.modules import router as modules_router
+from app.api.tasks import router as tasks_router
 from app.api.webhooks import router as webhooks_router
 from app.api.workspaces import router as workspaces_router
 from app.core.auth.tokens import TokenVerifier
@@ -200,6 +201,7 @@ def create_app(
     v1.include_router(workspaces_router)
     v1.include_router(audit_router)
     v1.include_router(modules_router)
+    v1.include_router(tasks_router)
     v1.include_router(admin_router)
     v1.include_router(admin_organizations_router)
     v1.include_router(ai_router)

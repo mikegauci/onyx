@@ -51,7 +51,45 @@ request transaction ──writes──▶ outbox_events (pending)
 A closed or already-waiting conversation is left alone; the customer's next message reopens it
 as before. The conversation history shows "Status changed to waiting on customer (reply sent)".
 
-Approvals, reminders, deadlines and human tasks come in PR-021, on this runtime.
+## Reply approval (PR-021)
+
+Every reply draft gets a `DraftApproval` workflow (id `outbound-draft-{draft id}`), started from
+the `outbound.draft.created` event. It waits without holding any connection: Temporal keeps the
+timers.
+
+1. At `remind_at` (workspace setting, default 4 hours), if the draft still waits for approval,
+   it opens a **task** for admins and owners: "Reply waiting for approval: {subject}".
+2. At `escalate_at` (default 24 hours) it opens an **urgent** task.
+3. Approving closes those tasks as done. The draft's expiry still applies until it is sent.
+4. At `expires_at`, an open draft is marked expired (the database clock decides) and its
+   tasks are cancelled.
+5. Sending, rejecting, expiring or replacing the draft ends the workflow; its tasks are closed
+   (done when sent, cancelled otherwise).
+
+Decisions reach the workflow as the `decide` signal, which the relay delivers from
+`outbound.draft.decided` outbox events. The API never calls Temporal. The database stays the
+source of truth: each step re-reads the draft, so a late or lost signal at most ends the
+workflow one step later and never opens a task for a decided draft. Duplicate events and
+signals change nothing: workflow ids are per draft (`REJECT_DUPLICATE`), signals are
+de-duplicated, and each task's `source_key` is `{workflow id}:{step}`.
+
+Other reasons a draft goes stale (the customer wrote again, the quote changed) are still
+worked out by the API when the draft is read or acted on.
+
+## Tasks
+
+`tasks` hold work for people. A task names the record it is about (`subject_type`,
+`subject_id`), its least role (`audience`: member, admin or owner), a priority, a due time and
+its status (open, done, cancelled).
+
+| Request                                 | Who                                        |
+| --------------------------------------- | ------------------------------------------ |
+| `GET /v1/w/{slug}/tasks?status=open`    | `tasks.read`: tasks for your role or below |
+| `POST /v1/w/{slug}/tasks/{id}/complete` | `tasks.read`, for a task you can see       |
+| `POST /v1/w/{slug}/tasks/{id}/cancel`   | `tasks.manage` (admins and owners)         |
+
+Closing is audited (`task.completed`, `task.cancelled`). The dashboard shows **Tasks** in the
+sidebar with the open count, and links each task to its record.
 
 ## Rules for workflow code
 
@@ -99,12 +137,15 @@ Needs the owner's approval, because both services are billable:
 Until then, outbox events keep accumulating as `pending` on deployed databases. Nothing
 depends on them yet.
 
-## Data (migration `0021`)
+## Data (migrations `0021`, `0022`)
 
 - `workflow_effects`: tenant, event, effect, workflow id. Tenant policies; `onyx_worker` may
   read and insert.
 - `app_worker_claim_outbox`, `app_worker_finish_outbox`: SECURITY DEFINER, executable by
   `onyx_worker` only.
+- `0022`: `tasks` (tenant policies; the app role reads and closes, the worker creates and
+  closes), `outbound_settings.remind_after_hours` and `escalate_after_hours`, and worker
+  access to read drafts and settings and to expire a draft.
 
 Rollback: revert the PR; `0021` downgrades locally (it drops the table and functions).
 Deployed databases use a forward fix.
@@ -120,6 +161,10 @@ Deployed databases use a forward fix.
   - claims skip leased events and suspended tenants;
   - an activity bound to one tenant cannot change another's conversation;
   - the app role cannot call the worker functions.
+- `tests/api/test_approval_workflows.py`: reminder then escalation on skipped time and
+  approval closing them; rejection before any reminder; expiry cancelling the tasks; duplicate
+  events and signals; tasks by role, closing, permissions, audit and tenant isolation;
+  reminder settings.
 - `tests/workflows/test_replay.py`: the committed histories replay against the current code.
 
 The test server is a binary the Temporal SDK downloads on first use, so CI needs network

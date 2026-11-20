@@ -36,7 +36,9 @@ from app.modules.inbox import public as inbox
 from app.modules.inbox.models import ConversationStatus, Handler
 from app.modules.outbound import schemas
 from app.modules.outbound.lifecycle import (
+    DEFAULT_ESCALATE_AFTER_HOURS,
     DEFAULT_EXPIRY_HOURS,
+    DEFAULT_REMIND_AFTER_HOURS,
     EXPIRY_TEXT,
     OPEN,
     QUOTE_BLOCK_TEXT,
@@ -59,6 +61,8 @@ logger = logging.getLogger("onyx.outbound")
 LIST_LIMIT = 100
 OPEN_PER_CONVERSATION = "uq_outbound_drafts_open_per_conversation"
 SENT_EVENT = "outbound.reply.sent"
+CREATED_EVENT = "outbound.draft.created"  # starts the draft's approval workflow
+DECIDED_EVENT = "outbound.draft.decided"  # approved, rejected, sent, expired or superseded
 
 
 class DraftExistsError(ConflictError):
@@ -225,38 +229,85 @@ class OutboundService:
         for name, value in fields.items():
             setattr(draft, name, value)
         await self.db.flush()
+        await self._emit_decision(draft, status.value)
+
+    async def _emit(self, event_type: str, draft: Draft, payload: dict[str, Any], key: str) -> None:
+        # Core insert without RETURNING: the app role may insert outbox events, not read them.
+        await self.db.execute(
+            insert(OutboxEvent).values(
+                id=uuid.uuid4(),
+                organization_id=self.org,
+                event_type=event_type,
+                aggregate_type="outbound_draft",
+                aggregate_id=draft.id,
+                payload={"draft_id": str(draft.id), **payload},
+                idempotency_key=key,
+            )
+        )
+
+    async def _emit_decision(self, draft: Draft, decision: str) -> None:
+        """Tells the draft's approval workflow (PR-021); ids and the decision only."""
+        await self._emit(
+            DECIDED_EVENT,
+            draft,
+            {"decision": decision, "revision": draft.current_revision},
+            f"{DECIDED_EVENT}:{draft.id}:{decision}:{draft.current_revision}",
+        )
 
     # --- settings --------------------------------------------------------------------------
 
     async def _settings_row(self) -> Settings | None:
         return await self.db.scalar(select(Settings).where(Settings.organization_id == self.org))
 
-    async def settings(self) -> schemas.OutboundSettingsOut:
-        row = await self._settings_row()
+    @staticmethod
+    def _settings_out(row: Settings | None) -> schemas.OutboundSettingsOut:
+        if row is None:
+            return schemas.OutboundSettingsOut(
+                expiry_hours=DEFAULT_EXPIRY_HOURS,
+                remind_after_hours=DEFAULT_REMIND_AFTER_HOURS,
+                escalate_after_hours=DEFAULT_ESCALATE_AFTER_HOURS,
+            )
         return schemas.OutboundSettingsOut(
-            expiry_hours=row.expiry_hours if row else DEFAULT_EXPIRY_HOURS
+            expiry_hours=row.expiry_hours,
+            remind_after_hours=row.remind_after_hours,
+            escalate_after_hours=row.escalate_after_hours,
         )
+
+    async def settings(self) -> schemas.OutboundSettingsOut:
+        return self._settings_out(await self._settings_row())
 
     async def update_settings(
         self, body: schemas.OutboundSettingsUpdate
     ) -> schemas.OutboundSettingsOut:
         row = await self._settings_row()
-        before = row.expiry_hours if row else DEFAULT_EXPIRY_HOURS
+        before = self._settings_out(row)
+        remind = body.remind_after_hours or before.remind_after_hours
+        escalate = body.escalate_after_hours or before.escalate_after_hours
+        if escalate <= remind:
+            raise _invalid("escalate_after_hours", "Escalate later than the first reminder.")
         if row is None:
             row = Settings(organization_id=self.org, expiry_hours=body.expiry_hours)
             self.db.add(row)
         row.expiry_hours = body.expiry_hours
+        row.remind_after_hours = remind
+        row.escalate_after_hours = escalate
         row.updated_by_user_id = self.actor
         await self.db.flush()
+        after = self._settings_out(row)
+        changes = {
+            name: {"from": getattr(before, name), "to": getattr(after, name)}
+            for name in ("expiry_hours", "remind_after_hours", "escalate_after_hours")
+            if getattr(before, name) != getattr(after, name)
+        }
         await record_workspace_audit(
             self.db,
             self.workspace,
             action="outbound.settings.updated",
             target_type="organization",
             target_id=self.org,
-            details={"expiry_hours": {"from": before, "to": body.expiry_hours}},
+            details=changes,
         )
-        return schemas.OutboundSettingsOut(expiry_hours=row.expiry_hours)
+        return after
 
     # --- reading ---------------------------------------------------------------------------
 
@@ -475,6 +526,18 @@ class OutboundService:
             raise
         self._add_revision(draft, 1, body, origin, template)
         await self.db.flush()
+        row = await self._settings_row()
+        created = self._settings_out(row)
+        await self._emit(
+            CREATED_EVENT,
+            draft,
+            {
+                "remind_at": (now + timedelta(hours=created.remind_after_hours)).isoformat(),
+                "escalate_at": (now + timedelta(hours=created.escalate_after_hours)).isoformat(),
+                "expires_at": draft.expires_at.isoformat(),
+            },
+            f"{CREATED_EVENT}:{draft.id}",
+        )
         await self._audit(
             "created",
             draft,
@@ -627,6 +690,7 @@ class OutboundService:
         draft.approved_at = self._now()
         draft.quote_version = quote_version
         await self.db.flush()
+        await self._emit_decision(draft, "approved")
         await self._audit(
             "approved",
             draft,
@@ -698,6 +762,7 @@ class OutboundService:
         draft.sent_by_user_id = self.actor
         draft.sent_at = self._now()
         await self.db.flush()
+        await self._emit_decision(draft, "sent")
 
         payload = {
             "draft_id": str(draft.id),

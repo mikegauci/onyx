@@ -13,6 +13,10 @@ export const E2E = {
     "postgresql+psycopg://onyx:onyx_local_only@127.0.0.1:54322/onyx_e2e",
 };
 
+/** Signs the e2e Stripe webhooks. A test value for the fake billing provider only. */
+export const STRIPE_E2E_SECRET = "whsec_e2e_billing_secret";
+export const STRIPE_E2E_PRICES = { starter: "price_e2estarter", growth: "price_e2egrowth" };
+
 /** Signs the e2e WhatsApp webhooks. A test value for the fake provider only. */
 export const WHATSAPP_E2E_SECRET = "whatsapp-e2e-app-secret";
 
@@ -73,6 +77,12 @@ export default defineConfig({
         ONYX_API_WHATSAPP_APP_SECRET: WHATSAPP_E2E_SECRET,
         ONYX_API_WHATSAPP_VERIFY_TOKEN: "e2e-verify-token",
         ONYX_API_WHATSAPP_ACCESS_TOKEN: "e2e-unused-token",
+        // Billing on the in-memory fake provider: checkout links point back to the dashboard.
+        ONYX_API_BILLING_PROVIDER: "fake",
+        ONYX_API_STRIPE_API_KEY: "sk_test_e2e_unused",
+        ONYX_API_STRIPE_WEBHOOK_SECRET: STRIPE_E2E_SECRET,
+        ONYX_API_STRIPE_PRICE_STARTER: STRIPE_E2E_PRICES.starter,
+        ONYX_API_STRIPE_PRICE_GROWTH: STRIPE_E2E_PRICES.growth,
       },
     },
     {

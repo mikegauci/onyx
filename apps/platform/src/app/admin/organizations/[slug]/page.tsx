@@ -4,6 +4,7 @@ import Link from "next/link";
 import { withApi } from "@/lib/api-client";
 import { formatInZone } from "@/lib/crm";
 import { requireOk } from "@/lib/guards";
+import { billingStatus } from "@/lib/billing";
 import { usdFromMicros } from "@/lib/tenants";
 
 import { IntegrationList } from "../../../w/[slug]/settings/integrations/integration-list";
@@ -22,14 +23,17 @@ export default async function AdminOrganizationPage({ params }: Props) {
   const { slug } = await params;
   const path = `/admin/organizations/${slug}`;
   const opts = { params: { path: { slug } } };
-  const [detailResult, invitationsResult, integrationsResult] = await Promise.all([
+  const [detailResult, invitationsResult, integrationsResult, billingResult] = await Promise.all([
     withApi((api) => api.GET("/v1/admin/organizations/{slug}", opts)),
     withApi((api) => api.GET("/v1/admin/organizations/{slug}/invitations", opts)),
     withApi((api) => api.GET("/v1/admin/organizations/{slug}/integrations", opts)),
+    withApi((api) => api.GET("/v1/admin/organizations/{slug}/billing", opts)),
   ]);
   const detail = requireOk(detailResult, path);
   const invitations = requireOk(invitationsResult, path);
   const integrations = requireOk(integrationsResult, path);
+  const billing = requireOk(billingResult, path);
+  const billingView = billingStatus(billing.status);
   const org = detail.organization;
   const timezones = Intl.supportedValuesOf("timeZone");
   if (!timezones.includes(org.timezone)) timezones.unshift(org.timezone);
@@ -89,6 +93,29 @@ export default async function AdminOrganizationPage({ params }: Props) {
           </ul>
         )}
         <NewInvitationForm slug={org.slug} />
+      </section>
+
+      <section aria-labelledby="billing-heading" className="flex flex-col gap-3">
+        <h2 id="billing-heading" className="text-lg font-medium">
+          Billing
+        </h2>
+        <p className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-medium capitalize">{billing.plan ?? "No plan"}</span>
+          <Badge variant={billingView.variant}>{billingView.label}</Badge>
+          {billing.current_period_end ? (
+            <span className="text-muted-foreground">
+              {billing.cancel_at_period_end ? "Ends" : "Renews"}{" "}
+              {formatInZone(billing.current_period_end, org.timezone)}
+            </span>
+          ) : null}
+          {!billing.has_customer ? (
+            <span className="text-muted-foreground">No Stripe customer yet</span>
+          ) : null}
+        </p>
+        <p className="text-muted-foreground text-xs">
+          Read-only: plans change through Stripe (the owner&apos;s checkout or billing portal). The
+          plan decides the modules below at each change.
+        </p>
       </section>
 
       <section aria-labelledby="budget-heading" className="flex flex-col gap-3">

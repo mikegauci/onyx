@@ -1,7 +1,7 @@
 # Billing (PR-026)
 
 Onyx charges tenants through **Stripe Billing**. A tenant's plan decides its modules and its
-included AI budget. Part 1 (this document) is the backend; part 2 adds the billing screens.
+included AI budget. Part 1 is the backend; part 2 the screens (see [Screens](#screens)).
 
 **Not connected to Stripe yet.** Tests use a fake provider. Going live needs the owner's
 Stripe account, the plans' prices (test mode first) and the webhook endpoint registered.
@@ -48,6 +48,23 @@ cannot send anyone to another site.
 | `GET /v1/w/{slug}/billing/usage.csv?month=…` | The same as CSV, with a total line                                 |
 
 Without Stripe settings, `GET …/billing` says `configured: false` and the rest answer `503`.
+
+## Screens
+
+- **Settings → Billing** (owners and admins): the plan, its status and renewal or end date,
+  the plans on offer, and the AI usage report by month with a CSV download (through the
+  dashboard, so the browser never holds an API token). Owners get **Choose {plan}**, which
+  opens Stripe Checkout, and **Manage billing**, which opens the billing portal once there is
+  a customer. Admins see everything but cannot change it.
+- After checkout the page says the plan updates as soon as the payment is confirmed: the
+  webhook, not the redirect, changes the plan.
+- **Admin → organisation → Billing** (platform admins): plan, status, period end and whether
+  a Stripe customer exists, read-only (`GET /v1/admin/organizations/{slug}/billing`, migration
+  `0024`).
+
+E2E (`apps/platform/e2e/billing.spec.ts`, fake provider): Harbour's owner chooses Growth, comes
+back from the fake checkout, a signed subscription webhook applies Growth (quotations appear
+in the sidebar), the CSV downloads, and a cancellation returns Harbour to CRM and inbox.
 
 ## Webhooks
 

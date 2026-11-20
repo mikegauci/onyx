@@ -320,3 +320,14 @@ def test_billing_is_unavailable_until_configured(
 )
 def test_money_is_formatted_without_floats(micros: int, text: str) -> None:
     assert usd(micros) == text
+
+
+def test_platform_admins_see_a_tenants_billing_read_only(api: TestClient, as_: As) -> None:
+    _hook(api, _subscription())
+    pat = as_.seeded("pat.platform@onyx.example.test")
+    lumen = api.get(f"/v1/admin/organizations/{LUMEN}/billing", headers=pat).json()
+    assert (lumen["plan"], lumen["status"], lumen["has_customer"]) == ("growth", "active", True)
+    harbour = api.get(f"/v1/admin/organizations/{HARBOUR}/billing", headers=pat).json()
+    assert (harbour["plan"], harbour["has_customer"]) == (None, False)
+    owner = api.get(f"/v1/admin/organizations/{LUMEN}/billing", headers=as_.seeded(OLIVIA))
+    assert owner.status_code == 404

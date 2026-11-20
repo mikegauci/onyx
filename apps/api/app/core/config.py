@@ -5,7 +5,15 @@ from functools import lru_cache
 from typing import Annotated, Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 AI_PROVIDERS = frozenset({"openai", "anthropic", "fake"})
@@ -107,6 +115,14 @@ class Settings(BaseSettings):
         description="'fake' records sends in memory for local and e2e runs; never deployed.",
     )
 
+    # Error tracking (PR-027): off unless a DSN is set. Creating the Sentry projects needs the
+    # owner's approval. ``release`` is the deployed commit (Render sets RENDER_GIT_COMMIT).
+    sentry_dsn: SecretStr | None = Field(default=None, description="Sentry DSN (server only)")
+    sentry_traces_sample_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    release: str | None = Field(
+        default=None, validation_alias=AliasChoices("ONYX_API_RELEASE", "RENDER_GIT_COMMIT")
+    )
+
     # Temporal (PR-020). Only the worker process connects; the API never does. Temporal Cloud
     # (mTLS or an API key) needs the owner's approval and is not configured yet.
     temporal_address: str = Field(default="localhost:7233", description="host:port")
@@ -125,6 +141,7 @@ class Settings(BaseSettings):
         "whatsapp_app_secret",
         "whatsapp_verify_token",
         "whatsapp_access_token",
+        "sentry_dsn",
         mode="before",
     )
     @classmethod

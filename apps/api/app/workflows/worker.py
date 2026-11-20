@@ -21,6 +21,7 @@ from temporalio.worker import Worker
 
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
+from app.core.observability import init_sentry
 from app.workflows.activities import Activities, ApprovalActivities
 from app.workflows.relay import OutboxRelay
 from app.workflows.workflows import WORKFLOWS
@@ -89,6 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     settings = get_settings()
     configure_logging(settings.log_level)
+    init_sentry(settings, "worker")
     try:
         asyncio.run(check(settings) if args.check else run(settings))
     except Exception:

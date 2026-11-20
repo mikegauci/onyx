@@ -122,6 +122,10 @@ class Settings(BaseSettings):
     stripe_price_starter: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
     stripe_price_growth: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
     stripe_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    automotive_site: Literal["live", "fake"] = Field(
+        default="live",
+        description="'fake' imports from a built-in demo site (local and e2e; never deployed).",
+    )
     billing_provider: Literal["stripe", "fake"] = Field(
         default="stripe",
         description="'fake' creates fake checkout links for local and e2e runs; never deployed.",
@@ -293,6 +297,8 @@ class Settings(BaseSettings):
             raise ValueError("The fake email provider is not allowed in a deployed environment.")
         if self.whatsapp_provider == "fake" and self.is_deployed:
             raise ValueError("The fake WhatsApp provider is not allowed in a deployed environment.")
+        if self.automotive_site == "fake" and self.is_deployed:
+            raise ValueError("The fake vehicle site is not allowed in a deployed environment.")
         if self.billing_provider == "fake" and self.is_deployed:
             raise ValueError("The fake billing provider is not allowed in a deployed environment.")
         return self

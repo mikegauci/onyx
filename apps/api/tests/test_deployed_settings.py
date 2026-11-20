@@ -121,3 +121,11 @@ def test_fake_email_provider_is_allowed_locally() -> None:
     assert Settings(_env_file=None, environment="test", email_provider="fake").email_provider == (
         "fake"
     )
+
+
+def test_the_fake_vehicle_site_is_refused_when_deployed() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError, match="fake vehicle site"):
+        deployed(automotive_site="fake")

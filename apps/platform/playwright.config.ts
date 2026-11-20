@@ -77,6 +77,8 @@ export default defineConfig({
         ONYX_API_WHATSAPP_APP_SECRET: WHATSAPP_E2E_SECRET,
         ONYX_API_WHATSAPP_VERIFY_TOKEN: "e2e-verify-token",
         ONYX_API_WHATSAPP_ACCESS_TOKEN: "e2e-unused-token",
+        // Vehicle imports read a built-in demo site; nothing is fetched from the internet.
+        ONYX_API_AUTOMOTIVE_SITE: "fake",
         // Billing on the in-memory fake provider: checkout links point back to the dashboard.
         ONYX_API_BILLING_PROVIDER: "fake",
         ONYX_API_STRIPE_API_KEY: "sk_test_e2e_unused",

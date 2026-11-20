@@ -109,6 +109,17 @@ AI usage with CSV) and a read-only billing section for platform admins. Migratio
 `onyx-preview` is at `0024`. Next: onboard Ventur (PR-018 pilot), starting with VA-001 vehicle
 stock, as the owner decided once the platform was complete.
 
+**First client: Ventur Auto Import** (19 November 2026), a car dealer, replaces the lighting
+retailer. The owner's decisions:
+
+- Low-risk AI replies send without approval (VA-002 sets the limits).
+- Ventur finances cars in-house; where payment records live today is unknown.
+- They have a basic phone system and WhatsApp.
+- Website redevelopment is optional, only if an audit shows significant improvements (VA-012).
+
+The work and its order are in `docs/roadmap-additions.md` (VA items). Test fixtures still use
+the fictitious "Lumen Lighting" tenant; that is fine and needs no change.
+
 ## Verification preference
 
 Run focused local checks (ruff, small database-free tests) and let GitHub CI run the full

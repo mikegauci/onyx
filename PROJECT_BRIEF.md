@@ -11,7 +11,7 @@
 
 **Status:** Recovered and updated Claude Code / Opus 5.5 planning baseline, 4 November 2026 (original plan: 27 October 2026)  
 **Product:** Onyx Platform, a reusable multi-tenant AI operations SaaS delivered by Onyx Studio.  
-**First tenant:** Malta-based lighting retailer.  
+**First tenant:** Ventur Auto Import (ventur.com.mt), a Malta car dealership with in-house finance. Changed from a lighting retailer on 19 November 2026; see `docs/roadmap-additions.md` for the approved Ventur scope.  
 **Future tenants:** Retail, catering, hospitality, construction and service businesses.
 
 ## Implementation ownership and AI model policy
@@ -34,6 +34,8 @@ Build one production SaaS with independently enabled business modules and tenant
 5. Monetise with implementation fees, SaaS subscriptions and metered AI/integration usage.
 
 ## First tenant / first release
+
+> **Updated 19 November 2026 for Ventur:** the journey is enquiry → lead → vehicle lookup → reply (auto-sent for low-risk intents, otherwise approved) → reservation and deposit → documents and finance → sale → collection → after-sale reminders. The retail journey below is the original plan; its order and fulfilment steps (PR-022–PR-024) are replaced for this tenant by the VA items.
 
 A single customer journey must work: inbound enquiry → contact/lead → product lookup → **draft** quotation → staff approval → outbound response → accepted quote → order → inventory check/reservation → fulfilment task → customer notification.
 
@@ -114,7 +116,7 @@ Use appropriate EU regions for Vercel, Render, Supabase and Temporal where suppo
 
 - The shop can import/verify products; staff can see and approve draft quotes.
 - The AI answers against verified catalogue/policy data and **does not invent** stock, prices or lead times.
-- Every customer-facing AI reply can be held for review; human handoff works.
+- Every customer-facing AI reply can be held for review; human handoff works. Replies that the tenant's auto-send policy allows are sent without approval, logged and reviewable afterwards.
 - Two separate test tenants cannot access or retrieve one another's information by API, SQL or RAG.
 - Tested cost/usage limits and an operational fallback to manual customer support.
 

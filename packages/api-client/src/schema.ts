@@ -377,6 +377,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/automotive/import/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Import
+         * @description Fetch again and apply. Re-running with nothing changed at the site changes nothing.
+         */
+        post: operations["apply_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Import
+         * @description What an import would change. Nothing is written.
+         */
+        post: operations["preview_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Source */
+        get: operations["read_source"];
+        /** Save Source */
+        put: operations["save_source"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Vehicles */
+        get: operations["list_vehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/vehicles/{vehicle_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Vehicle */
+        get: operations["read_vehicle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/billing": {
         parameters: {
             query?: never;
@@ -2097,6 +2189,17 @@ export interface components {
             /** Variant Id */
             variant_id?: string | null;
         };
+        /** ChangeOut */
+        ChangeOut: {
+            /** Action */
+            action: string;
+            /** Fields */
+            fields: string[];
+            /** Source Ref */
+            source_ref: string;
+            /** Title */
+            title: string;
+        };
         /** ChannelCreate */
         ChannelCreate: {
             /**
@@ -3020,6 +3123,28 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** ImportApplied */
+        ImportApplied: {
+            /** Create */
+            create: number;
+            /** Listings */
+            listings: number;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Sample */
+            sample: components["schemas"]["ChangeOut"][];
+            /** Skipped */
+            skipped: number;
+            /** Unchanged */
+            unchanged: number;
+            /** Update */
+            update: number;
+            /** Withdraw */
+            withdraw: number;
+        };
         /** ImportCounts */
         ImportCounts: {
             /**
@@ -3099,6 +3224,23 @@ export interface components {
             first_row: number | null;
             /** Row */
             row: number;
+        };
+        /** ImportPreview */
+        ImportPreview: {
+            /** Create */
+            create: number;
+            /** Listings */
+            listings: number;
+            /** Sample */
+            sample: components["schemas"]["ChangeOut"][];
+            /** Skipped */
+            skipped: number;
+            /** Unchanged */
+            unchanged: number;
+            /** Update */
+            update: number;
+            /** Withdraw */
+            withdraw: number;
         };
         /** ImportRowError */
         ImportRowError: {
@@ -3475,7 +3617,7 @@ export interface components {
          * ModuleKey
          * @enum {string}
          */
-        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant" | "outbound" | "knowledge";
+        ModuleKey: "crm" | "catalogue" | "inbox" | "quotations" | "orders" | "assistant" | "outbound" | "knowledge" | "automotive";
         /** ModuleOut */
         ModuleOut: {
             /** Description */
@@ -3826,7 +3968,7 @@ export interface components {
              * Format: date-time
              */
             recorded_at: string;
-            source: components["schemas"]["SourceOut"];
+            source: components["schemas"]["app__modules__catalogue__schemas__SourceOut"];
             /**
              * Valid From
              * Format: date-time
@@ -3850,7 +3992,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            last_import: components["schemas"]["SourceOut"] | null;
+            last_import: components["schemas"]["app__modules__catalogue__schemas__SourceOut"] | null;
             /** Name */
             name: string;
             /**
@@ -4236,17 +4378,19 @@ export interface components {
             /** Validity Days */
             validity_days?: number | null;
         };
-        /**
-         * SourceOut
-         * @description Where a value came from. ``import_run_id`` is null for values entered another way.
-         */
-        SourceOut: {
-            /** Filename */
-            filename: string | null;
-            /** Import Run Id */
-            import_run_id: string | null;
-            /** Source Exported At */
-            source_exported_at: string | null;
+        /** SourceIn */
+        SourceIn: {
+            /**
+             * Base Url
+             * @example https://ventur.com.mt
+             */
+            base_url: string;
+            /** Field Map */
+            field_map?: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            } | null;
         };
         /** StockOut */
         StockOut: {
@@ -4266,7 +4410,7 @@ export interface components {
              * @description When Onyx stored it
              */
             recorded_at: string;
-            source: components["schemas"]["SourceOut"];
+            source: components["schemas"]["app__modules__catalogue__schemas__SourceOut"];
         };
         /**
          * SubjectType
@@ -4608,6 +4752,78 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** VehicleList */
+        VehicleList: {
+            /** Items */
+            items: components["schemas"]["VehicleOut"][];
+            /** Total */
+            total: number;
+        };
+        /** VehicleOut */
+        VehicleOut: {
+            /** Body Type */
+            body_type: string | null;
+            /** Colour */
+            colour: string | null;
+            /** Condition */
+            condition: string | null;
+            /** Currency */
+            currency: string;
+            /** Doors */
+            doors: number | null;
+            /** Engine Cc */
+            engine_cc: number | null;
+            /** Features */
+            features: string[];
+            /** Field Sources */
+            field_sources: {
+                [key: string]: unknown;
+            };
+            /** Fuel */
+            fuel: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Listing Url */
+            listing_url: string | null;
+            /** Make */
+            make: string | null;
+            /** Mileage Km */
+            mileage_km: number | null;
+            /** Model */
+            model: string | null;
+            /** Photos */
+            photos: string[];
+            /** Price Cents */
+            price_cents: number | null;
+            /** Source Ref */
+            source_ref: string;
+            status: components["schemas"]["VehicleStatus"];
+            /** Stock Number */
+            stock_number: string | null;
+            /** Title */
+            title: string;
+            /** Transmission */
+            transmission: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Variant */
+            variant: string | null;
+            /** Video Url */
+            video_url: string | null;
+            /** Year */
+            year: number | null;
+        };
+        /**
+         * VehicleStatus
+         * @enum {string}
+         */
+        VehicleStatus: "available" | "reserved" | "sold" | "withdrawn";
         /**
          * VersionStatus
          * @enum {string}
@@ -4813,6 +5029,17 @@ export interface components {
         app__api__admin_organizations__StatusChange: {
             status: components["schemas"]["OrganizationStatus"];
         };
+        /** SourceOut */
+        app__modules__automotive__routes__SourceOut: {
+            /** Base Url */
+            base_url: string;
+            /** Field Map */
+            field_map: {
+                [key: string]: unknown;
+            };
+            /** Last Imported At */
+            last_imported_at: string | null;
+        };
         /** ArchiveRequest */
         app__modules__catalogue__schemas__ArchiveRequest: {
             /**
@@ -4820,6 +5047,18 @@ export interface components {
              * @default true
              */
             archived: boolean;
+        };
+        /**
+         * SourceOut
+         * @description Where a value came from. ``import_run_id`` is null for values entered another way.
+         */
+        app__modules__catalogue__schemas__SourceOut: {
+            /** Filename */
+            filename: string | null;
+            /** Import Run Id */
+            import_run_id: string | null;
+            /** Source Exported At */
+            source_exported_at: string | null;
         };
         /** ArchiveRequest */
         app__modules__crm__schemas__ArchiveRequest: {
@@ -6589,6 +6828,418 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    apply_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportApplied"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_source: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__automotive__routes__SourceOut"] | null;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_source: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__automotive__routes__SourceOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_vehicles: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["VehicleStatus"] | null;
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_vehicle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicle_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
             403: {
                 headers: {
                     [name: string]: unknown;

@@ -83,6 +83,7 @@ class Trace:
     seen_skus: set[str] = field(default_factory=set)
     found_topics: set[str] = field(default_factory=set)
     found_sources: set[str] = field(default_factory=set)  # knowledge chunk ids returned
+    seen_vehicles: set[str] = field(default_factory=set)  # listing links of available cars
     calls: list[dict[str, object]] = field(default_factory=list)
 
 

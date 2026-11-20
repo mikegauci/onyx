@@ -18,6 +18,7 @@ class ModuleKey(enum.StrEnum):
     ASSISTANT = "assistant"
     OUTBOUND = "outbound"
     KNOWLEDGE = "knowledge"
+    AUTOMOTIVE = "automotive"
 
 
 @dataclass(frozen=True)
@@ -54,6 +55,8 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
         ),
         # Tenant documents and policies, searched by staff and the assistant (PR-014).
         ModuleSpec(ModuleKey.KNOWLEDGE, "Knowledge"),
+        # Vehicle stock for car dealers; extends the catalogue (VA-001).
+        ModuleSpec(ModuleKey.AUTOMOTIVE, "Vehicles", frozenset({ModuleKey.CATALOGUE})),
     )
 }
 

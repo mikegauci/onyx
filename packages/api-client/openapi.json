@@ -1106,6 +1106,37 @@
         "title": "CatalogueLineCreate",
         "type": "object"
       },
+      "ChangeOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_ref",
+          "title",
+          "action",
+          "fields"
+        ],
+        "title": "ChangeOut",
+        "type": "object"
+      },
       "ChannelCreate": {
         "additionalProperties": false,
         "properties": {
@@ -3741,6 +3772,58 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "ImportApplied": {
+        "properties": {
+          "create": {
+            "title": "Create",
+            "type": "integer"
+          },
+          "listings": {
+            "title": "Listings",
+            "type": "integer"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "sample": {
+            "items": {
+              "$ref": "#/components/schemas/ChangeOut"
+            },
+            "title": "Sample",
+            "type": "array"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "unchanged": {
+            "title": "Unchanged",
+            "type": "integer"
+          },
+          "update": {
+            "title": "Update",
+            "type": "integer"
+          },
+          "withdraw": {
+            "title": "Withdraw",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "listings",
+          "skipped",
+          "create",
+          "update",
+          "unchanged",
+          "withdraw",
+          "sample",
+          "run_id"
+        ],
+        "title": "ImportApplied",
+        "type": "object"
+      },
       "ImportCounts": {
         "properties": {
           "errors": {
@@ -3850,6 +3933,52 @@
           "first_row"
         ],
         "title": "ImportDuplicate",
+        "type": "object"
+      },
+      "ImportPreview": {
+        "properties": {
+          "create": {
+            "title": "Create",
+            "type": "integer"
+          },
+          "listings": {
+            "title": "Listings",
+            "type": "integer"
+          },
+          "sample": {
+            "items": {
+              "$ref": "#/components/schemas/ChangeOut"
+            },
+            "title": "Sample",
+            "type": "array"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "unchanged": {
+            "title": "Unchanged",
+            "type": "integer"
+          },
+          "update": {
+            "title": "Update",
+            "type": "integer"
+          },
+          "withdraw": {
+            "title": "Withdraw",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "listings",
+          "skipped",
+          "create",
+          "update",
+          "unchanged",
+          "withdraw",
+          "sample"
+        ],
+        "title": "ImportPreview",
         "type": "object"
       },
       "ImportRowError": {
@@ -4937,7 +5066,8 @@
           "orders",
           "assistant",
           "outbound",
-          "knowledge"
+          "knowledge",
+          "automotive"
         ],
         "title": "ModuleKey",
         "type": "string"
@@ -5175,7 +5305,7 @@
             "items": {
               "$ref": "#/components/schemas/ModuleKey"
             },
-            "maxItems": 8,
+            "maxItems": 9,
             "title": "Modules",
             "type": "array"
           },
@@ -5820,7 +5950,7 @@
             "type": "string"
           },
           "source": {
-            "$ref": "#/components/schemas/SourceOut"
+            "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
           },
           "valid_from": {
             "format": "date-time",
@@ -5901,7 +6031,7 @@
           "last_import": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/SourceOut"
+                "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
               },
               {
                 "type": "null"
@@ -7012,51 +7142,36 @@
         "title": "SettingsUpdate",
         "type": "object"
       },
-      "SourceOut": {
-        "description": "Where a value came from. ``import_run_id`` is null for values entered another way.",
+      "SourceIn": {
         "properties": {
-          "filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+          "base_url": {
+            "examples": [
+              "https://ventur.com.mt"
             ],
-            "title": "Filename"
+            "maxLength": 500,
+            "title": "Base Url",
+            "type": "string"
           },
-          "import_run_id": {
+          "field_map": {
             "anyOf": [
               {
-                "format": "uuid",
-                "type": "string"
+                "additionalProperties": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "object"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Import Run Id"
-          },
-          "source_exported_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Exported At"
+            "title": "Field Map"
           }
         },
         "required": [
-          "import_run_id",
-          "filename",
-          "source_exported_at"
+          "base_url"
         ],
-        "title": "SourceOut",
+        "title": "SourceIn",
         "type": "object"
       },
       "StockOut": {
@@ -7082,7 +7197,7 @@
             "type": "string"
           },
           "source": {
-            "$ref": "#/components/schemas/SourceOut"
+            "$ref": "#/components/schemas/app__modules__catalogue__schemas__SourceOut"
           }
         },
         "required": [
@@ -7929,6 +8044,290 @@
         "title": "VatRateUpdate",
         "type": "object"
       },
+      "VehicleList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VehicleOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "VehicleList",
+        "type": "object"
+      },
+      "VehicleOut": {
+        "properties": {
+          "body_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Type"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "doors": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doors"
+          },
+          "engine_cc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Cc"
+          },
+          "features": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "field_sources": {
+            "additionalProperties": true,
+            "title": "Field Sources",
+            "type": "object"
+          },
+          "fuel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fuel"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          },
+          "make": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Make"
+          },
+          "mileage_km": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage Km"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "price_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Cents"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VehicleStatus"
+          },
+          "stock_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stock Number"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "transmission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transmission"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "variant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant"
+          },
+          "video_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Url"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "source_ref",
+          "title",
+          "status",
+          "stock_number",
+          "make",
+          "model",
+          "variant",
+          "year",
+          "mileage_km",
+          "engine_cc",
+          "fuel",
+          "transmission",
+          "body_type",
+          "colour",
+          "doors",
+          "condition",
+          "price_cents",
+          "currency",
+          "features",
+          "photos",
+          "video_url",
+          "listing_url",
+          "field_sources",
+          "updated_at"
+        ],
+        "title": "VehicleOut",
+        "type": "object"
+      },
+      "VehicleStatus": {
+        "enum": [
+          "available",
+          "reserved",
+          "sold",
+          "withdrawn"
+        ],
+        "title": "VehicleStatus",
+        "type": "string"
+      },
       "VersionStatus": {
         "enum": [
           "draft",
@@ -8431,6 +8830,38 @@
         "title": "StatusChange",
         "type": "object"
       },
+      "app__modules__automotive__routes__SourceOut": {
+        "properties": {
+          "base_url": {
+            "title": "Base Url",
+            "type": "string"
+          },
+          "field_map": {
+            "additionalProperties": true,
+            "title": "Field Map",
+            "type": "object"
+          },
+          "last_imported_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Imported At"
+          }
+        },
+        "required": [
+          "base_url",
+          "field_map",
+          "last_imported_at"
+        ],
+        "title": "SourceOut",
+        "type": "object"
+      },
       "app__modules__catalogue__schemas__ArchiveRequest": {
         "additionalProperties": false,
         "properties": {
@@ -8441,6 +8872,53 @@
           }
         },
         "title": "ArchiveRequest",
+        "type": "object"
+      },
+      "app__modules__catalogue__schemas__SourceOut": {
+        "description": "Where a value came from. ``import_run_id`` is null for values entered another way.",
+        "properties": {
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "import_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Import Run Id"
+          },
+          "source_exported_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Exported At"
+          }
+        },
+        "required": [
+          "import_run_id",
+          "filename",
+          "source_exported_at"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "app__modules__crm__schemas__ArchiveRequest": {
@@ -10912,6 +11390,613 @@
         "summary": "List Audit Entries",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/import/apply": {
+      "post": {
+        "description": "Fetch again and apply. Re-running with nothing changed at the site changes nothing.",
+        "operationId": "apply_import",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportApplied"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Apply Import",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/import/preview": {
+      "post": {
+        "description": "What an import would change. Nothing is written.",
+        "operationId": "preview_import",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPreview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview Import",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/source": {
+      "get": {
+        "operationId": "read_source",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/app__modules__automotive__routes__SourceOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Read Source"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Source",
+        "tags": [
+          "automotive"
+        ]
+      },
+      "put": {
+        "operationId": "save_source",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__modules__automotive__routes__SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Source",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/vehicles": {
+      "get": {
+        "operationId": "list_vehicles",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/VehicleStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Vehicles",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/vehicles/{vehicle_id}": {
+      "get": {
+        "operationId": "read_vehicle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vehicle_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Vehicle Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Vehicle",
+        "tags": [
+          "automotive"
         ]
       }
     },

@@ -11,6 +11,7 @@ from app.core.storage import models as storage_models
 from app.core.tasks import models as task_models
 from app.core.tenancy import models as tenancy_models
 from app.modules.assistant import models as assistant_models
+from app.modules.automotive import models as automotive_models
 from app.modules.catalogue import models as catalogue_models
 from app.modules.crm import models as crm_models
 from app.modules.inbox import models as inbox_models
@@ -25,6 +26,7 @@ __all__ = [
     "ai_models",
     "assistant_models",
     "audit_models",
+    "automotive_models",
     "billing_models",
     "catalogue_models",
     "crm_models",

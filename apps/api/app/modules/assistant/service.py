@@ -32,6 +32,7 @@ from app.modules.assistant.rules import (
     merge_lines,
 )
 from app.modules.assistant.tools import AssistantDeps, tools_for
+from app.modules.automotive import public as automotive
 from app.modules.catalogue import public as catalogue
 from app.modules.inbox import public as inbox
 from app.modules.inbox.models import ConversationStatus, Handler, MessageDirection
@@ -164,7 +165,10 @@ class AssistantService:
             gateway=gateway,
         )
         knowledge_enabled = await knowledge.is_enabled(self.db, self.workspace)
-        tools = tools_for(knowledge_enabled=knowledge_enabled)
+        tools = tools_for(
+            knowledge_enabled=knowledge_enabled,
+            automotive_enabled=await automotive.is_enabled(self.db, self.workspace),
+        )
         result: AIResult[schemas.AssistantOutput] | None = None
         failure: Reason | None = None
         try:

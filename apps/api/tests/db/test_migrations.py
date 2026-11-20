@@ -59,6 +59,9 @@ EXPECTED_TABLES = {
     "billing_customers",
     "billing_subscriptions",
     "billing_webhook_events",
+    "automotive_sources",
+    "automotive_vehicles",
+    "automotive_import_runs",
 }
 
 
@@ -200,4 +203,5 @@ def test_module_catalogue_is_reference_data(migrated_engine: Engine) -> None:
         "assistant",
         "outbound",
         "knowledge",
+        "automotive",
     }

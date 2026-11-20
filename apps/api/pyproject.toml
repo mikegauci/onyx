@@ -17,6 +17,7 @@ dependencies = [
     "pyjwt[crypto]==2.15.1",
     "pypdf==7.0.0",
     "reportlab==4.5.1",
+    "sentry-sdk[fastapi]==2.74.0",
     "sqlalchemy[asyncio]==2.1.8",
     "temporalio==1.36.1",
     "uvicorn[standard]==0.54.0",

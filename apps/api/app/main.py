@@ -26,6 +26,7 @@ from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
+from app.core.observability import init_sentry
 from app.integrations import email, whatsapp
 from app.integrations.email import EmailConfig, EmailProvider
 from app.integrations.email.fake import FakeEmailProvider
@@ -128,6 +129,7 @@ def create_app(
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
     configure_logging(settings.log_level)
+    init_sentry(settings, "api")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

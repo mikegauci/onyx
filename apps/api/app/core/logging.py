@@ -49,7 +49,10 @@ class JsonFormatter(logging.Formatter):
         if isinstance(extra, dict):
             payload.update(extra)
         if record.exc_info:
-            payload["exc"] = self.formatException(record.exc_info)
+            # Exception text can quote input; scrub it like error tracking does (PR-027).
+            from app.core.observability import scrub_text
+
+            payload["exc"] = scrub_text(self.formatException(record.exc_info))
         return json.dumps(payload, default=str)
 
 

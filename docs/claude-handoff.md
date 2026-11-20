@@ -90,10 +90,15 @@ PR-020 merged ([#36](https://github.com/mikegauci/onyx/pull/36)): the Temporal w
 outbox relay and the first workflow. Migration `0021`. Temporal Cloud and a Render worker need
 the owner's approval.
 
-PR-021 is in review: a `DraftApproval` workflow per reply draft (reminder and urgent tasks for
-approvers, expiry, decisions as signals relayed from outbox events), staff **Tasks** (API,
-sidebar page) and reminder settings. Migration `0022`. See `docs/platform/workflows.md`.
-`onyx-preview` is at `0022`. Next: PR-027 production hardening.
+PR-021 merged ([#37](https://github.com/mikegauci/onyx/pull/37)): reply approval workflows,
+reminders, escalation, expiry and staff Tasks. Migration `0022`; `onyx-preview` is at `0022`.
+
+PR-027 part 1 is in review: Sentry for the API, worker and dashboard (off without a DSN,
+scrubbed, tagged with ids), scrubbed exception logs, an RLS attack test for every tenant table,
+a load test, a restore drill script, and runbooks in `docs/operations/` (observability,
+incidents, rollback, GDPR review, client training). No migration. Part 2 needs the owner:
+Sentry projects and alerts, the preview restore drill, production backups, and UAT. Then
+PR-026 billing and the Ventur pilot (PR-018).
 
 ## Verification preference
 

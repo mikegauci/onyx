@@ -117,6 +117,9 @@ def test_platform_admin_lists_account_metadata_only(api: TestClient, as_: As) ->
         "created_at",
         "member_count",
         "modules",
+        "currency",
+        "display_name",
+        "brand_color",
     }
 
 

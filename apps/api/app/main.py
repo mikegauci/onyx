@@ -12,6 +12,7 @@ from app.ai.embeddings import EmbeddingFactory, build_embedding_model
 from app.ai.gateway import AIGateway
 from app.ai.providers import ModelFactory, build_model
 from app.api.admin import router as admin_router
+from app.api.admin_organizations import router as admin_organizations_router
 from app.api.ai import router as ai_router
 from app.api.audit import router as audit_router
 from app.api.health import router as health_router
@@ -200,6 +201,7 @@ def create_app(
     v1.include_router(audit_router)
     v1.include_router(modules_router)
     v1.include_router(admin_router)
+    v1.include_router(admin_organizations_router)
     v1.include_router(ai_router)
     v1.include_router(crm_router)
     v1.include_router(catalogue_router)

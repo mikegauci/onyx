@@ -43,6 +43,9 @@ class OrganizationSummary(BaseModel):
     created_at: datetime
     member_count: int
     modules: list[str]
+    currency: str
+    display_name: str | None
+    brand_color: str | None
 
 
 @router.get("/organizations", response_model=list[OrganizationSummary], responses=ADMIN_ERRORS)

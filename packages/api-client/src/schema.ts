@@ -31,7 +31,8 @@ export interface paths {
         /** List Organizations */
         get: operations["list_organizations"];
         put?: never;
-        post?: never;
+        /** Create Organization */
+        post: operations["create_organization"];
         delete?: never;
         options?: never;
         head?: never;
@@ -52,7 +53,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update Organization */
+        patch: operations["update_organization"];
         trace?: never;
     };
     "/v1/admin/organizations/{slug}/ai-budget": {
@@ -90,6 +92,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Integrations */
+        get: operations["admin_integrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{slug}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Invitations */
+        get: operations["list_invitations"];
+        put?: never;
+        /**
+         * Issue Invitation
+         * @description A new link for this address. An open invitation to the same address is revoked.
+         */
+        post: operations["issue_invitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{slug}/invitations/{invitation_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Invitation */
+        post: operations["revoke_invitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/organizations/{slug}/modules/{key}": {
         parameters: {
             query?: never;
@@ -100,6 +157,23 @@ export interface paths {
         get?: never;
         /** Set Organization Module */
         put: operations["set_organization_module"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{slug}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Organization Status */
+        put: operations["set_organization_status"];
         post?: never;
         delete?: never;
         options?: never;
@@ -945,6 +1019,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workspace Integrations
+         * @description The workspace's channels and whether each is connected. No credentials or provider ids.
+         *
+         *     Tenant policies scope the channels to this workspace, and hide them while the inbox module
+         *     is off.
+         */
+        get: operations["workspace_integrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/invitations": {
         parameters: {
             query?: never;
@@ -1448,6 +1545,15 @@ export interface components {
             /** Spent Usd Micros */
             spent_usd_micros: number;
         };
+        /** AIBudgetStatus */
+        AIBudgetStatus: {
+            /** Alert Percent */
+            alert_percent: number | null;
+            /** Monthly Limit Usd Micros */
+            monthly_limit_usd_micros: number | null;
+            /** Spent Usd Micros */
+            spent_usd_micros: number;
+        };
         /** AIBudgetUpdate */
         AIBudgetUpdate: {
             /**
@@ -1586,6 +1692,39 @@ export interface components {
             items: components["schemas"]["ActivityOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** AdminInvitationCreate */
+        AdminInvitationCreate: {
+            /** Email */
+            email: string;
+            /** @default owner */
+            role: components["schemas"]["MembershipRole"];
+        };
+        /** AdminInvitationOut */
+        AdminInvitationOut: {
+            /** Accepted At */
+            accepted_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Email */
+            email: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Revoked At */
+            revoked_at: string | null;
+            role: components["schemas"]["MembershipRole"];
+            state: components["schemas"]["InvitationState"];
         };
         /** ApiError */
         ApiError: {
@@ -1825,6 +1964,23 @@ export interface components {
             kind: components["schemas"]["ChannelKind"];
             /** Name */
             name: string;
+        };
+        /** ChannelStatus */
+        ChannelStatus: {
+            /** Connected */
+            connected: boolean;
+            /** Disabled */
+            disabled: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ChannelKind"];
+            /** Name */
+            name: string;
+            /** Phone Number */
+            phone_number: string | null;
         };
         /** ChannelUpdate */
         ChannelUpdate: {
@@ -2565,7 +2721,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable" | "budget_exceeded";
+        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable" | "budget_exceeded" | "workspace_suspended";
         /** ErrorDetail */
         ErrorDetail: {
             /** Loc */
@@ -2777,6 +2933,16 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** IntegrationStatus */
+        IntegrationStatus: {
+            ai_budget: components["schemas"]["AIBudgetStatus"] | null;
+            /** Channels */
+            channels: components["schemas"]["ChannelStatus"][];
+            /** Email Configured */
+            email_configured: boolean;
+            /** Whatsapp Configured */
+            whatsapp_configured: boolean;
+        };
         /** InvitationAccept */
         InvitationAccept: {
             /** Token */
@@ -2807,6 +2973,29 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** InvitationLink */
+        InvitationLink: {
+            /** Email */
+            email: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            role: components["schemas"]["MembershipRole"];
+            /** Token */
+            token: string;
+        };
+        /**
+         * InvitationState
+         * @enum {string}
+         */
+        InvitationState: "pending" | "accepted" | "revoked" | "expired";
         /** LeadCreate */
         LeadCreate: {
             /**
@@ -3123,19 +3312,85 @@ export interface components {
             subject_id: string;
             subject_type: components["schemas"]["SubjectType"];
         };
+        /**
+         * OrganizationAdminUpdate
+         * @description Fields to change; omitted fields stay. ``null`` clears the display name or colour.
+         */
+        OrganizationAdminUpdate: {
+            /** Brand Color */
+            brand_color?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /** OrganizationCreate */
+        OrganizationCreate: {
+            /**
+             * Ai Alert Percent
+             * @default 80
+             */
+            ai_alert_percent: number;
+            /** Ai Monthly Limit Usd Micros */
+            ai_monthly_limit_usd_micros?: number | null;
+            /** Brand Color */
+            brand_color?: string | null;
+            /**
+             * Currency
+             * @default EUR
+             * @constant
+             */
+            currency: "EUR";
+            /** Display Name */
+            display_name?: string | null;
+            /** Modules */
+            modules?: components["schemas"]["ModuleKey"][];
+            /** Name */
+            name: string;
+            /** Owner Email */
+            owner_email: string;
+            /**
+             * Slug
+             * @example ventur-auto-import
+             */
+            slug: string;
+            /**
+             * Timezone
+             * @default Europe/Malta
+             */
+            timezone: string;
+        };
+        /** OrganizationCreated */
+        OrganizationCreated: {
+            invitation: components["schemas"]["InvitationLink"];
+            organization: components["schemas"]["OrganizationDetail"];
+        };
         /** OrganizationDetail */
         OrganizationDetail: {
             /** Modules */
             modules: components["schemas"]["ModuleOut"][];
             organization: components["schemas"]["OrganizationSummary"];
         };
+        /**
+         * OrganizationStatus
+         * @enum {string}
+         */
+        OrganizationStatus: "active" | "suspended";
         /** OrganizationSummary */
         OrganizationSummary: {
+            /** Brand Color */
+            brand_color: string | null;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+            /** Currency */
+            currency: string;
+            /** Display Name */
+            display_name: string | null;
             /**
              * Id
              * Format: uuid
@@ -3737,10 +3992,6 @@ export interface components {
             /** Source Exported At */
             source_exported_at: string | null;
         };
-        /** StatusChange */
-        StatusChange: {
-            status: components["schemas"]["ConversationStatus"];
-        };
         /** StockOut */
         StockOut: {
             /** Location */
@@ -4161,6 +4412,12 @@ export interface components {
         };
         /** WorkspaceOut */
         WorkspaceOut: {
+            /** Brand Color */
+            brand_color: string | null;
+            /** Currency */
+            currency: string;
+            /** Display Name */
+            display_name: string | null;
             /** Modules */
             modules: string[];
             /** Name */
@@ -4182,12 +4439,23 @@ export interface components {
             role: components["schemas"]["MembershipRole"];
             /** Slug */
             slug: string;
+            status: components["schemas"]["OrganizationStatus"];
         };
         /**
          * WorkspaceUpdate
-         * @description Fields to change; omitted fields stay as they are.
+         * @description Fields to change; omitted fields stay as they are. ``null`` clears the display name and
+         *     brand colour (back to the organisation name and the default theme).
          */
         WorkspaceUpdate: {
+            /**
+             * Brand Color
+             * @example #1f4e79
+             */
+            brand_color?: string | null;
+            /** Currency */
+            currency?: "EUR" | null;
+            /** Display Name */
+            display_name?: string | null;
             /** Name */
             name?: string | null;
             /**
@@ -4195,6 +4463,10 @@ export interface components {
              * @example Europe/Malta
              */
             timezone?: string | null;
+        };
+        /** StatusChange */
+        app__api__admin_organizations__StatusChange: {
+            status: components["schemas"]["OrganizationStatus"];
         };
         /** ArchiveRequest */
         app__modules__catalogue__schemas__ArchiveRequest: {
@@ -4208,6 +4480,10 @@ export interface components {
         app__modules__crm__schemas__ArchiveRequest: {
             /** Archived */
             archived: boolean;
+        };
+        /** StatusChange */
+        app__modules__inbox__schemas__StatusChange: {
+            status: components["schemas"]["ConversationStatus"];
         };
     };
     responses: never;
@@ -4294,6 +4570,75 @@ export interface operations {
             };
         };
     };
+    create_organization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationCreated"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Slug already used */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_organization: {
         parameters: {
             query?: never;
@@ -4304,6 +4649,68 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_organization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationAdminUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -4539,6 +4946,243 @@ export interface operations {
             };
         };
     };
+    admin_integrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_invitations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminInvitationOut"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    issue_invitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminInvitationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationLink"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revoke_invitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminInvitationOut"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     set_organization_module: {
         parameters: {
             query?: never;
@@ -4584,6 +5228,68 @@ export interface operations {
             };
             /** @description Module dependency not satisfied */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_organization_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__api__admin_organizations__StatusChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9106,7 +9812,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StatusChange"];
+                "application/json": components["schemas"]["app__modules__inbox__schemas__StatusChange"];
             };
         };
         responses: {
@@ -9351,6 +10057,73 @@ export interface operations {
                 };
             };
             /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    workspace_integrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;

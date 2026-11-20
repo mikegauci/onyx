@@ -20,7 +20,7 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0022` (applied 20 November 2026). Owner rule: apply each PR's
+- `onyx-preview` is at `0023` (applied 20 November 2026). Owner rule: apply each PR's
   migrations to `onyx-preview` as soon as the PR merges, without asking again; production
   still needs explicit approval. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
   AI budget, and the email channel "Onyx". Email setup on preview:
@@ -93,12 +93,17 @@ the owner's approval.
 PR-021 merged ([#37](https://github.com/mikegauci/onyx/pull/37)): reply approval workflows,
 reminders, escalation, expiry and staff Tasks. Migration `0022`; `onyx-preview` is at `0022`.
 
-PR-027 part 1 is in review: Sentry for the API, worker and dashboard (off without a DSN,
+PR-027 part 1 merged ([#38](https://github.com/mikegauci/onyx/pull/38)): Sentry for the API, worker and dashboard (off without a DSN,
 scrubbed, tagged with ids), scrubbed exception logs, an RLS attack test for every tenant table,
 a load test, a restore drill script, and runbooks in `docs/operations/` (observability,
 incidents, rollback, GDPR review, client training). No migration. Part 2 needs the owner:
-Sentry projects and alerts, the preview restore drill, production backups, and UAT. Then
-PR-026 billing and the Ventur pilot (PR-018).
+Sentry projects and alerts, the preview restore drill, production backups, and UAT.
+
+PR-026 part 1, the billing backend, is in review: plans that decide modules and the AI budget,
+Stripe Checkout and the billing portal (owners only), signed, idempotent, order-safe webhooks,
+and an AI usage report with CSV. Migration `0023`; `onyx-preview` is at `0023`. See
+`docs/platform/billing.md`. Needs the owner's Stripe account and prices. Next: PR-026 part 2,
+the billing screens, then the Ventur pilot (PR-018).
 
 ## Verification preference
 

@@ -15,6 +15,7 @@ from app.api.admin import router as admin_router
 from app.api.admin_organizations import router as admin_organizations_router
 from app.api.ai import router as ai_router
 from app.api.audit import router as audit_router
+from app.api.billing import router as billing_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
 from app.api.modules import router as modules_router
@@ -22,12 +23,16 @@ from app.api.tasks import router as tasks_router
 from app.api.webhooks import router as webhooks_router
 from app.api.workspaces import router as workspaces_router
 from app.core.auth.tokens import TokenVerifier
+from app.core.billing.service import BillingWebhooks
 from app.core.config import Settings, get_settings
 from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 from app.core.observability import init_sentry
 from app.integrations import email, whatsapp
+from app.integrations.billing import BillingConfig, BillingProvider
+from app.integrations.billing.fake import FakeBillingProvider
+from app.integrations.billing.stripe import StripeProvider
 from app.integrations.email import EmailConfig, EmailProvider
 from app.integrations.email.fake import FakeEmailProvider
 from app.integrations.email.resend import ResendProvider
@@ -108,6 +113,33 @@ def _whatsapp_config(
     return config, owned
 
 
+def _billing_config(settings: Settings, provider: BillingProvider | None) -> BillingConfig | None:
+    """Stripe Billing when configured; otherwise billing is unavailable (503)."""
+    if not settings.billing_configured:
+        return None
+    assert settings.stripe_api_key is not None  # noqa: S101 - billing_configured
+    assert settings.stripe_webhook_secret is not None  # noqa: S101
+    if provider is None and settings.billing_provider == "fake":
+        provider = FakeBillingProvider()  # local and e2e only; refused in deployed settings
+    if provider is None:
+        provider = StripeProvider(
+            settings.stripe_api_key.get_secret_value(), timeout=settings.stripe_timeout_seconds
+        )
+    prices = {
+        plan: price
+        for plan, price in (
+            ("starter", settings.stripe_price_starter),
+            ("growth", settings.stripe_price_growth),
+        )
+        if price
+    }
+    return BillingConfig(
+        provider=provider,
+        webhook_secret=settings.stripe_webhook_secret.get_secret_value(),
+        prices=prices,
+    )
+
+
 API_VERSION_PREFIX = "/v1"
 
 
@@ -125,6 +157,7 @@ def create_app(
     ai_embedding_factory: EmbeddingFactory | None = None,
     email_provider: EmailProvider | None = None,
     whatsapp_provider: WhatsAppProvider | None = None,
+    billing_provider: BillingProvider | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -164,6 +197,13 @@ def create_app(
             if whatsapp_config is not None and app.state.session_factory is not None
             else None
         )
+        billing_config = _billing_config(settings, billing_provider)
+        app.state.billing_config = billing_config
+        app.state.billing_webhooks = (
+            BillingWebhooks(app.state.session_factory, billing_config)
+            if billing_config is not None and app.state.session_factory is not None
+            else None
+        )
         try:
             yield
         finally:
@@ -174,6 +214,8 @@ def create_app(
                 await owned.aclose()
             if owned_whatsapp is not None:
                 await owned_whatsapp.aclose()
+            if billing_config is not None and isinstance(billing_config.provider, StripeProvider):
+                await billing_config.provider.aclose()
             if engine is not None:
                 await engine.dispose()
 
@@ -184,6 +226,7 @@ def create_app(
         generate_unique_id_function=_operation_id,
     )
     app.dependency_overrides[get_settings] = lambda: settings
+    app.state.settings = settings
 
     app.add_middleware(
         CORSMiddleware,
@@ -204,6 +247,7 @@ def create_app(
     v1.include_router(audit_router)
     v1.include_router(modules_router)
     v1.include_router(tasks_router)
+    v1.include_router(billing_router)
     v1.include_router(admin_router)
     v1.include_router(admin_organizations_router)
     v1.include_router(ai_router)

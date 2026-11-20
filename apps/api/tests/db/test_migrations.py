@@ -56,6 +56,9 @@ EXPECTED_TABLES = {
     "inbox_whatsapp_sends",
     "workflow_effects",
     "tasks",
+    "billing_customers",
+    "billing_subscriptions",
+    "billing_webhook_events",
 }
 
 

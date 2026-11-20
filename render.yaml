@@ -42,6 +42,18 @@ services:
       - key: ONYX_API_EMAIL_FROM_DOMAIN
         sync: false
       # WhatsApp connector (Meta). Unset = WhatsApp channels not connected (fail closed).
+      # Stripe Billing (PR-026): test-mode keys first; the owner creates the account and prices.
+      - key: ONYX_API_STRIPE_API_KEY
+        sync: false
+      - key: ONYX_API_STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: ONYX_API_STRIPE_PRICE_STARTER
+        sync: false
+      - key: ONYX_API_STRIPE_PRICE_GROWTH
+        sync: false
+      # Error tracking (PR-027): off until the owner creates the Sentry project.
+      - key: ONYX_API_SENTRY_DSN
+        sync: false
       - key: ONYX_API_WHATSAPP_APP_SECRET
         sync: false
       - key: ONYX_API_WHATSAPP_VERIFY_TOKEN

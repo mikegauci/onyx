@@ -115,6 +115,18 @@ class Settings(BaseSettings):
         description="'fake' records sends in memory for local and e2e runs; never deployed.",
     )
 
+    # Billing (PR-026). Off until the owner creates the Stripe account and plans; test-mode
+    # keys first. Price ids map Onyx plans to Stripe prices.
+    stripe_api_key: SecretStr | None = Field(default=None, description="Stripe secret key")
+    stripe_webhook_secret: SecretStr | None = Field(default=None, description="whsec_…")
+    stripe_price_starter: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
+    stripe_price_growth: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
+    stripe_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    billing_provider: Literal["stripe", "fake"] = Field(
+        default="stripe",
+        description="'fake' creates fake checkout links for local and e2e runs; never deployed.",
+    )
+
     # Error tracking (PR-027): off unless a DSN is set. Creating the Sentry projects needs the
     # owner's approval. ``release`` is the deployed commit (Render sets RENDER_GIT_COMMIT).
     sentry_dsn: SecretStr | None = Field(default=None, description="Sentry DSN (server only)")
@@ -142,6 +154,10 @@ class Settings(BaseSettings):
         "whatsapp_verify_token",
         "whatsapp_access_token",
         "sentry_dsn",
+        "stripe_api_key",
+        "stripe_webhook_secret",
+        "stripe_price_starter",
+        "stripe_price_growth",
         mode="before",
     )
     @classmethod
@@ -169,6 +185,10 @@ class Settings(BaseSettings):
             self.email_inbound_domain,
             self.email_from_domain,
         )
+
+    @property
+    def billing_configured(self) -> bool:
+        return None not in (self.stripe_api_key, self.stripe_webhook_secret)
 
     @property
     def whatsapp_configured(self) -> bool:
@@ -273,6 +293,8 @@ class Settings(BaseSettings):
             raise ValueError("The fake email provider is not allowed in a deployed environment.")
         if self.whatsapp_provider == "fake" and self.is_deployed:
             raise ValueError("The fake WhatsApp provider is not allowed in a deployed environment.")
+        if self.billing_provider == "fake" and self.is_deployed:
+            raise ValueError("The fake billing provider is not allowed in a deployed environment.")
         return self
 
     @model_validator(mode="after")

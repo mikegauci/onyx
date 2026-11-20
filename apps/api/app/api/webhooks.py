@@ -24,7 +24,9 @@ import logging
 
 from fastapi import APIRouter, Request, Response, status
 
+from app.core.billing.service import BillingWebhooks
 from app.integrations import whatsapp
+from app.integrations.billing.signing import WebhookSignatureError as BillingSignatureError
 from app.integrations.email import current
 from app.integrations.email.signing import WebhookSignatureError, verify
 from app.integrations.whatsapp import signing as whatsapp_signing
@@ -122,4 +124,23 @@ async def whatsapp_webhook(request: Request) -> Response:
         return _plain(status.HTTP_400_BAD_REQUEST)
 
     await connector.handle(payload)
+    return _plain(status.HTTP_200_OK)
+
+
+@router.post("/stripe")
+async def stripe_webhook(request: Request) -> Response:
+    """Stripe Billing events. Signed; de-duplicated by event id; the tenant comes from Onyx's
+    customer mapping. A processing error answers 500 so Stripe retries (nothing was kept)."""
+    handler: BillingWebhooks | None = getattr(request.app.state, "billing_webhooks", None)
+    if handler is None:
+        return _plain(status.HTTP_503_SERVICE_UNAVAILABLE)
+    body = await _read_body(request)
+    if body is None:
+        return _plain(PAYLOAD_TOO_LARGE)
+    try:
+        outcome = await handler.handle(dict(request.headers), body)
+    except BillingSignatureError as exc:
+        logger.warning("billing webhook rejected", extra={"fields": {"reason": str(exc)}})
+        return _plain(status.HTTP_401_UNAUTHORIZED)
+    logger.info("billing webhook", extra={"fields": {"outcome": outcome}})
     return _plain(status.HTTP_200_OK)

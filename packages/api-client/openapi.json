@@ -792,6 +792,74 @@
         "title": "AuthorKind",
         "type": "string"
       },
+      "BillingOut": {
+        "properties": {
+          "cancel_at_period_end": {
+            "title": "Cancel At Period End",
+            "type": "boolean"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "current_period_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "has_customer": {
+            "title": "Has Customer",
+            "type": "boolean"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/PlanOut"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "configured",
+          "plan",
+          "status",
+          "current_period_end",
+          "cancel_at_period_end",
+          "has_customer",
+          "plans"
+        ],
+        "title": "BillingOut",
+        "type": "object"
+      },
       "CancelRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1274,6 +1342,24 @@
           }
         },
         "title": "ChannelUpdate",
+        "type": "object"
+      },
+      "CheckoutIn": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "return_url": {
+            "maxLength": 2000,
+            "title": "Return Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan",
+          "return_url"
+        ],
+        "title": "CheckoutIn",
         "type": "object"
       },
       "ChunkPreview": {
@@ -4520,6 +4606,19 @@
         "title": "LineUpdate",
         "type": "object"
       },
+      "LinkOut": {
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "LinkOut",
+        "type": "object"
+      },
       "MeResponse": {
         "properties": {
           "is_platform_admin": {
@@ -5363,10 +5462,55 @@
           "knowledge.manage",
           "ai.usage.read",
           "tasks.read",
-          "tasks.manage"
+          "tasks.manage",
+          "billing.read",
+          "billing.manage"
         ],
         "title": "Permission",
         "type": "string"
+      },
+      "Plan": {
+        "enum": [
+          "starter",
+          "growth"
+        ],
+        "title": "Plan",
+        "type": "string"
+      },
+      "PlanOut": {
+        "properties": {
+          "ai_monthly_usd": {
+            "title": "Ai Monthly Usd",
+            "type": "integer"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "key": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "modules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modules",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "modules",
+          "ai_monthly_usd",
+          "available"
+        ],
+        "title": "PlanOut",
+        "type": "object"
       },
       "PolicyOut": {
         "properties": {
@@ -5418,6 +5562,20 @@
           "body"
         ],
         "title": "PolicyUpsert",
+        "type": "object"
+      },
+      "PortalIn": {
+        "properties": {
+          "return_url": {
+            "maxLength": 2000,
+            "title": "Return Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "return_url"
+        ],
+        "title": "PortalIn",
         "type": "object"
       },
       "PostMessageResult": {
@@ -7288,6 +7446,89 @@
           "vat_breakdown"
         ],
         "title": "TotalsOut",
+        "type": "object"
+      },
+      "UsageLineOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost_usd_micros": {
+            "title": "Cost Usd Micros",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "workload": {
+            "title": "Workload",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "workload",
+          "calls",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd_micros"
+        ],
+        "title": "UsageLineOut",
+        "type": "object"
+      },
+      "UsageReportOut": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/UsageLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          },
+          "monthly_limit_usd_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Limit Usd Micros"
+          },
+          "total_calls": {
+            "title": "Total Calls",
+            "type": "integer"
+          },
+          "total_cost_usd_micros": {
+            "title": "Total Cost Usd Micros",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "lines",
+          "total_calls",
+          "total_cost_usd_micros",
+          "monthly_limit_usd_micros"
+        ],
+        "title": "UsageReportOut",
         "type": "object"
       },
       "UsageStatus": {
@@ -10538,6 +10779,493 @@
         "summary": "List Audit Entries",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/v1/w/{slug}/billing": {
+      "get": {
+        "operationId": "read_billing",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Billing",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/w/{slug}/billing/checkout": {
+      "post": {
+        "operationId": "start_checkout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Checkout",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/w/{slug}/billing/portal": {
+      "post": {
+        "operationId": "open_portal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Open Portal",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/w/{slug}/billing/usage": {
+      "get": {
+        "operationId": "usage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Usage",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/w/{slug}/billing/usage.csv": {
+      "get": {
+        "operationId": "usage_csv",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Usage Csv",
+        "tags": [
+          "billing"
         ]
       }
     },

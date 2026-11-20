@@ -40,6 +40,7 @@ from app.integrations.whatsapp import WhatsAppConfig, WhatsAppProvider
 from app.integrations.whatsapp.fake import FakeWhatsAppProvider
 from app.integrations.whatsapp.meta import MetaProvider
 from app.modules.assistant.routes import router as assistant_router
+from app.modules.automotive.routes import router as automotive_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
 from app.modules.inbox import whatsapp_send
@@ -256,6 +257,7 @@ def create_app(
     v1.include_router(inbox_router)
     v1.include_router(quotations_router)
     v1.include_router(assistant_router)
+    v1.include_router(automotive_router)
     v1.include_router(outbound_router)
     v1.include_router(knowledge_router)
     v1.include_router(webhooks_router)

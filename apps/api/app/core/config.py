@@ -107,6 +107,16 @@ class Settings(BaseSettings):
         description="'fake' records sends in memory for local and e2e runs; never deployed.",
     )
 
+    # Temporal (PR-020). Only the worker process connects; the API never does. Temporal Cloud
+    # (mTLS or an API key) needs the owner's approval and is not configured yet.
+    temporal_address: str = Field(default="localhost:7233", description="host:port")
+    temporal_namespace: str = Field(default="default", min_length=1, max_length=200)
+    temporal_task_queue: str = Field(default="onyx", min_length=1, max_length=200)
+    outbox_batch_size: int = Field(default=20, ge=1, le=100)
+    outbox_poll_seconds: float = Field(default=2.0, gt=0, le=60)
+    outbox_lease_seconds: int = Field(default=60, ge=5, le=3600)
+    outbox_max_attempts: int = Field(default=10, ge=1, le=100)
+
     @field_validator(
         "openai_api_key",
         "anthropic_api_key",

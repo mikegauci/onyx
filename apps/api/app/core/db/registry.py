@@ -15,6 +15,7 @@ from app.modules.inbox import models as inbox_models
 from app.modules.knowledge import models as knowledge_models
 from app.modules.outbound import models as outbound_models
 from app.modules.quotations import models as quotation_models
+from app.workflows import models as workflow_models
 
 __all__ = [
     "Base",
@@ -32,6 +33,7 @@ __all__ = [
     "quotation_models",
     "storage_models",
     "tenancy_models",
+    "workflow_models",
 ]
 
 # Tables that are shared reference or bookkeeping data rather than tenant- or user-owned.

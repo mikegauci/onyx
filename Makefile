@@ -12,7 +12,7 @@ DB_ENV := set -a; . ./$(ENV_FILE); set +a;
 ALEMBIC := cd $(API_DIR) && uv run alembic
 
 .PHONY: help setup up down dev dev-web dev-api check check-web check-api test test-web test-api \
-	fmt build e2e eval-assistant api-client api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-grant db-grant-platform-admin db-revision
+	fmt build e2e worker eval-assistant api-client api-image api-image-smoke clean db-migrate db-downgrade db-seed db-reset db-grant db-grant-platform-admin db-revision
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -21,11 +21,14 @@ setup: ## Install all dependencies (pnpm + uv)
 	pnpm install --frozen-lockfile
 	cd $(API_DIR) && uv sync --frozen
 
-up: ## Start local dependencies (Postgres) and wait until healthy
+up: ## Start local dependencies (Postgres, Temporal dev server) and wait until healthy
 	$(COMPOSE) up -d --wait
 
 down: ## Stop local dependencies (data volume is kept)
 	$(COMPOSE) down
+
+worker: ## Run the Temporal worker and outbox relay (needs `make up`)
+	@$(DB_ENV) cd $(API_DIR) && uv run python -m app.workflows.worker
 
 dev: ## Run site (:3000), platform (:3001) and API (:8000) together
 	@$(MAKE) -j2 dev-web dev-api

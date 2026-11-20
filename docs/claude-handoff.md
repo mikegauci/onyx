@@ -84,10 +84,13 @@ contrast check), suspension enforced in the API, the database and webhooks, invi
 resend/revoke and integration status. Migration `0020`. See `docs/platform/tenant-onboarding.md`.
 `onyx-preview` is at `0020`.
 
-PR-025 part 2, the screens, is in review: new organisation form with the one-time owner link,
-organisation page (details, suspend/reactivate, invitations, AI budget, integrations), branding
-and integrations in workspace settings, and a suspended-workspace page. Next after PR-025:
-PR-020 and PR-021 (Temporal).
+PR-025 part 2 merged ([#35](https://github.com/mikegauci/onyx/pull/35)); PR-025 is complete.
+
+PR-020, the Temporal runtime, is in review: the worker process, the outbox relay (one workflow
+per event, `REJECT_DUPLICATE`), the first workflow (a sent reply moves an open conversation to
+"waiting on customer"), effects recorded once, replay and restart tests. Migration `0021`. See
+`docs/platform/workflows.md`. Temporal Cloud and a Render worker need the owner's approval.
+Next: PR-021 (approvals, reminders, deadlines and human tasks).
 
 ## Verification preference
 

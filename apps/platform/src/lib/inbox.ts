@@ -79,7 +79,12 @@ export function describeEvent(event: InboxEvent): string {
   const label = EVENT_LABEL[event.kind];
   if (event.kind === "status_changed") {
     const to = event.details.to as ConversationStatus | undefined;
-    const why = event.details.reason === "customer_message" ? " (customer wrote again)" : "";
+    const why =
+      event.details.reason === "customer_message"
+        ? " (customer wrote again)"
+        : event.details.reason === "reply_sent"
+          ? " (reply sent)"
+          : "";
     return to ? `${label} to ${STATUS_LABEL[to].toLowerCase()}${why}` : label;
   }
   return label;

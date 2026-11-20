@@ -18,5 +18,19 @@ services:
       timeout: 3s
       retries: 20
 
+  # Temporal dev server for the worker (`make worker`). In-memory: workflows reset when it
+  # stops. Web UI: http://localhost:8233.
+  temporal:
+    image: temporalio/temporal:1.9.1
+    command: ["server", "start-dev", "--ip", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:${TEMPORAL_PORT:-7233}:7233"
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8233}:8233"
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "127.0.0.1:7233"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
 volumes:
   postgres-data:

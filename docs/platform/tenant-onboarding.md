@@ -1,7 +1,7 @@
 # Tenant onboarding (PR-025)
 
-Platform admins create, configure, suspend and invite tenants. Part 1 (this document) is the
-backend; part 2 adds the admin screens and the tenant settings screens.
+Platform admins create, configure, suspend and invite tenants. Part 1 is the backend; part 2
+the screens (see [Screens](#screens)).
 
 PR-025 runs before PR-018 (owner decision, 20 November 2026): onboarding is how a pilot client
 such as Ventur is set up, so it cannot wait for the pilot.
@@ -83,6 +83,30 @@ kind, whether it is disabled or connected, and a WhatsApp channel's customer-fac
 plus whether the email and WhatsApp providers are configured. The admin version adds the AI
 budget and this month's spend. Neither returns tokens, inbound addresses or provider ids.
 
+## Screens
+
+All rules stay in the API; the screens only choose what to show.
+
+- **Admin → Organisations:** status badges (Active or Suspended), display names, and
+  **New organisation**.
+- **New organisation** (`/admin/organizations/new`): name with a suggested address (slug),
+  owner email, timezone, display name, brand colour with a live preview of white text and its
+  contrast, AI budget in US dollars, and modules. Ticking a module ticks what it needs (from
+  `GET /v1/admin/modules`). On success the owner's link is shown once, with a copy button.
+- **Organisation page:** details form, Suspend (asks for confirmation and says what it blocks)
+  or Reactivate, invitations with their state, a new link and Revoke, the AI budget with this
+  month's spend, integration status, and module entitlements.
+- **Workspace → Settings → General:** display name, brand colour (same preview) and currency
+  (EUR, read-only).
+- **Workspace → Settings → Integrations:** each channel and whether it is connected, and
+  whether email and WhatsApp are set up.
+- **Branding:** the workspace switcher shows the display name, on the brand colour.
+- **Suspended workspace:** opening it shows "This workspace is suspended" with a way to other
+  workspaces, instead of "not found". The switcher marks suspended workspaces.
+
+E2E: `apps/platform/e2e/onboarding.spec.ts` creates an organisation, accepts the owner's link,
+brands it, suspends and reactivates it.
+
 ## Data (migration `0020`)
 
 - `organizations`: `currency` (default `EUR`), `display_name`, `brand_color`, and a slug
@@ -109,5 +133,6 @@ drops the columns). Deployed databases use a forward fix.
 - suspension blocks the API, direct SQL and the webhook lookup, leaves other tenants alone,
   and reactivation restores access;
 - invitations to a suspended tenant; replaced and revoked links;
+- the module catalogue for platform admins only;
 - admin and owner settings edits, clearing, permissions;
 - integration status without secrets, permissions and tenant isolation.

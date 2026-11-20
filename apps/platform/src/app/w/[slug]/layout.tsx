@@ -8,6 +8,8 @@ import { requireOk } from "@/lib/guards";
 import { moduleLabel } from "@/lib/modules";
 import { SETTINGS_SECTIONS, visibleSettings } from "@/lib/nav";
 
+import { SuspendedWorkspace } from "./suspended";
+
 export const dynamic = "force-dynamic";
 
 type Props = { children: ReactNode; params: Promise<{ slug: string }> };
@@ -15,9 +17,14 @@ type Props = { children: ReactNode; params: Promise<{ slug: string }> };
 export default async function WorkspaceLayout({ children, params }: Props) {
   const { slug } = await params;
   const base = `/w/${encodeURIComponent(slug)}`;
-  const [meResult, workspaceResult] = await Promise.all([getMe(), getWorkspace(slug)]);
+  const meResult = await getMe();
   const me = requireOk(meResult, base);
-  const workspace = requireOk(workspaceResult, base);
+  // A suspended workspace refuses every request (403); say why instead of "not found".
+  const listed = me.workspaces.find((w) => w.slug === slug);
+  if (listed?.status === "suspended") {
+    return <SuspendedWorkspace name={listed.name} hasOthers={me.workspaces.length > 1} />;
+  }
+  const workspace = requireOk(await getWorkspace(slug), base);
 
   const settings = visibleSettings(workspace.permissions);
   const nav: NavGroup[] = [
@@ -38,7 +45,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   }
 
   const crumbLabels: Record<string, string> = {
-    [base]: workspace.name,
+    [base]: workspace.display_name ?? workspace.name,
     [`${base}/settings`]: "Settings",
   };
   for (const key of workspace.modules) crumbLabels[`${base}/m/${key}`] = moduleLabel(key);
@@ -50,7 +57,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     <AppShell
       header={
         <WorkspaceSwitcher
-          current={{ slug: workspace.slug, name: workspace.name, role: workspace.role }}
+          current={{
+            slug: workspace.slug,
+            name: workspace.display_name ?? workspace.name,
+            role: workspace.role,
+            brandColor: workspace.brand_color,
+          }}
           workspaces={me.workspaces}
           isPlatformAdmin={me.is_platform_admin}
         />

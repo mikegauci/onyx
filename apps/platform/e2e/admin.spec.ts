@@ -9,8 +9,9 @@ test("platform admin sees account metadata in the admin shell", async ({ page, c
     page.getByRole("status").getByText(/Platform admin · account metadata only/),
   ).toBeVisible();
   const table = page.getByRole("table", { name: "Organisations" });
-  await expect(table.getByRole("row")).toHaveCount(3); // header + 2 tenants
+  // The seeded tenants (onboarding tests may add more in the same run).
   await expect(table.getByText("lumen-lighting-test")).toBeVisible();
+  await expect(table.getByText("harbour-catering-test")).toBeVisible();
 
   await page
     .getByRole("navigation", { name: "Platform admin" })

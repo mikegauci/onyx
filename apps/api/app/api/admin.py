@@ -88,6 +88,22 @@ async def _detail(db: DbDep, slug: str) -> OrganizationDetail:
     return OrganizationDetail(organization=org, modules=modules)
 
 
+@router.get("/modules", response_model=list[ModuleOut], responses=ADMIN_ERRORS)
+async def list_module_catalogue(_admin: PlatformAdminDep, db: DbDep) -> list[ModuleOut]:
+    """The module catalogue with what each module requires, for the new-organisation form."""
+    catalogue = (await db.execute(select(Module).order_by(Module.key))).scalars()
+    return [
+        ModuleOut(
+            key=ModuleKey(m.key),
+            name=m.name,
+            description=m.description,
+            enabled=False,
+            requires=sorted(REGISTRY[ModuleKey(m.key)].requires),
+        )
+        for m in catalogue
+    ]
+
+
 @router.get("/organizations/{slug}", response_model=OrganizationDetail, responses=ADMIN_ERRORS)
 async def read_organization(slug: str, _admin: PlatformAdminDep, db: DbDep) -> OrganizationDetail:
     return await _detail(db, slug)

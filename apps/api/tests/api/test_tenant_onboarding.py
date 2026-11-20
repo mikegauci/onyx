@@ -256,3 +256,11 @@ def test_integration_status_shows_channels_without_secrets(api: TestClient, as_:
     assert admin.json()["ai_budget"] is not None
     assert api.get(f"/v1/w/{LUMEN}/integrations", headers=as_.seeded(MIA)).status_code == 403
     assert api.get(f"/v1/w/{LUMEN}/integrations", headers=as_.seeded(HUGO)).status_code == 404
+
+
+def test_platform_admins_read_the_module_catalogue(api: TestClient, as_: As) -> None:
+    listed = api.get("/v1/admin/modules", headers=as_.seeded(PAT))
+    assert listed.status_code == 200
+    inbox = next(m for m in listed.json() if m["key"] == "inbox")
+    assert inbox["requires"] == ["crm"]
+    assert api.get("/v1/admin/modules", headers=as_.seeded(OLIVIA)).status_code == 404

@@ -15,7 +15,7 @@ import Link from "next/link";
 import type { WorkspaceSummary } from "@/lib/api-client";
 
 type Props = {
-  current: { slug: string; name: string; role: string } | null;
+  current: { slug: string; name: string; role: string; brandColor?: string | null } | null;
   workspaces: WorkspaceSummary[];
   isPlatformAdmin: boolean;
   /** Title shown when no workspace is current (the admin shell). */
@@ -31,7 +31,15 @@ export function WorkspaceSwitcher({ current, workspaces, isPlatformAdmin, title 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" aria-label={`Switch workspace (current: ${label})`}>
-              <span className="bg-brand text-brand-foreground flex aspect-square size-8 items-center justify-center rounded-lg text-sm font-semibold">
+              <span
+                className="bg-brand text-brand-foreground flex aspect-square size-8 items-center justify-center rounded-lg text-sm font-semibold"
+                // A tenant's brand colour; the API only accepts colours dark enough for white text.
+                style={
+                  current?.brandColor
+                    ? { backgroundColor: current.brandColor, color: "#ffffff" }
+                    : undefined
+                }
+              >
                 {label.slice(0, 1).toUpperCase()}
               </span>
               <span className="grid flex-1 text-left text-sm leading-tight">
@@ -53,6 +61,9 @@ export function WorkspaceSwitcher({ current, workspaces, isPlatformAdmin, title 
               <DropdownMenuItem key={w.slug} asChild>
                 <Link href={`/w/${w.slug}`}>
                   <span className="flex-1 truncate">{w.name}</span>
+                  {w.status === "suspended" ? (
+                    <span className="text-muted-foreground text-xs">Suspended</span>
+                  ) : null}
                   {w.slug === current?.slug ? <Check aria-label="Current" /> : null}
                 </Link>
               </DropdownMenuItem>

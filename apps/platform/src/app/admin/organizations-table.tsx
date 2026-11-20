@@ -12,12 +12,19 @@ const columns: ColumnDef<Org>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <Link
-        href={`/admin/organizations/${row.original.slug}`}
-        className="font-medium hover:underline"
-      >
-        {row.original.name}
-      </Link>
+      <span className="flex flex-col">
+        <Link
+          href={`/admin/organizations/${row.original.slug}`}
+          className="font-medium hover:underline"
+        >
+          {row.original.name}
+        </Link>
+        {row.original.display_name ? (
+          <span className="text-muted-foreground text-xs">
+            Shown as {row.original.display_name}
+          </span>
+        ) : null}
+      </span>
     ),
   },
   {
@@ -28,7 +35,12 @@ const columns: ColumnDef<Org>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ getValue }) => <Badge variant="outline">{String(getValue())}</Badge>,
+    cell: ({ getValue }) =>
+      getValue() === "suspended" ? (
+        <Badge variant="destructive">Suspended</Badge>
+      ) : (
+        <Badge variant="success">Active</Badge>
+      ),
   },
   {
     accessorKey: "member_count",

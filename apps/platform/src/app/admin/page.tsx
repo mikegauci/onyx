@@ -1,3 +1,6 @@
+import { Button } from "@onyx/ui/components/button";
+import Link from "next/link";
+
 import { withApi } from "@/lib/api-client";
 import { requireOk } from "@/lib/guards";
 
@@ -8,7 +11,12 @@ export default async function AdminOrganizationsPage() {
   return (
     <>
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Organisations</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Organisations</h1>
+          <Button asChild>
+            <Link href="/admin/organizations/new">New organisation</Link>
+          </Button>
+        </div>
         <p className="text-muted-foreground text-sm">
           Account metadata only. Viewing tenant business data needs an audited support-access mode,
           which is not built yet.

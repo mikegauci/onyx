@@ -42,6 +42,9 @@ export async function updateWorkspace(
       body: {
         name: String(formData.get("name") ?? ""),
         timezone: String(formData.get("timezone") ?? ""),
+        // Empty clears the display name and brand colour.
+        display_name: String(formData.get("display_name") ?? "").trim() || null,
+        brand_color: String(formData.get("brand_color") ?? "").trim() || null,
       },
     }),
   );

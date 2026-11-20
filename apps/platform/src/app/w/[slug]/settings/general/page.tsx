@@ -20,6 +20,9 @@ export default async function GeneralSettingsPage({ params }: Props) {
         name={workspace.name}
         timezone={workspace.timezone}
         timezones={timezones}
+        displayName={workspace.display_name ?? ""}
+        brandColor={workspace.brand_color ?? ""}
+        currency={workspace.currency}
       />
     </section>
   );

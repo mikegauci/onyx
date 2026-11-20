@@ -20,7 +20,7 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0019` (applied 20 November 2026). Owner rule: apply each PR's
+- `onyx-preview` is at `0020` (applied 20 November 2026). Owner rule: apply each PR's
   migrations to `onyx-preview` as soon as the PR merges, without asking again; production
   still needs explicit approval. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
   AI budget, and the email channel "Onyx". Email setup on preview:
@@ -78,11 +78,16 @@ as Ventur. Order: PR-025 tenant onboarding, PR-020/PR-021 Temporal, PR-027 produ
 hardening, PR-026 billing, then PR-018 as the Ventur pilot and PR-028. PR-022 to PR-024 (orders,
 fulfilment, POS) were planned for a retailer and wait for one. PR-025 now runs before PR-018.
 
-PR-025 part 1, the onboarding backend, is in review: platform-admin tenant creation with the
+PR-025 part 1 merged ([#34](https://github.com/mikegauci/onyx/pull/34)), the onboarding backend: platform-admin tenant creation with the
 first owner's invitation link, settings (currency EUR only, display name, brand colour with a
 contrast check), suspension enforced in the API, the database and webhooks, invitation
 resend/revoke and integration status. Migration `0020`. See `docs/platform/tenant-onboarding.md`.
-Next: PR-025 part 2, the admin and settings screens.
+`onyx-preview` is at `0020`.
+
+PR-025 part 2, the screens, is in review: new organisation form with the one-time owner link,
+organisation page (details, suspend/reactivate, invitations, AI budget, integrations), branding
+and integrations in workspace settings, and a suspended-workspace page. Next after PR-025:
+PR-020 and PR-021 (Temporal).
 
 ## Verification preference
 

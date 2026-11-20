@@ -156,6 +156,8 @@ class Settings(BaseSettings):
         "sentry_dsn",
         "stripe_api_key",
         "stripe_webhook_secret",
+        "stripe_price_starter",
+        "stripe_price_growth",
         mode="before",
     )
     @classmethod

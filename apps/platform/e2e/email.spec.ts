@@ -74,7 +74,7 @@ test("staff block an address and only an owner can release it", async ({ browser
   const memberPage = await member.newPage();
   await memberPage.goto(`${LUMEN}/m/inbox/suppressions`);
   await expect(memberPage.getByRole("heading", { name: "Blocked addresses" })).toBeVisible();
-  await memberPage.getByLabel("Email address", { exact: true }).fill(address);
+  await memberPage.getByLabel("Email address or WhatsApp number", { exact: true }).fill(address);
   await memberPage.getByLabel("Note", { exact: true }).fill("Asked us to stop");
   await memberPage.getByRole("button", { name: "Block address" }).click();
   await expect(memberPage.getByRole("status").filter({ hasText: "Address blocked" })).toBeVisible();

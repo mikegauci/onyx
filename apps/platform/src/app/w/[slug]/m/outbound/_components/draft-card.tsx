@@ -9,6 +9,7 @@ import { useActionState, useState } from "react";
 
 import { formatInZone } from "@/lib/crm";
 import { IDLE } from "@/lib/form-state";
+import { previewTemplate, type WhatsAppTemplate } from "@/lib/inbox";
 import {
   type DraftDetail,
   DRAFT_STATUS_LABEL,
@@ -37,33 +38,81 @@ const TEXTAREA_CLASS =
 
 type QuoteOption = { id: string; label: string };
 
+/** What the reply panel knows about a WhatsApp conversation. */
+export type WhatsAppReply = { windowOpen: boolean; templates: WhatsAppTemplate[] };
+
 /** Write a reply for approval, optionally with one of the contact's quotes. */
 export function NewDraftForm({
   slug,
   conversationId,
   quotes,
+  whatsapp = null,
 }: {
   slug: string;
   conversationId: string;
   quotes: QuoteOption[];
+  whatsapp?: WhatsAppReply | null;
 }) {
   const [state, action, pending] = useActionState(
     createDraft.bind(null, slug, conversationId),
     IDLE,
   );
   const errors = state.fieldErrors ?? {};
+  const [mode, setMode] = useState<"text" | "template">(
+    whatsapp && !whatsapp.windowOpen ? "template" : "text",
+  );
+  const usable = whatsapp?.templates.filter((t) => t.usable) ?? [];
   return (
     <form action={action} className="flex flex-col gap-3" noValidate>
-      <FormField id="draft-body" label="Reply to the customer" error={errors.body}>
-        <textarea
-          id="draft-body"
-          name="body"
-          required
-          maxLength={10000}
-          className={TEXTAREA_CLASS}
-        />
-      </FormField>
-      {quotes.length > 0 ? (
+      <input type="hidden" name="mode" value={mode} />
+      {whatsapp ? (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium">Reply as</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="reply-mode"
+              checked={mode === "text"}
+              disabled={!whatsapp.windowOpen}
+              onChange={() => setMode("text")}
+            />
+            Text message
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="reply-mode"
+              checked={mode === "template"}
+              onChange={() => setMode("template")}
+            />
+            Approved template
+          </label>
+          {!whatsapp.windowOpen ? (
+            <p className="text-muted-foreground text-xs">
+              The 24-hour window is closed, so only a template can be sent.
+            </p>
+          ) : null}
+        </fieldset>
+      ) : null}
+      {mode === "text" ? (
+        <FormField id="draft-body" label="Reply to the customer" error={errors.body}>
+          <textarea
+            id="draft-body"
+            name="body"
+            required
+            maxLength={10000}
+            className={TEXTAREA_CLASS}
+          />
+        </FormField>
+      ) : usable.length === 0 ? (
+        <p role="note" className="rounded-md border p-2 text-sm">
+          No template can be sent yet. An admin refreshes the approved utility templates under Inbox
+          → Channels.
+        </p>
+      ) : (
+        <TemplateFields templates={usable} errors={errors} />
+      )}
+      {quotes.length > 0 && mode === "text" ? (
         <FormField id="draft-quote" label="Include quote" error={errors.quote_id}>
           <select id="draft-quote" name="quote_id" className={SELECT_CLASS} defaultValue="">
             <option value="">No quote</option>
@@ -75,11 +124,98 @@ export function NewDraftForm({
           </select>
         </FormField>
       ) : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || (mode === "template" && usable.length === 0)}>
         {pending ? "Saving…" : "Save for approval"}
       </Button>
       <FormStatus state={state} />
     </form>
+  );
+}
+
+/**
+ * Pick a template and fill in its values, with a preview. The API renders the text that is
+ * approved and sent, and checks every value.
+ */
+function TemplateFields({
+  templates,
+  errors,
+  fixed = null,
+  initial = [],
+  idPrefix = "draft",
+}: {
+  templates: WhatsAppTemplate[];
+  errors: Record<string, string | undefined>;
+  /** A draft's template, which a revision keeps; only its values change. */
+  fixed?: { id: string; name: string; language: string; count: number; body: string } | null;
+  initial?: readonly string[];
+  idPrefix?: string;
+}) {
+  const [templateId, setTemplateId] = useState(fixed?.id ?? templates[0]?.id ?? "");
+  const chosen = templates.find((t) => t.id === templateId);
+  const count = fixed?.count ?? chosen?.param_count ?? 0;
+  const body = fixed?.body ?? chosen?.body ?? "";
+  const [values, setValues] = useState<string[]>(() =>
+    Array.from({ length: 20 }, (_, i) => initial[i] ?? ""),
+  );
+  const error = errors["template_id"] ?? errors["template"] ?? errors["params"];
+  return (
+    <div className="flex flex-col gap-3">
+      {fixed ? (
+        <>
+          <input type="hidden" name="template_id" value={fixed.id} />
+          <p className="text-sm">
+            Template {fixed.name} ({fixed.language})
+          </p>
+        </>
+      ) : (
+        <FormField id={`${idPrefix}-template`} label="Template" error={error}>
+          <select
+            id={`${idPrefix}-template`}
+            name="template_id"
+            className={SELECT_CLASS}
+            value={templateId}
+            onChange={(e) => setTemplateId(e.target.value)}
+          >
+            {templates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} ({t.language})
+              </option>
+            ))}
+          </select>
+        </FormField>
+      )}
+      {Array.from({ length: count }, (_, i) => (
+        <FormField
+          key={`${templateId}-${i}`}
+          id={`${idPrefix}-param-${i + 1}`}
+          label={`Value {{${i + 1}}}`}
+          hint={i === 0 ? "One line each, as the customer should read it." : undefined}
+          error={errors[`params.${i}`]}
+        >
+          <Input
+            id={`${idPrefix}-param-${i + 1}`}
+            name="param"
+            required
+            maxLength={1024}
+            value={values[i] ?? ""}
+            onChange={(e) =>
+              setValues((current) => current.map((v, j) => (j === i ? e.target.value : v)))
+            }
+          />
+        </FormField>
+      ))}
+      {body ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-muted-foreground text-xs">Preview</p>
+          <blockquote
+            className="rounded-md border p-3 text-sm whitespace-pre-wrap"
+            aria-label="Template preview"
+          >
+            {previewTemplate(body, values.slice(0, count))}
+          </blockquote>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -143,7 +279,9 @@ export function DraftCard({
     IDLE,
   );
   const busy = revising || approving || rejecting || sending || both;
-  const editable = controls.canEdit || controls.canApprove;
+  const template = draft.template ?? null;
+  // A template draft is revised by its values, never edited as text.
+  const editable = template === null && (controls.canEdit || controls.canApprove);
 
   return (
     <article
@@ -177,6 +315,12 @@ export function DraftCard({
         </p>
       ) : null}
       <QuoteLine slug={slug} draft={draft} />
+      {template ? (
+        <p className="text-muted-foreground text-xs">
+          WhatsApp template {template.name} ({template.language}). Approving it approves this exact
+          text.
+        </p>
+      ) : null}
 
       {editable ? (
         <FormField id={`reply-${draft.id}`} label="Reply text">
@@ -197,7 +341,7 @@ export function DraftCard({
       )}
 
       <div className="flex flex-wrap gap-2">
-        {controls.canEdit ? (
+        {controls.canEdit && template === null ? (
           <form id={`revise-${draft.id}`} action={revise}>
             <Button type="submit" variant="outline" disabled={busy || !edited}>
               Save edit
@@ -249,6 +393,30 @@ export function DraftCard({
         </p>
       ) : null}
 
+      {controls.canEdit && template ? (
+        <details>
+          <summary className="cursor-pointer text-sm underline">Change the values</summary>
+          <form action={revise} className="mt-2 flex flex-col gap-2">
+            <input type="hidden" name="mode" value="template" />
+            <TemplateFields
+              templates={[]}
+              errors={reviseState.fieldErrors ?? {}}
+              fixed={{
+                id: template.template_id,
+                name: template.name,
+                language: template.language,
+                count: template.params.length,
+                body: "",
+              }}
+              initial={template.params}
+              idPrefix={`revise-${draft.id}`}
+            />
+            <Button type="submit" variant="outline" disabled={busy}>
+              Save new values
+            </Button>
+          </form>
+        </details>
+      ) : null}
       <FormStatus state={reviseState} />
       <FormStatus state={approveState} />
       <FormStatus state={sendState} />

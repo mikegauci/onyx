@@ -436,6 +436,11 @@ SEED_INBOX_CHANNELS: dict[str, tuple[tuple[str, ChannelKind], ...]] = {
     ),
     "harbour-catering-test": (("Office phone", ChannelKind.MANUAL),),
 }
+# Fake WhatsApp business numbers (name, phone_number_id, waba_id, display number). A real number
+# is connected by a platform admin; these exist for local and e2e runs with the fake provider.
+SEED_WHATSAPP_CHANNELS: dict[str, tuple[str, str, str, str]] = {
+    "lumen-lighting-test": ("WhatsApp", "100000000000009", "200000000000009", "+356 2100 0009"),
+}
 SEED_INBOX: dict[str, tuple[SeedConversation, ...]] = {
     "lumen-lighting-test": (
         SeedConversation(
@@ -512,6 +517,20 @@ def seed_inbox(connection: Connection) -> None:
                 )
                 .on_conflict_do_nothing()
             )
+    for slug, (name, number_id, waba_id, display) in SEED_WHATSAPP_CHANNELS.items():
+        connection.execute(
+            insert(Channel)
+            .values(
+                id=seed_id(f"{slug}:channel:{name}"),
+                organization_id=seed_id(slug),
+                kind=ChannelKind.WHATSAPP,
+                name=name,
+                phone_number_id=number_id,
+                waba_id=waba_id,
+                display_phone_number=display,
+            )
+            .on_conflict_do_nothing()
+        )
     for slug, conversations in SEED_INBOX.items():
         org_id = seed_id(slug)
         for conv in conversations:

@@ -216,9 +216,29 @@ export async function updateEmailSettings(
   return done(slug, "Sender details saved.");
 }
 
+/** Replace the channel's stored templates with the business account's current list. */
+export async function syncWhatsAppTemplates(
+  slug: string,
+  channelId: string,
+  _prev: FormState,
+): Promise<FormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/inbox/channels/{channel_id}/whatsapp-templates/sync", {
+      params: { path: { slug, channel_id: channelId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  const usable = outcome.data.items.filter((t) => t.usable).length;
+  return done(
+    slug,
+    `Templates refreshed: ${outcome.data.items.length} found, ${usable} can be sent.`,
+  );
+}
+
 // --- suppressions ----------------------------------------------------------------------------
 
-/** Stop emailing an address. Approved replies to it are refused until it is released. */
+/** Stop messaging an address or number. Approved replies to it are refused until released. */
 export async function addSuppression(
   slug: string,
   _prev: FormState,
@@ -231,7 +251,7 @@ export async function addSuppression(
     }),
   );
   if (!outcome.ok) return failureState(outcome);
-  return done(slug, "Address blocked. Onyx will not email it.");
+  return done(slug, "Address blocked. Onyx will not send to it.");
 }
 
 export async function releaseSuppression(
@@ -246,5 +266,5 @@ export async function releaseSuppression(
     }),
   );
   if (!outcome.ok) return failureState(outcome);
-  return done(slug, "Address released. Onyx can email it again.");
+  return done(slug, "Address released. Onyx can send to it again.");
 }

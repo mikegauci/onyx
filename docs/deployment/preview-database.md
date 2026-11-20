@@ -11,7 +11,9 @@ Fake or Onyx-internal data only. No client data before the PR-018 pilot.
 
 Alembic stays the only migration authority. Migrations are rendered as SQL with
 `alembic upgrade <from>:<to> --sql` and applied to `onyx-preview` as the schema owner
-(`postgres`), which also records `alembic_version`. Apply after each migration PR merges.
+(`postgres`), which also records `alembic_version`. Owner rule (20 November 2026): apply each PR's migrations
+as soon as it merges, without a separate approval. Check `alembic_version` first. Production
+(`onyx`) still needs explicit approval for every migration.
 
 Migration `0007` removes every privilege Supabase's Data API roles (`anon`, `authenticated`)
 would otherwise get on our tables and functions. The dashboard never uses the Data API.

@@ -389,6 +389,7 @@ def test_channels(mia: Caller, adam: Caller) -> None:
     assert [(c["name"], c["connected"]) for c in listed] == [
         ("Shop email", False),
         ("Shop phone", True),
+        ("WhatsApp", False),  # seeded number; not connected without the WhatsApp settings
     ]
     assert mia.post("/channels", {"kind": "manual", "name": "Counter"}).status_code == 403
     created = adam.post("/channels", {"kind": "manual", "name": "Counter"})

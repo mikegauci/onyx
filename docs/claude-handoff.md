@@ -1,4 +1,4 @@
-# Claude Code handoff — 19 November 2026
+# Claude Code handoff — 20 November 2026
 
 ## Start here
 
@@ -20,7 +20,9 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0016`. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
+- `onyx-preview` is at `0019` (applied 20 November 2026). Owner rule: apply each PR's
+  migrations to `onyx-preview` as soon as the PR merges, without asking again; production
+  still needs explicit approval. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
   AI budget, and the email channel "Onyx". Email setup on preview:
   - Resend domains `in.onyx.mt` (receiving) and `reply.onyx.mt` (sending) are verified, with
     DNS on Cloudflare.
@@ -62,15 +64,19 @@ files do not select models.
 
 PR-014 part 2 merged ([#31](https://github.com/mikegauci/onyx/pull/31)); PR-014 is complete.
 
-PR-019 part 1, the WhatsApp connector backend, is in review: platform-admin number connection,
-signed webhooks routed by business number, the 24-hour rule, utility templates on outbound
-drafts, send-once attempts recorded before calling Meta, delivery status and STOP opt-outs.
-Migration `0019`. See `docs/platform/whatsapp.md`. The owner chose PR-019 ahead of PR-018.
+PR-019 part 1 merged ([#32](https://github.com/mikegauci/onyx/pull/32)), the WhatsApp
+connector backend: platform-admin number connection, signed webhooks routed by business number,
+the 24-hour rule, utility templates on outbound drafts, send-once attempts recorded before
+calling Meta, delivery status and STOP opt-outs. Migration `0019`. See
+`docs/platform/whatsapp.md`. The owner chose PR-019 ahead of PR-018.
 
-Next: PR-019 part 2, the WhatsApp screens (channel number, reply window, template picker in
-the reply panel, delivery and read status, opted-out numbers). After both merge, apply `0018`
-and `0019` to `onyx-preview` with the owner's approval. Live use needs a Meta business account,
-app, system user token and test number from the owner.
+PR-019 part 2, the WhatsApp screens, is in review: the business number and templates on the
+Channels page, the reply-window notice, text-or-template replies with a preview, template
+drafts revised by their values, WhatsApp delivery status on sent replies, and numbers on
+Blocked addresses. No migration. E2E runs the fake provider with signed webhooks.
+
+Live use needs a Meta business account, app, system user token and test number from the owner.
+Then the remaining PRs from the roadmap, chosen by the owner.
 
 ## Verification preference
 

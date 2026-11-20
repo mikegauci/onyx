@@ -133,6 +133,7 @@ export function ComposeForm({
   );
   const kinds = composeKinds(conversation.channel.kind);
   const email = conversation.channel.kind === "email";
+  const whatsapp = conversation.channel.kind === "whatsapp";
   const [kind, setKind] = useState<ComposeKind>(
     conversation.status === "closed" || !kinds.includes("reply") ? "note" : "reply",
   );
@@ -181,6 +182,12 @@ export function ComposeForm({
           Onyx.
         </p>
       ) : null}
+      {whatsapp ? (
+        <p className="text-muted-foreground text-xs">
+          To answer the customer on WhatsApp, use Reply for approval. The approved reply is sent
+          from the business number.
+        </p>
+      ) : null}
       {kind === "reply" ? (
         <p className="text-muted-foreground text-xs">
           Onyx records the reply; it does not send it. Use this after replying by phone or in
@@ -203,7 +210,7 @@ export function ComposeForm({
           {pending ? "Saving…" : KIND_LABEL[kind]}
         </Button>
       </div>
-      {closed && !email ? (
+      {closed && !email && !whatsapp ? (
         <p className="text-muted-foreground text-xs">Reopen the conversation to log a reply.</p>
       ) : null}
     </form>

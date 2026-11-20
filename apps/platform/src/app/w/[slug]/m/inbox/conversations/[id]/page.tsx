@@ -14,8 +14,11 @@ import {
   describeEvent,
   inboxPath,
   messageHeading,
+  replyWindow,
   STATUS_LABEL,
   STATUS_VARIANT,
+  WHATSAPP_STATUS_LABEL,
+  WHATSAPP_STATUS_VARIANT,
 } from "@/lib/inbox";
 import { workspaceWith } from "@/lib/settings-guard";
 
@@ -90,6 +93,8 @@ export default async function ConversationPage({
   // Shown when the module is on; the API checks the module and permissions on every request.
   const showReplies =
     workspace.modules.includes("outbound") && workspace.permissions.includes("outbound.read");
+  const whatsapp = record.channel.kind === "whatsapp";
+  const replyTime = replyWindow(record.reply_window_closes_at, new Date());
   // The API returns newest first; read the conversation top to bottom.
   const timeline = [...page.items].reverse();
 
@@ -116,6 +121,24 @@ export default async function ConversationPage({
           ) : null}
         </div>
       </div>
+
+      {whatsapp ? (
+        <p role="note" className="rounded-md border p-3 text-sm">
+          {replyTime.open ? (
+            <>
+              WhatsApp allows a free-text reply until{" "}
+              <time dateTime={replyTime.closesAt}>{formatInZone(replyTime.closesAt, zone)}</time>,
+              24 hours after the customer&apos;s last message. After that, only an approved template
+              can be sent.
+            </>
+          ) : (
+            <>
+              The 24-hour WhatsApp reply window is closed. Only an approved template can be sent
+              until the customer writes again.
+            </>
+          )}
+        </p>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <section className="flex flex-col gap-4" aria-labelledby="messages-heading">
@@ -170,6 +193,26 @@ export default async function ConversationPage({
                       ) : null}
                     </div>
                   ) : null}
+                  {message.whatsapp ? (
+                    <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                      <Badge variant={WHATSAPP_STATUS_VARIANT[message.whatsapp.status]}>
+                        {WHATSAPP_STATUS_LABEL[message.whatsapp.status]}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        WhatsApp to {message.whatsapp.recipient}
+                        {message.whatsapp.template_name
+                          ? ` · template ${message.whatsapp.template_name}`
+                          : ""}
+                        {message.whatsapp.status === "failed" && message.whatsapp.detail
+                          ? ` · Meta error ${message.whatsapp.detail}`
+                          : ""}{" "}
+                        ·{" "}
+                        <time dateTime={message.whatsapp.status_at}>
+                          {formatInZone(message.whatsapp.status_at, zone)}
+                        </time>
+                      </span>
+                    </p>
+                  ) : null}
                 </li>
               ))}
             </ol>
@@ -186,6 +229,7 @@ export default async function ConversationPage({
               modules={workspace.modules}
               timezone={zone}
               path={path}
+              whatsappWindowOpen={whatsapp ? replyTime.open : null}
             />
           ) : null}
           {canRunAssistant ? (

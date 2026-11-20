@@ -8,7 +8,12 @@ from sqlalchemy import select, text
 
 from app.core.auth.deps import CurrentUserDep, DbDep
 from app.core.errors import AUTH_ERRORS, ErrorResponse
-from app.core.tenancy.models import Membership, MembershipRole, Organization
+from app.core.tenancy.models import (
+    Membership,
+    MembershipRole,
+    Organization,
+    OrganizationStatus,
+)
 
 router = APIRouter(tags=["me"])
 
@@ -23,6 +28,7 @@ class WorkspaceSummary(BaseModel):
     slug: str
     name: str
     role: MembershipRole
+    status: OrganizationStatus  # a suspended workspace is listed but refuses every request
 
 
 class MeResponse(BaseModel):
@@ -42,7 +48,7 @@ class MeResponse(BaseModel):
 )
 async def me(user: CurrentUserDep, db: DbDep) -> MeResponse:
     rows = await db.execute(
-        select(Organization.slug, Organization.name, Membership.role)
+        select(Organization.slug, Organization.name, Membership.role, Organization.status)
         .join(Membership, Membership.organization_id == Organization.id)
         .where(Membership.user_id == user.id)
         .order_by(Organization.name)
@@ -50,6 +56,6 @@ async def me(user: CurrentUserDep, db: DbDep) -> MeResponse:
     is_admin = bool(await db.scalar(text("SELECT app_is_platform_admin()")))
     return MeResponse(
         user=UserOut(id=user.id, email=user.email, display_name=user.display_name),
-        workspaces=[WorkspaceSummary(slug=s, name=n, role=r) for s, n, r in rows],
+        workspaces=[WorkspaceSummary(slug=s, name=n, role=r, status=st) for s, n, r, st in rows],
         is_platform_admin=is_admin,
     )

@@ -31,9 +31,16 @@ from app.core.errors import (
     NotFoundError,
     PermissionDeniedError,
     ServiceUnavailableError,
+    WorkspaceSuspendedError,
 )
 from app.core.logging import bind_request_fields
-from app.core.tenancy.models import Membership, MembershipRole, Organization, User
+from app.core.tenancy.models import (
+    Membership,
+    MembershipRole,
+    Organization,
+    OrganizationStatus,
+    User,
+)
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -145,6 +152,9 @@ async def get_workspace(slug: str, user: CurrentUserDep, db: DbDep) -> Workspace
     if row is None:
         raise NotFoundError(WORKSPACE_NOT_FOUND_MESSAGE)
     organization, role = row
+    if organization.status is OrganizationStatus.SUSPENDED:
+        # Members learn why; the database also hides its module data (``app_module_enabled``).
+        raise WorkspaceSuspendedError
     try:
         tenant = await bind_tenant(db, organization.id)
     except TenantAccessDeniedError as exc:  # membership vanished mid-request

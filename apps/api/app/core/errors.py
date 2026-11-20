@@ -33,6 +33,7 @@ class ErrorCode(enum.StrEnum):
     INTERNAL_ERROR = "internal_error"
     UNAVAILABLE = "unavailable"
     BUDGET_EXCEEDED = "budget_exceeded"
+    WORKSPACE_SUSPENDED = "workspace_suspended"
 
 
 _CODE_FOR_STATUS = {
@@ -101,6 +102,12 @@ class ModuleDisabledError(AppError):
     status_code = 403
     code = ErrorCode.MODULE_DISABLED
     default_message = "This module is not enabled for this workspace."
+
+
+class WorkspaceSuspendedError(AppError):
+    status_code = 403
+    code = ErrorCode.WORKSPACE_SUSPENDED
+    default_message = "This workspace is suspended. Contact Onyx support."
 
 
 class NotFoundError(AppError):

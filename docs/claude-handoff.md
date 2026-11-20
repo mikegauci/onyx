@@ -70,13 +70,19 @@ the 24-hour rule, utility templates on outbound drafts, send-once attempts recor
 calling Meta, delivery status and STOP opt-outs. Migration `0019`. See
 `docs/platform/whatsapp.md`. The owner chose PR-019 ahead of PR-018.
 
-PR-019 part 2, the WhatsApp screens, is in review: the business number and templates on the
-Channels page, the reply-window notice, text-or-template replies with a preview, template
-drafts revised by their values, WhatsApp delivery status on sent replies, and numbers on
-Blocked addresses. No migration. E2E runs the fake provider with signed webhooks.
-
+PR-019 part 2 merged ([#33](https://github.com/mikegauci/onyx/pull/33)); PR-019 is complete.
 Live use needs a Meta business account, app, system user token and test number from the owner.
-Then the remaining PRs from the roadmap, chosen by the owner.
+
+Owner priority (20 November 2026): finish the multi-tenant platform, then onboard clients such
+as Ventur. Order: PR-025 tenant onboarding, PR-020/PR-021 Temporal, PR-027 production
+hardening, PR-026 billing, then PR-018 as the Ventur pilot and PR-028. PR-022 to PR-024 (orders,
+fulfilment, POS) were planned for a retailer and wait for one. PR-025 now runs before PR-018.
+
+PR-025 part 1, the onboarding backend, is in review: platform-admin tenant creation with the
+first owner's invitation link, settings (currency EUR only, display name, brand colour with a
+contrast check), suspension enforced in the API, the database and webhooks, invitation
+resend/revoke and integration status. Migration `0020`. See `docs/platform/tenant-onboarding.md`.
+Next: PR-025 part 2, the admin and settings screens.
 
 ## Verification preference
 

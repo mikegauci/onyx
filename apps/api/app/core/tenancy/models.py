@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import CITEXT, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -39,8 +39,20 @@ class Organization(Base):
     timezone: Mapped[str] = mapped_column(
         String(64), nullable=False, default="Europe/Malta", server_default="Europe/Malta"
     )
+    # EUR only for now: prices, VAT and quotes are euro throughout (a check enforces it).
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, server_default="EUR")
+    # Branding shown in the workspace; null means the organisation name and default theme.
+    display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    brand_color: Mapped[str | None] = mapped_column(String(7), nullable=True)
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
+
+    __table_args__ = (
+        CheckConstraint("currency = 'EUR'", name="currency_supported"),
+        CheckConstraint("brand_color ~ '^#[0-9a-f]{6}$'", name="brand_color_hex"),
+        CheckConstraint("char_length(display_name) BETWEEN 1 AND 200", name="display_name_length"),
+        CheckConstraint("slug ~ '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'", name="slug_format"),
+    )
 
 
 class User(Base):
@@ -97,6 +109,8 @@ class Invitation(Base):
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Revoked by a platform admin (or replaced by a new link); revoking also ends expires_at.
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     accepted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

@@ -38,3 +38,10 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
   - `make check`, `make test`, `pnpm build` pass.
 - **Non-goals:** CMS, blog, multi-language, contact form that stores data (needs a GDPR/privacy decision first), analytics/cookies (needs a consent decision), live DNS changes.
 - **PR checklist:** tests; accessibility evidence; screenshots (desktop and mobile, with motion and with reduced motion); documentation; human review.
+
+## Order changes to the numbered roadmap
+
+- **20 November 2026, owner decision:** finish the multi-tenant platform before onboarding
+  clients. Order: PR-025 → PR-020/PR-021 → PR-027 → PR-026 → PR-018 (the first client's
+  pilot) → PR-028. PR-025 no longer waits for PR-018: onboarding is how the pilot client is
+  set up. PR-022 to PR-024 (orders, fulfilment, POS) wait for a retail client.

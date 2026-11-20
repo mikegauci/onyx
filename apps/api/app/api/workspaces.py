@@ -3,11 +3,10 @@
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated
-from zoneinfo import available_timezones
 
 from email_validator import EmailNotValidError, validate_email
 from fastapi import APIRouter, status
-from pydantic import AfterValidator, BaseModel, Field, StringConstraints
+from pydantic import AfterValidator, BaseModel, Field
 from sqlalchemy import func, insert, select, update
 
 from app.core.audit.record import record_audit, record_workspace_audit
@@ -27,10 +26,19 @@ from app.core.errors import (
     GoneError,
     NotFoundError,
     PermissionDeniedError,
+    WorkspaceSuspendedError,
 )
 from app.core.modules.models import OrganizationModule
+from app.core.tenancy.branding import BrandColor, Currency, OrgName, Timezone
 from app.core.tenancy.invitations import INVITATION_TTL, hash_token, new_token
-from app.core.tenancy.models import Invitation, Membership, MembershipRole, Organization, User
+from app.core.tenancy.models import (
+    Invitation,
+    Membership,
+    MembershipRole,
+    Organization,
+    OrganizationStatus,
+    User,
+)
 
 router = APIRouter(tags=["workspaces"])
 
@@ -57,27 +65,26 @@ class WorkspaceOut(BaseModel):
     name: str
     status: str
     timezone: str
+    currency: str
+    display_name: str | None
+    brand_color: str | None
     role: MembershipRole
     permissions: list[Permission]
     modules: list[str]
 
 
-def _check_timezone(value: str) -> str:
-    if value not in _TIMEZONES:
-        raise ValueError("Unknown IANA timezone.")
-    return value
-
-
-_TIMEZONES = frozenset(available_timezones())
-Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
-Timezone = Annotated[str, AfterValidator(_check_timezone)]
-
-
 class WorkspaceUpdate(BaseModel):
-    """Fields to change; omitted fields stay as they are."""
+    """Fields to change; omitted fields stay as they are. ``null`` clears the display name and
+    brand colour (back to the organisation name and the default theme)."""
 
-    name: Name | None = None
+    name: OrgName | None = None
     timezone: Timezone | None = Field(default=None, examples=["Europe/Malta"])
+    currency: Currency | None = None
+    display_name: OrgName | None = None
+    brand_color: BrandColor | None = Field(default=None, examples=["#1f4e79"])
+
+
+CLEARABLE = frozenset({"display_name", "brand_color"})
 
 
 class MemberOut(BaseModel):
@@ -114,8 +121,17 @@ async def update_workspace(
     body: WorkspaceUpdate, workspace: UpdatableWorkspace, db: DbDep
 ) -> WorkspaceOut:
     org = workspace.organization
-    before = {"name": org.name, "timezone": org.timezone}
-    changes = {k: v for k, v in body.model_dump(exclude_none=True).items() if before[k] != v}
+    before = {
+        "name": org.name,
+        "timezone": org.timezone,
+        "currency": org.currency,
+        "display_name": org.display_name,
+        "brand_color": org.brand_color,
+    }
+    sent = body.model_dump(exclude_unset=True)
+    # name, timezone and currency cannot be cleared; null there means "leave as is".
+    sent = {k: v for k, v in sent.items() if v is not None or k in CLEARABLE}
+    changes = {k: v for k, v in sent.items() if before[k] != v}
     if changes:
         await db.execute(
             update(Organization)
@@ -156,6 +172,9 @@ async def _workspace_out(db: DbDep, org: Organization, role: MembershipRole) -> 
         name=org.name,
         status=org.status.value,
         timezone=org.timezone,
+        currency=org.currency,
+        display_name=org.display_name,
+        brand_color=org.brand_color,
         role=role,
         permissions=permissions_for(role),
         modules=list(modules),
@@ -221,12 +240,17 @@ async def accept_invitation(
                 Invitation.role,
                 Invitation.accepted_at,
                 Invitation.expires_at,
+                Invitation.revoked_at,
             ).where(Invitation.token_hash == hash_token(body.token))
         )
     ).first()
     if invitation is None:
         raise NotFoundError("Invitation not found.")
-    if invitation.accepted_at is not None or invitation.expires_at <= datetime.now(UTC):
+    if (
+        invitation.accepted_at is not None
+        or invitation.revoked_at is not None
+        or invitation.expires_at <= datetime.now(UTC)
+    ):
         raise GoneError("Invitation has expired or was already used.")
 
     already = await db.scalar(
@@ -269,4 +293,6 @@ async def accept_invitation(
         )
 
     org = await db.get_one(Organization, invitation.organization_id)
+    if org.status is OrganizationStatus.SUSPENDED:
+        raise WorkspaceSuspendedError  # rolls the acceptance back; the link stays usable
     return await _workspace_out(db, org, invitation.role)

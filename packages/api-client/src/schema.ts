@@ -357,6 +357,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Billing */
+        get: operations["read_billing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Checkout */
+        post: operations["start_checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/billing/portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open Portal */
+        post: operations["open_portal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/billing/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage */
+        get: operations["usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/billing/usage.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage Csv */
+        get: operations["usage_csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/catalogue/import": {
         parameters: {
             query?: never;
@@ -1888,6 +1973,23 @@ export interface components {
          * @enum {string}
          */
         AuthorKind: "customer" | "staff" | "assistant" | "system";
+        /** BillingOut */
+        BillingOut: {
+            /** Cancel At Period End */
+            cancel_at_period_end: boolean;
+            /** Configured */
+            configured: boolean;
+            /** Current Period End */
+            current_period_end: string | null;
+            /** Has Customer */
+            has_customer: boolean;
+            /** Plan */
+            plan: string | null;
+            /** Plans */
+            plans: components["schemas"]["PlanOut"][];
+            /** Status */
+            status: string | null;
+        };
         /** CancelRequest */
         CancelRequest: {
             /** Reason */
@@ -2063,6 +2165,12 @@ export interface components {
             name?: string | null;
             /** Signature */
             signature?: string | null;
+        };
+        /** CheckoutIn */
+        CheckoutIn: {
+            plan: components["schemas"]["Plan"];
+            /** Return Url */
+            return_url: string;
         };
         /** ChunkPreview */
         ChunkPreview: {
@@ -3235,6 +3343,11 @@ export interface components {
              */
             unit_price?: string | null;
         };
+        /** LinkOut */
+        LinkOut: {
+            /** Url */
+            url: string;
+        };
         /** MeResponse */
         MeResponse: {
             /** Is Platform Admin */
@@ -3537,7 +3650,24 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read" | "tasks.read" | "tasks.manage";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read" | "tasks.read" | "tasks.manage" | "billing.read" | "billing.manage";
+        /**
+         * Plan
+         * @enum {string}
+         */
+        Plan: "starter" | "growth";
+        /** PlanOut */
+        PlanOut: {
+            /** Ai Monthly Usd */
+            ai_monthly_usd: number;
+            /** Available */
+            available: boolean;
+            key: components["schemas"]["Plan"];
+            /** Modules */
+            modules: string[];
+            /** Name */
+            name: string;
+        };
         /** PolicyOut */
         PolicyOut: {
             /** Body */
@@ -3558,6 +3688,11 @@ export interface components {
             body: string;
             /** Title */
             title: string;
+        };
+        /** PortalIn */
+        PortalIn: {
+            /** Return Url */
+            return_url: string;
         };
         /** PostMessageResult */
         PostMessageResult: {
@@ -4264,6 +4399,40 @@ export interface components {
             vat: components["schemas"]["Money"];
             /** Vat Breakdown */
             vat_breakdown: components["schemas"]["VatGroupOut"][];
+        };
+        /** UsageLineOut */
+        UsageLineOut: {
+            /** Calls */
+            calls: number;
+            /** Cost Usd Micros */
+            cost_usd_micros: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Workload */
+            workload: string;
+        };
+        /** UsageReportOut */
+        UsageReportOut: {
+            /** Lines */
+            lines: components["schemas"]["UsageLineOut"][];
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Monthly Limit Usd Micros */
+            monthly_limit_usd_micros: number | null;
+            /** Total Calls */
+            total_calls: number;
+            /** Total Cost Usd Micros */
+            total_cost_usd_micros: number;
         };
         /**
          * UsageStatus
@@ -6317,6 +6486,353 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_billing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    start_checkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    open_portal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    usage: {
+        parameters: {
+            query?: {
+                month?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageReportOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    usage_csv: {
+        parameters: {
+            query?: {
+                month?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Not authenticated */

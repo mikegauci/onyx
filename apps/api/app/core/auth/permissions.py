@@ -40,6 +40,8 @@ class Permission(enum.StrEnum):
     AI_USAGE_READ = "ai.usage.read"  # the workspace's AI spend, budget and call history
     TASKS_READ = "tasks.read"  # see the tasks meant for your role, and mark them done
     TASKS_MANAGE = "tasks.manage"  # cancel tasks
+    BILLING_READ = "billing.read"  # the plan, its status and the AI usage report
+    BILLING_MANAGE = "billing.manage"  # change plan, payment details and invoices (owners)
 
 
 _MEMBER = frozenset(
@@ -77,12 +79,14 @@ _ADMIN = _MEMBER | {
     Permission.OUTBOUND_MANAGE,
     Permission.KNOWLEDGE_MANAGE,
     Permission.TASKS_MANAGE,
+    Permission.BILLING_READ,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {
     MembershipRole.MEMBER: _MEMBER,
     MembershipRole.ADMIN: _ADMIN,
-    MembershipRole.OWNER: _ADMIN,
+    # Finance actions are the owner's alone.
+    MembershipRole.OWNER: _ADMIN | {Permission.BILLING_MANAGE},
 }
 
 

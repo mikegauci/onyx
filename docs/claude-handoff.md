@@ -20,7 +20,7 @@ files do not select models.
 - Alembic is the only migration authority. Do not rewrite merged migrations.
 - No real provider call has been made: OpenAI/Anthropic keys and spend need owner approval.
   Tests use a scripted model through the real Pydantic AI agent path.
-- `onyx-preview` is at `0023` (applied 20 November 2026). Owner rule: apply each PR's
+- `onyx-preview` is at `0024` (applied 20 November 2026). Owner rule: apply each PR's
   migrations to `onyx-preview` as soon as the PR merges, without asking again; production
   still needs explicit approval. `onyx-studio` has `assistant` and `outbound` enabled, a $5/month
   AI budget, and the email channel "Onyx". Email setup on preview:
@@ -99,11 +99,15 @@ a load test, a restore drill script, and runbooks in `docs/operations/` (observa
 incidents, rollback, GDPR review, client training). No migration. Part 2 needs the owner:
 Sentry projects and alerts, the preview restore drill, production backups, and UAT.
 
-PR-026 part 1, the billing backend, is in review: plans that decide modules and the AI budget,
+PR-026 part 1 merged ([#39](https://github.com/mikegauci/onyx/pull/39)), the billing backend: plans that decide modules and the AI budget,
 Stripe Checkout and the billing portal (owners only), signed, idempotent, order-safe webhooks,
 and an AI usage report with CSV. Migration `0023`; `onyx-preview` is at `0023`. See
-`docs/platform/billing.md`. Needs the owner's Stripe account and prices. Next: PR-026 part 2,
-the billing screens, then the Ventur pilot (PR-018).
+`docs/platform/billing.md`. Needs the owner's Stripe account and prices.
+
+PR-026 part 2, the billing screens, is in review: Settings → Billing (plan, checkout, portal,
+AI usage with CSV) and a read-only billing section for platform admins. Migration `0024`;
+`onyx-preview` is at `0024`. Next: onboard Ventur (PR-018 pilot), starting with VA-001 vehicle
+stock, as the owner decided once the platform was complete.
 
 ## Verification preference
 

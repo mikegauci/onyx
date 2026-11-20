@@ -13,7 +13,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { slug: "audit", label: "Audit log", permission: "audit.read" },
   { slug: "modules", label: "Modules", permission: "workspace.update" },
   { slug: "integrations", label: "Integrations", permission: "workspace.update" },
-  { slug: "billing", label: "Billing", permission: "workspace.update" },
+  { slug: "billing", label: "Billing", permission: "billing.read" },
 ];
 
 export function visibleSettings(permissions: readonly Permission[]): SettingsSection[] {

@@ -441,3 +441,29 @@ async def workspace_integrations(workspace: SettingsWorkspace, db: DbDep) -> Int
         whatsapp_configured=_configured(ChannelKind.WHATSAPP),
         ai_budget=None,
     )
+
+
+class AdminBillingOut(BaseModel):
+    plan: str | None
+    status: str | None
+    current_period_end: datetime | None
+    cancel_at_period_end: bool
+    has_customer: bool
+
+
+@router.get(
+    "/admin/organizations/{slug}/billing",
+    response_model=AdminBillingOut,
+    responses=ADMIN_ERRORS,
+)
+async def admin_billing(slug: str, _admin: PlatformAdminDep, db: DbDep) -> AdminBillingOut:
+    """The tenant's plan and subscription status. Read-only: billing changes come from Stripe."""
+    await _detail(db, slug)
+    row = (await db.execute(text("SELECT * FROM app_admin_billing(:slug)"), {"slug": slug})).one()
+    return AdminBillingOut(
+        plan=row.plan,
+        status=row.status,
+        current_period_end=row.current_period_end,
+        cancel_at_period_end=row.cancel_at_period_end,
+        has_customer=row.has_customer,
+    )

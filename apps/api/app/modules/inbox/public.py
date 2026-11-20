@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth.deps import WorkspaceAccess
 from app.core.db.context import TenantContext
 from app.modules.inbox import schemas
+from app.modules.inbox.ingest import set_status
 from app.modules.inbox.models import (
     BODY_MAX_LENGTH,
     REASON_MAX_LENGTH,
@@ -220,3 +221,26 @@ async def render_template(
     supported; the values are checked against the provider's rules (422 names the value).
     """
     return await InboxService(db, workspace).render_template(conversation_id, template_id, params)
+
+
+async def mark_waiting_after_reply(
+    db: AsyncSession, tenant: TenantContext, conversation_id: uuid.UUID
+) -> bool:
+    """After a reply was sent, an open conversation waits on the customer. True if it changed.
+
+    Called by workflows (no acting user). A closed or already-waiting conversation is left as
+    it is; the customer's next message reopens it as usual.
+    """
+    conversation = await db.scalar(
+        select(Conversation)
+        .where(
+            Conversation.organization_id == tenant.organization_id,
+            Conversation.id == conversation_id,
+        )
+        .with_for_update()
+    )
+    if conversation is None or conversation.status is not ConversationStatus.OPEN:
+        return False
+    set_status(db, conversation, ConversationStatus.WAITING_ON_CUSTOMER, None, reason="reply_sent")
+    await db.flush()
+    return True

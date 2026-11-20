@@ -7,6 +7,15 @@ import { type FormState, failureState, optionalText, text } from "@/lib/form-sta
 import { inboxPath } from "@/lib/inbox";
 import { isEdited, outboundPath } from "@/lib/outbound";
 
+/** A template reply's id and values from the form, or null for a text reply. */
+function templateFrom(formData: FormData): { template_id: string; params: string[] } | null {
+  if (text(formData, "mode") !== "template") return null;
+  return {
+    template_id: text(formData, "template_id"),
+    params: formData.getAll("param").map((v) => (typeof v === "string" ? v : "")),
+  };
+}
+
 function refresh(slug: string) {
   revalidatePath(outboundPath(slug), "layout");
   revalidatePath(inboxPath(slug), "layout");
@@ -19,10 +28,13 @@ export async function createDraft(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const template = templateFrom(formData);
   const outcome = await mutateApi((api) =>
     api.POST("/v1/w/{slug}/outbound/conversations/{conversation_id}/drafts", {
       params: { path: { slug, conversation_id: conversationId } },
-      body: { body: text(formData, "body"), quote_id: optionalText(formData, "quote_id") },
+      body: template
+        ? { template, quote_id: optionalText(formData, "quote_id") }
+        : { body: text(formData, "body"), quote_id: optionalText(formData, "quote_id") },
     }),
   );
   if (!outcome.ok) return failureState(outcome);
@@ -38,10 +50,13 @@ export async function reviseDraft(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const template = templateFrom(formData);
   const outcome = await mutateApi((api) =>
     api.POST("/v1/w/{slug}/outbound/drafts/{draft_id}/revisions", {
       params: { path: { slug, draft_id: draftId } },
-      body: { body: text(formData, "body"), base_revision: baseRevision },
+      body: template
+        ? { template, base_revision: baseRevision }
+        : { body: text(formData, "body"), base_revision: baseRevision },
     }),
   );
   if (!outcome.ok) return failureState(outcome);

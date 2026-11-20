@@ -4,8 +4,7 @@ WhatsApp channels receive customer messages into the inbox and send approved rep
 provider is Meta's WhatsApp Cloud API. All Meta code is in `app/integrations/whatsapp/`,
 behind a provider-neutral `WhatsAppProvider` contract, so the inbox never calls Meta directly.
 
-Part 1 (this document) is the backend. Part 2 adds the screens: the channel's number, the
-24-hour reply window, a template picker in the reply panel and delivery/read status.
+Part 1 is the backend; part 2 the screens (see [Screens](#screens)).
 
 **Not verified against Meta yet.** Tests use fake providers. Connecting a real number needs a
 Meta business account, an app with the WhatsApp product, a system user token and the owner's
@@ -155,6 +154,28 @@ Meta reports `sent`, `delivered`, `read` and `failed`.
 - `detail` holds Meta's numeric error code only, such as `131026`.
 - Messages show the latest status as `whatsapp` in the inbox API (`delivery` stays email-only).
 - Failures do not block the number automatically: Meta's codes cover temporary causes too.
+
+## Screens
+
+All rules stay in the API; the screens only choose what to show.
+
+- **Inbox → Channels** (`inbox.manage`): a WhatsApp channel shows its business number, or that
+  Onyx support connects it. Each connected number lists its templates with category, whether
+  they can be sent (and why not) and when they were last checked. "Refresh from WhatsApp" runs
+  the template sync.
+- **Conversation:** a notice says until when free text is allowed, or that the window is closed.
+  "Log a reply" is not offered, as on email. Sent replies show their WhatsApp status (Sent,
+  Delivered, Read, Failed with Meta's error code), the number and the template used.
+- **Reply for approval:** on WhatsApp, staff choose a text message (only while the window is
+  open) or an approved template. The template picker lists usable templates only, with one
+  field per value and a preview; the API renders the text that is approved. A template draft
+  shows its rendered text and is revised with "Change the values"; it cannot be edited as text.
+- **Blocked addresses:** WhatsApp numbers sit beside email addresses. Staff can add a number;
+  STOP replies appear as "Opted out on WhatsApp".
+
+E2E (`apps/platform/e2e/whatsapp.spec.ts`) runs the fake provider with a test app secret and
+posts signed webhooks, against the seeded Lumen channel "WhatsApp" (fake number
+`100000000000009`).
 
 ## Data (migration `0019`)
 

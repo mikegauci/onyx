@@ -5,7 +5,7 @@ import { requireOk } from "@/lib/guards";
 import type { ConversationDetail } from "@/lib/inbox";
 import { type DraftDetail, outboundPath } from "@/lib/outbound";
 
-import { DraftCard, NewDraftForm } from "./draft-card";
+import { DraftCard, NewDraftForm, type WhatsAppReply } from "./draft-card";
 
 /** The conversation's reply waiting for approval (or its latest one), and a form to write one. */
 export async function ReplyPanel({
@@ -15,6 +15,7 @@ export async function ReplyPanel({
   modules,
   timezone,
   path,
+  whatsappWindowOpen = null,
 }: {
   slug: string;
   conversation: ConversationDetail;
@@ -22,6 +23,8 @@ export async function ReplyPanel({
   modules: readonly string[];
   timezone: string;
   path: string;
+  /** For WhatsApp conversations: whether free text may still be sent. */
+  whatsappWindowOpen?: boolean | null;
 }) {
   const drafts = requireOk(
     await withApi((api) =>
@@ -60,6 +63,16 @@ export async function ReplyPanel({
     }
   }
 
+  let whatsapp: WhatsAppReply | null = null;
+  if (whatsappWindowOpen !== null && canWrite && !open) {
+    const result = await withApi((api) =>
+      api.GET("/v1/w/{slug}/inbox/channels/{channel_id}/whatsapp-templates", {
+        params: { path: { slug, channel_id: conversation.channel.id } },
+      }),
+    );
+    whatsapp = { windowOpen: whatsappWindowOpen, templates: result.ok ? result.data.items : [] };
+  }
+
   return (
     <section className="flex flex-col gap-3 rounded-md border p-3" aria-labelledby="reply-heading">
       <h3 id="reply-heading" className="font-medium">
@@ -75,7 +88,12 @@ export async function ReplyPanel({
       {canWrite && !open ? (
         <div className="flex flex-col gap-2">
           {detail ? <h4 className="text-sm font-medium">New reply</h4> : null}
-          <NewDraftForm slug={slug} conversationId={conversation.id} quotes={quotes} />
+          <NewDraftForm
+            slug={slug}
+            conversationId={conversation.id}
+            quotes={quotes}
+            whatsapp={whatsapp}
+          />
         </div>
       ) : null}
       {conversation.status === "closed" && !open ? (

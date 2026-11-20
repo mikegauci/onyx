@@ -20,8 +20,13 @@ export function AddSuppressionForm({ slug }: { slug: string }) {
   return (
     <form ref={form} action={action} className="flex max-w-md flex-col gap-3" noValidate>
       <FormStatus state={state} />
-      <FormField id="suppression-address" label="Email address" error={state.fieldErrors?.address}>
-        <Input id="suppression-address" name="address" type="email" required maxLength={320} />
+      <FormField
+        id="suppression-address"
+        label="Email address or WhatsApp number"
+        hint="A WhatsApp number in international format, such as +356 2100 0001."
+        error={state.fieldErrors?.address}
+      >
+        <Input id="suppression-address" name="address" required maxLength={320} />
       </FormField>
       <FormField
         id="suppression-note"
@@ -55,7 +60,7 @@ export function ReleaseSuppression({
       className="flex flex-col gap-2"
       onSubmit={(e) => {
         const ok = window.confirm(
-          `Release ${suppression.address}? Onyx will be able to email it again.`,
+          `Release ${suppression.address}? Onyx will be able to send to it again.`,
         );
         if (!ok) e.preventDefault();
       }}

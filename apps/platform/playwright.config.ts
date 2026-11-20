@@ -13,6 +13,9 @@ export const E2E = {
     "postgresql+psycopg://onyx:onyx_local_only@127.0.0.1:54322/onyx_e2e",
 };
 
+/** Signs the e2e WhatsApp webhooks. A test value for the fake provider only. */
+export const WHATSAPP_E2E_SECRET = "whatsapp-e2e-app-secret";
+
 const reuse = !process.env.CI;
 // Bundled Chromium needs macOS 14+. On older Macs set E2E_BROWSER_CHANNEL=chrome to drive the
 // installed Google Chrome (a fresh, isolated profile; never your own).
@@ -64,6 +67,12 @@ export default defineConfig({
         ONYX_API_RESEND_WEBHOOK_SECRET: "whsec_ZTJlLXVudXNlZC1zZWNyZXQ=",
         ONYX_API_EMAIL_INBOUND_DOMAIN: "in.onyx.test",
         ONYX_API_EMAIL_FROM_DOMAIN: "reply.onyx.test",
+        // WhatsApp channels on the in-memory fake provider. Tests sign webhooks with this
+        // secret (e2e/whatsapp.spec.ts); nothing reaches Meta.
+        ONYX_API_WHATSAPP_PROVIDER: "fake",
+        ONYX_API_WHATSAPP_APP_SECRET: WHATSAPP_E2E_SECRET,
+        ONYX_API_WHATSAPP_VERIFY_TOKEN: "e2e-verify-token",
+        ONYX_API_WHATSAPP_ACCESS_TOKEN: "e2e-unused-token",
       },
     },
     {

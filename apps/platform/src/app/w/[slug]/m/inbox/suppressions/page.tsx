@@ -17,7 +17,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 
 import { AddSuppressionForm, ReleaseSuppression } from "../_components/suppression-forms";
 
-/** Addresses Onyx will not email. The API enforces this on every send. */
+/** Addresses and numbers Onyx will not send to. The API enforces this on every send. */
 export default async function SuppressionsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const path = inboxPath(slug, "suppressions");
@@ -38,8 +38,9 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ s
           Blocked addresses
         </h2>
         <p className="text-muted-foreground text-sm">
-          Onyx does not email these addresses. Bounced and spam-marked addresses are added
-          automatically, so replies stop before they harm the sending domain.
+          Onyx sends nothing to these email addresses and WhatsApp numbers. Bounced and spam-marked
+          addresses are added automatically, and so are customers who reply STOP, UNSUBSCRIBE or
+          IEQAF on WhatsApp.
         </p>
         {suppressions.length === 0 ? (
           <p className="text-sm">No blocked addresses.</p>

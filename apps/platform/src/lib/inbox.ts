@@ -91,11 +91,17 @@ export type EmailDeliveryStatus = components["schemas"]["EmailDeliveryStatus"];
 export type ComposeKind = "reply" | "customer" | "note";
 
 /**
- * What staff may record by hand on a channel. On email, replies leave only through an approved
- * draft, so "Log a reply" is not offered; the API refuses it (409) whatever the screen shows.
+ * What staff may record by hand on a channel. On email and WhatsApp, replies leave only through
+ * an approved draft, so "Log a reply" is not offered; the API refuses it (409) whatever the
+ * screen shows.
  */
 export function composeKinds(channelKind: Channel["kind"]): ComposeKind[] {
-  return channelKind === "email" ? ["customer", "note"] : ["reply", "customer", "note"];
+  return sendsThroughProvider(channelKind) ? ["customer", "note"] : ["reply", "customer", "note"];
+}
+
+/** Channels whose replies Onyx sends itself, and so only from an approved draft. */
+export function sendsThroughProvider(channelKind: Channel["kind"]): boolean {
+  return channelKind === "email" || channelKind === "whatsapp";
 }
 
 export const DELIVERY_LABEL: Record<EmailDeliveryStatus, string> = {
@@ -132,3 +138,60 @@ export const SUPPRESSION_REASON_LABEL: Record<Suppression["reason"], string> = {
   manual: "Added by staff",
   opted_out: "Opted out on WhatsApp",
 };
+
+export type WhatsAppDelivery = components["schemas"]["WhatsAppDeliveryOut"];
+export type WhatsAppSendStatus = components["schemas"]["WhatsAppSendStatus"];
+export type WhatsAppTemplate = components["schemas"]["WhatsAppTemplateOut"];
+
+export const WHATSAPP_STATUS_LABEL: Record<WhatsAppSendStatus, string> = {
+  pending: "Sending",
+  sent: "Sent",
+  delivered: "Delivered",
+  read: "Read",
+  failed: "Failed",
+};
+
+export const WHATSAPP_STATUS_VARIANT: Record<
+  WhatsAppSendStatus,
+  "info" | "warning" | "success" | "destructive"
+> = {
+  pending: "warning",
+  sent: "info",
+  delivered: "success",
+  read: "success",
+  failed: "destructive",
+};
+
+export type ReplyWindow = { open: true; closesAt: string } | { open: false };
+
+/**
+ * Whether free text can still be sent on WhatsApp: Meta allows it for 24 hours after the
+ * customer's last message. The API enforces the rule; this only chooses what to show.
+ */
+export function replyWindow(closesAt: string | null | undefined, now: Date): ReplyWindow {
+  if (!closesAt || new Date(closesAt).getTime() <= now.getTime()) return { open: false };
+  return { open: true, closesAt };
+}
+
+/** Why a template cannot be picked, or null when it can. The API decides `usable`. */
+export function templateUnusableReason(template: WhatsAppTemplate): string | null {
+  if (template.usable) return null;
+  if (template.status !== "approved") return `Not approved by Meta (${template.status})`;
+  if (template.category !== "utility") {
+    return template.category === "marketing"
+      ? "Marketing templates need recorded consent first"
+      : "Only utility templates can be sent";
+  }
+  return "Uses a format Onyx does not support yet (media, named values or links)";
+}
+
+/**
+ * A preview of the template with the values typed so far. Display only: the API renders the
+ * text that is approved and sent, and checks every value.
+ */
+export function previewTemplate(body: string, params: readonly string[]): string {
+  return body.replace(/\{\{(\d+)\}\}/g, (match, index: string) => {
+    const value = params[Number(index) - 1]?.trim();
+    return value ? value : match;
+  });
+}

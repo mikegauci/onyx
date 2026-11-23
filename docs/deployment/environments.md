@@ -14,8 +14,9 @@ deployment, a paid plan or a DNS change; each needs explicit owner approval.
 | `preview`    | Vercel Preview deployments | Vercel Preview deployments | Render `onyx-api-preview` (free) | Supabase `onyx-preview` (free, fake data) |
 | `production` | not deployed (onyx.mt)     | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`                           |
 
-- Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` until the owner
-  approves production. Merges to `main` therefore produce no Vercel deployment.
+- Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` unless the project
+  has `ONYX_ALLOW_PRODUCTION=1` (production target). The owner approved production on free plans
+  on 2026-11-23 for `onyx-platform` (app.onyx.mt) and `onyx-site` (onyx.mt).
 - Render `onyx-api-preview` tracks `main` and auto-deploys on API changes.
 - Vercel projects (team `mikegaucis-projects`): `onyx-site` (root `apps/site`) and
   `onyx-platform` (root `apps/platform`), Node 24, functions in `fra1`, Vercel Authentication on

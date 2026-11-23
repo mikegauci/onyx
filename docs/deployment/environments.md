@@ -7,12 +7,12 @@ deployment, a paid plan or a DNS change; each needs explicit owner approval.
 
 ## Environments
 
-| Environment  | Site (`apps/site`)         | Platform (`apps/platform`) | API (`apps/api`)                 | Data                                      |
-| ------------ | -------------------------- | -------------------------- | -------------------------------- | ----------------------------------------- |
-| `local`      | `localhost:3000`           | `localhost:3001`           | `localhost:8000`                 | Docker Compose Postgres                   |
-| `test`       | Vitest                     | Vitest                     | pytest (`environment="test"`)    | none / fixtures                           |
-| `preview`    | Vercel Preview deployments | Vercel Preview deployments | Render `onyx-api-preview` (free) | Supabase `onyx-preview` (free, fake data) |
-| `production` | not deployed (onyx.mt)     | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`                           |
+| Environment  | Site (`apps/site`)                                             | Platform (`apps/platform`) | API (`apps/api`)                 | Data                                      |
+| ------------ | -------------------------------------------------------------- | -------------------------- | -------------------------------- | ----------------------------------------- |
+| `local`      | `localhost:3000`                                               | `localhost:3001`           | `localhost:8000`                 | Docker Compose Postgres                   |
+| `test`       | Vitest                                                         | Vitest                     | pytest (`environment="test"`)    | none / fixtures                           |
+| `preview`    | Vercel Preview deployments                                     | Vercel Preview deployments | Render `onyx-api-preview` (free) | Supabase `onyx-preview` (free, fake data) |
+| `production` | `onyx-site` → https://onyx.mt (live 2026-11-23; www redirects) | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`                           |
 
 - Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` unless the project
   has `ONYX_ALLOW_PRODUCTION=1` (production target). The owner approved production on free plans
@@ -38,6 +38,7 @@ the API refuses to start otherwise.
 | Variable                          | Service  | Secret | local                   | preview                                    | production (planned)  |
 | --------------------------------- | -------- | ------ | ----------------------- | ------------------------------------------ | --------------------- |
 | `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
+| `NEXT_PUBLIC_SITE_URL`            | site     | no     | `http://localhost:3000` | falls back to the production domain        | `https://onyx.mt`     |
 | `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                           | `https://onyx.mt`     |
 | `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
 | `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com`    | `https://api.onyx.mt` |
@@ -63,7 +64,10 @@ if a required URL is missing or unsafe.
 ## Public site vs authenticated app
 
 - `onyx.mt` (site) is public and has no auth routes; its sign-in link goes to
-  `NEXT_PUBLIC_PLATFORM_URL`.
+  `NEXT_PUBLIC_PLATFORM_URL`. Only production builds are indexable (robots.txt, sitemap and
+  `robots` metadata); every other build is `noindex`.
+- Site DNS (Cloudflare zone `onyx.mt`, DNS only, not proxied): apex `A` and `www` `CNAME` to the
+  values Vercel shows for `onyx-site`; `www.onyx.mt` redirects (308) to `https://onyx.mt`.
 - `app.onyx.mt` (platform) is the only authenticated surface. It is `noindex`; workspaces live at
   `/w/{slug}` and the admin shell at `/admin` (ADR 0001).
 - All non-production builds send `X-Robots-Tag: noindex`; only production sends HSTS.

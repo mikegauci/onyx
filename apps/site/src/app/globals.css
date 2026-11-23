@@ -1,1 +1,105 @@
 @import "@onyx/ui/globals.css";
+
+/* Landing-page effects. Content is always visible without JS; motion only runs when the
+   visitor has not asked for reduced motion. */
+
+.hero-glow {
+  background:
+    radial-gradient(
+      60% 50% at 50% 0%,
+      color-mix(in oklch, var(--brand) 28%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 40% at 20% 30%,
+      color-mix(in oklch, var(--info) 12%, transparent),
+      transparent 70%
+    );
+  filter: blur(20px);
+}
+
+.beam-track {
+  background: var(--border);
+  overflow: hidden;
+}
+
+.beam {
+  position: absolute;
+  inset-block: 0;
+  width: 18%;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  opacity: 0;
+}
+
+.card-sheen {
+  background: radial-gradient(
+    120% 80% at 0% 0%,
+    color-mix(in oklch, var(--brand) 10%, transparent),
+    transparent 60%
+  );
+}
+
+.cta-band {
+  background:
+    radial-gradient(
+      50% 80% at 50% 0%,
+      color-mix(in oklch, var(--brand) 18%, transparent),
+      transparent 70%
+    ),
+    var(--card);
+}
+
+.cta-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--foreground) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  mask-image: radial-gradient(70% 70% at 50% 50%, black, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-in {
+    animation: fade-up 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .reveal-row {
+    animation: fade-up 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .beam {
+    opacity: 1;
+    animation: beam 3.2s ease-in-out infinite;
+  }
+
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: fade-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes beam {
+  from {
+    left: -18%;
+  }
+  to {
+    left: 100%;
+  }
+}

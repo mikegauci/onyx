@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Flowing field of orange threads behind the hero, drawn with Three.js.
  *
- * Three.js is imported only after the page has loaded, and only when the visitor allows motion
+ * Three.js is imported as soon as the page hydrates, and only when the visitor allows motion
  * and the device can run WebGL. Everyone else sees the static gradient underneath, which is
  * also what renders without JavaScript. Rendering pauses when the hero is off-screen or the tab
  * is hidden.
@@ -103,8 +103,8 @@ export function HeroCanvas() {
             float edge = 1.0 - smoothstep(0.55, 1.0, abs(x));
             float band = 1.0 - abs(l - 0.5) * 1.6;
             // Intro: lines fade in one after another while a soft sweep draws them left to right.
-            float stagger = smoothstep(l * 0.55, l * 0.55 + 0.45, uIntro);
-            float sweep = smoothstep(x - 0.5, x, uIntro * 2.8 - 1.4);
+            float stagger = smoothstep(l * 0.3, l * 0.3 + 0.5, uIntro);
+            float sweep = smoothstep(x - 0.6, x, uIntro * 2.6 - 0.9);
             vAlpha = edge * clamp(band, 0.15, 1.0) * mix(0.6, 1.0, breathe) * stagger * sweep;
             vLine = l;
           }
@@ -191,7 +191,7 @@ export function HeroCanvas() {
         }
         uniforms.uTime.value += Math.min(dt, 0.05);
         if (uniforms.uIntro.value < 1) {
-          uniforms.uIntro.value = Math.min(1, uniforms.uIntro.value + Math.min(dt, 0.05) / 3.2);
+          uniforms.uIntro.value = Math.min(1, uniforms.uIntro.value + Math.min(dt, 0.05) / 1.4);
         }
         uniforms.uMouse.value.lerp(target, 0.04);
         renderer.render(scene, camera);
@@ -205,14 +205,12 @@ export function HeroCanvas() {
       cleanup = teardown;
     };
 
-    // Wait until the page is idle so the hero text paints first.
-    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
-    const handle = idle(() => void start());
+    // Start straight after hydration: the hero text is already painted from server HTML, and
+    // Three.js downloads in parallel with the intro of the headline.
+    void start();
 
     return () => {
       disposed = true;
-      if (window.cancelIdleCallback && typeof handle === "number")
-        window.cancelIdleCallback(handle);
       cleanup?.();
     };
   }, []);
@@ -221,7 +219,7 @@ export function HeroCanvas() {
     <div
       ref={host}
       aria-hidden
-      className={`absolute inset-0 transition-opacity duration-[1500ms] ${ready ? "opacity-100" : "opacity-0"}`}
+      className={`absolute inset-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
     />
   );
 }

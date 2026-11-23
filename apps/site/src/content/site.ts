@@ -11,6 +11,17 @@ export const site = {
     "Onyx Studio is a Malta studio building AI automation, websites and integrations for growing businesses, on top of our own platform, Onyx Platform.",
   contactEmail: "info@onyx.mt",
   location: "Malta",
+  /** The registered business details, as on official documents (Meta business verification). */
+  legal: {
+    name: "Onyx Studio",
+    address: [
+      "Villa Lugano, No 1",
+      "Triq Dawret in-Nawfragju",
+      "Xemxija, St. Paul's Bay SPB 4801",
+      "Malta",
+    ],
+    vat: "MT26707111",
+  },
 } as const;
 
 export const nav = [

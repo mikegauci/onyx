@@ -549,8 +549,16 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
                 Onyx Platform sign-in
               </a>
             </li>
-            <li className="text-muted-foreground">{site.location}</li>
           </ul>
+          <address className="text-muted-foreground mt-4 text-sm not-italic">
+            {site.legal.name}
+            {site.legal.address.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+            <span className="block">VAT {site.legal.vat}</span>
+          </address>
         </div>
       </div>
       <div

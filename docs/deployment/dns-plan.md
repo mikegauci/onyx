@@ -1,7 +1,7 @@
-# Production DNS plan (not applied)
+# Production DNS plan
 
-Status: **plan only.** Live DNS changes and production deployments need explicit owner approval.
-Current registrar/DNS host for onyx.mt must be confirmed by the owner before any change.
+Status: **approved 2026-11-23** (free plans). DNS for onyx.mt is on Cloudflare; records for
+Vercel and Render are DNS-only (not proxied), so the providers issue their own certificates.
 
 ## Target records
 
@@ -16,8 +16,9 @@ Keep existing MX/TXT (mail, SPF, DKIM, DMARC) records untouched.
 
 ## Steps (when approved)
 
-1. Create production services: Vercel production deployments (remove the guard in
-   `scripts/vercel-ignore-build.sh`), a Render production API service with production env vars.
+1. Create production services: Vercel production deployments (set `ONYX_ALLOW_PRODUCTION=1` on
+   the project; see `scripts/vercel-ignore-build.sh`), a Render production API service with
+   production env vars.
 2. Lower TTL on affected records to 300s at least 24h before the switch.
 3. Add the domains in Vercel/Render, then create the records above; wait for TLS issuance.
 4. Set production variables (see `environments.md`): `ONYX_API_CORS_ORIGINS=https://app.onyx.mt`,

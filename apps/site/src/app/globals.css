@@ -85,9 +85,12 @@ html {
   transform-box: fill-box;
   transform-origin: center;
 }
+.system-diagram .core-mark {
+  fill: var(--brand);
+}
 .system-diagram .core-label {
   fill: var(--foreground);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 300;
   letter-spacing: -0.02em;
 }

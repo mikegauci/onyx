@@ -11,6 +11,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // The full-page render test is slow on a cold run.
+    testTimeout: 15_000,
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
   },

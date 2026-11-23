@@ -71,9 +71,20 @@ export function SystemDiagram() {
         <circle cx={CX} cy={CY} r={70} className="core-ring" />
         <circle cx={CX} cy={CY} r={70} className="core-ring core-ring-2" />
         <circle cx={CX} cy={CY} r={62} className="core" />
-        <text x={CX} y={CY + 8} textAnchor="middle" className="core-label">
-          {core}
-        </text>
+        <g aria-hidden>
+          <rect
+            x={CX - 11}
+            y={CY - 30}
+            width={22}
+            height={22}
+            rx={4}
+            transform={`rotate(45 ${CX} ${CY - 19})`}
+            className="core-mark"
+          />
+          <text x={CX} y={CY + 24} textAnchor="middle" className="core-label">
+            {core.toLowerCase()}
+          </text>
+        </g>
       </svg>
 
       <div className="grid gap-6 md:hidden">
@@ -89,8 +100,9 @@ export function SystemDiagram() {
         </ul>
         <div aria-hidden className="mx-auto flex flex-col items-center gap-2">
           <span className="h-8 w-px bg-gradient-to-b from-transparent to-[var(--brand)]" />
-          <span className="border-brand/60 bg-brand/10 text-brand flex size-20 items-center justify-center rounded-full border text-lg">
-            {core}
+          <span className="border-brand/60 bg-brand/10 flex size-24 flex-col items-center justify-center gap-2 rounded-full border">
+            <span className="bg-brand size-3.5 rotate-45 rounded-[3px]" />
+            <span className="text-base">{core.toLowerCase()}</span>
           </span>
           <span className="h-8 w-px bg-gradient-to-b from-[var(--brand)] to-transparent" />
         </div>

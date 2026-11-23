@@ -48,7 +48,7 @@ export function HeroCanvas() {
       camera.position.set(0, 0, 3.2);
 
       // Each thread is a polyline across the screen; the shader moves every vertex.
-      const LINES = 96;
+      const LINES = 120;
       const POINTS = 220;
       const positions = new Float32Array(LINES * POINTS * 3);
       const indices: number[] = [];
@@ -67,10 +67,11 @@ export function HeroCanvas() {
 
       const uniforms = {
         uTime: { value: 0 },
+        uIntro: { value: 0 },
         uAspect: { value: 1 },
         uMouse: { value: new THREE.Vector2(0, 0) },
-        uColorA: { value: new THREE.Color("#ff6a1a") },
-        uColorB: { value: new THREE.Color("#7a1f12") },
+        uColorA: { value: new THREE.Color("#ff7a2e") },
+        uColorB: { value: new THREE.Color("#6a1f10") },
       };
 
       const material = new THREE.ShaderMaterial({
@@ -80,6 +81,7 @@ export function HeroCanvas() {
         blending: THREE.AdditiveBlending,
         vertexShader: /* glsl */ `
           uniform float uTime;
+          uniform float uIntro;
           uniform float uAspect;
           uniform vec2 uMouse;
           varying float vAlpha;
@@ -88,9 +90,11 @@ export function HeroCanvas() {
             float x = position.x;
             float l = position.y;
             float t = uTime * 0.22;
-            float spread = mix(0.5, 2.4, 0.5 + 0.5 * sin(x * 1.4 - t * 0.8));
+            // Lines never bunch into a single bright band: the field always keeps some width.
+            float breathe = 0.5 + 0.5 * sin(x * 1.3 - t * 0.8);
+            float spread = mix(1.5, 3.0, breathe);
             float y = (l - 0.5) * 0.9 * spread;
-            y += sin(x * 2.1 + t + l * 2.6) * 0.42;
+            y += sin(x * 2.0 + t + l * 2.2) * 0.38;
             y += sin(x * 5.3 - t * 1.4 + l * 7.0) * 0.045;
             y += uMouse.y * 0.12 * (1.0 - abs(x));
             float z = cos(x * 1.7 + t * 1.1 + l * 3.4) * 0.45 + uMouse.x * 0.15 * x;
@@ -98,7 +102,10 @@ export function HeroCanvas() {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
             float edge = 1.0 - smoothstep(0.55, 1.0, abs(x));
             float band = 1.0 - abs(l - 0.5) * 1.6;
-            vAlpha = edge * clamp(band, 0.12, 1.0) * mix(0.55, 1.0, spread / 2.4);
+            // Intro: lines fade in one after another while a soft sweep draws them left to right.
+            float stagger = smoothstep(l * 0.55, l * 0.55 + 0.45, uIntro);
+            float sweep = smoothstep(x - 0.5, x, uIntro * 2.8 - 1.4);
+            vAlpha = edge * clamp(band, 0.15, 1.0) * mix(0.6, 1.0, breathe) * stagger * sweep;
             vLine = l;
           }
         `,
@@ -109,7 +116,7 @@ export function HeroCanvas() {
           varying float vLine;
           void main() {
             vec3 c = mix(uColorB, uColorA, smoothstep(0.1, 0.7, vLine));
-            gl_FragColor = vec4(c, vAlpha * 0.5);
+            gl_FragColor = vec4(c, vAlpha * 0.22);
           }
         `,
       });
@@ -183,6 +190,9 @@ export function HeroCanvas() {
           }
         }
         uniforms.uTime.value += Math.min(dt, 0.05);
+        if (uniforms.uIntro.value < 1) {
+          uniforms.uIntro.value = Math.min(1, uniforms.uIntro.value + Math.min(dt, 0.05) / 3.2);
+        }
         uniforms.uMouse.value.lerp(target, 0.04);
         renderer.render(scene, camera);
         if (first) {

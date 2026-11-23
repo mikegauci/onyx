@@ -1,5 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 
+import { industries } from "@/content/site";
+
 import HomePage from "./page";
 
 describe("Onyx Studio home page", () => {
@@ -7,12 +9,15 @@ describe("Onyx Studio home page", () => {
     render(<HomePage />);
   });
 
-  it("renders one h1 and every section", () => {
+  it("renders one h1 and the main sections", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     for (const name of [
-      /ships working systems/i,
-      /first message to after-sale/i,
-      /one workspace/i,
+      /every channel in/i,
+      /four things/i,
+      /businesses that live on enquiries/i,
+      /first call to a system/i,
+      /our own platform/i,
+      /fair questions/i,
       /how your business runs/i,
     ]) {
       expect(screen.getByRole("heading", { level: 2, name })).toBeInTheDocument();
@@ -25,14 +30,12 @@ describe("Onyx Studio home page", () => {
     for (const link of signIns) expect(link).toHaveAttribute("href", "http://localhost:3001");
   });
 
-  it("shows the five workflow steps in order", () => {
-    const list = screen.getByRole("heading", { name: /first message/i }).closest("section")!;
-    const steps = within(list)
-      .getAllByRole("listitem")
-      .map((li) => li.textContent);
-    expect(steps).toHaveLength(5);
-    expect(steps[0]).toMatch(/Enquiry/);
-    expect(steps[4]).toMatch(/Fulfilment/);
+  it("shows every industry with its workflows", () => {
+    expect(industries).toHaveLength(6);
+    for (const industry of industries) {
+      const card = screen.getByRole("article", { name: industry.name });
+      expect(within(card).getAllByRole("listitem")).toHaveLength(industry.workflows.length);
+    }
   });
 
   it("offers an email contact and in-page navigation targets", () => {
@@ -40,8 +43,14 @@ describe("Onyx Studio home page", () => {
       "href",
       "mailto:info@onyx.mt",
     );
-    for (const id of ["services", "how-it-works", "platform", "contact"]) {
+    for (const id of ["studio", "system", "industries", "process", "faq", "contact"]) {
       expect(document.getElementById(id)).not.toBeNull();
     }
+  });
+
+  it("renders the full statement text", () => {
+    expect(document.getElementById("studio")?.textContent).toMatch(
+      /stop slipping through the cracks/i,
+    );
   });
 });

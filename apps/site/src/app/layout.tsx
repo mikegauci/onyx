@@ -3,8 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { ThemeProvider } from "@onyx/ui/components/theme-provider";
-
 import { site } from "@/content/site";
 import { siteEnv } from "@/lib/env";
 
@@ -33,22 +31,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfbfa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0e0d" },
-  ],
+  themeColor: "#080706",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} scroll-smooth`}
-      suppressHydrationWarning
+      className={`${GeistSans.variable} ${GeistMono.variable} dark`}
+      style={{ colorScheme: "dark" }}
     >
-      <body className="min-h-screen overflow-x-hidden antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }

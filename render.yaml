@@ -1,6 +1,8 @@
 # Render Blueprint for the Onyx Platform API (PR-002).
-# Only the non-production preview service is defined. A production service is added later,
-# with explicit owner approval (see docs/deployment/environments.md).
+# Only the preview service is defined here. The production service, `onyx-api` (free plan,
+# Frankfurt, Docker from main, https://api.onyx.mt), was created in the Render dashboard on
+# 2026-11-23 and is not managed by this blueprint, so a blueprint sync cannot duplicate or
+# change it. Its settings are recorded in docs/deployment/production.md.
 services:
   - type: web
     name: onyx-api-preview

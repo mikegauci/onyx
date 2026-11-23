@@ -105,7 +105,7 @@ export function HeroCanvas() {
             // Intro: lines fade in one after another while a soft sweep draws them left to right.
             float stagger = smoothstep(l * 0.3, l * 0.3 + 0.5, uIntro);
             float sweep = smoothstep(x - 0.6, x, uIntro * 2.6 - 0.9);
-            vAlpha = edge * clamp(band, 0.15, 1.0) * mix(0.6, 1.0, breathe) * stagger * sweep;
+            vAlpha = edge * clamp(band, 0.25, 1.0) * mix(0.7, 1.0, breathe) * stagger * sweep;
             vLine = l;
           }
         `,
@@ -116,7 +116,7 @@ export function HeroCanvas() {
           varying float vLine;
           void main() {
             vec3 c = mix(uColorB, uColorA, smoothstep(0.1, 0.7, vLine));
-            gl_FragColor = vec4(c, vAlpha * 0.22);
+            gl_FragColor = vec4(c, vAlpha * 0.42);
           }
         `,
       });

@@ -36,7 +36,16 @@ HUGO = "hugo.owner@harbour.example.test"
 SECRET = "whsec_billing_tests"  # noqa: S105 - a test value
 STARTER, GROWTH = "price_starter123", "price_growth456"
 APP = "http://localhost:3001"
-GROWTH_MODULES = ["assistant", "catalogue", "crm", "inbox", "knowledge", "outbound", "quotations"]
+GROWTH_MODULES = [
+    "assistant",
+    "automotive",
+    "catalogue",
+    "crm",
+    "inbox",
+    "knowledge",
+    "outbound",
+    "quotations",
+]
 
 
 @pytest.fixture

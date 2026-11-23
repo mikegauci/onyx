@@ -42,6 +42,7 @@ PLANS: dict[Plan, PlanSpec] = {
                 ModuleKey.OUTBOUND,
                 ModuleKey.ASSISTANT,
                 ModuleKey.KNOWLEDGE,
+                ModuleKey.AUTOMOTIVE,
             }
         ),
         ai_monthly_usd=50,

@@ -2,7 +2,10 @@
 
 ## Error tracking (Sentry)
 
-Off until the owner approves and creates the Sentry projects. Then set:
+**On in preview since 2026-11-23.** Sentry org `mikes-org-nt` (EU region, `de.sentry.io`),
+projects `onyx-api` and `onyx-platform`. The settings below are set on Render
+(`onyx-api-preview`) and Vercel (`onyx-platform`, preview only). Production needs the owner's
+approval. Settings:
 
 | Where                   | Setting                              | Value                                |
 | ----------------------- | ------------------------------------ | ------------------------------------ |
@@ -37,15 +40,21 @@ id is in every log line of that request, in error responses (`error.request_id`,
 users as "Reference: …"), in audit entries and in Sentry tags. Worker logs carry the outbox
 event id and workflow id instead.
 
-## Alerts (once Sentry exists; owner approval)
+## Alerts
 
-| Alert           | Rule                                            | To     |
-| --------------- | ----------------------------------------------- | ------ |
-| New error type  | First seen, any component                       | Owner  |
-| Error spike     | More than 20 events in 5 minutes                | Owner  |
-| Worker failures | `component:worker`, any error, 3 in 10 minutes  | Owner  |
-| API down        | Render health check `/health` failing 2 minutes | Owner  |
-| AI budget       | Existing budget alert email at the threshold    | Tenant |
+Set up in Sentry on 2026-11-23; all email the owner's team.
+
+| Alert           | Rule                                                        | State                 |
+| --------------- | ----------------------------------------------------------- | --------------------- |
+| New error type  | First seen, `onyx-api` and `onyx-platform`                  | On                    |
+| Error spike     | More than 20 events in 5 minutes, both projects             | On                    |
+| Worker failures | `component:worker`, 3 in 15 minutes (Sentry has no 10-min)  | On                    |
+| API down        | Uptime monitor on `/health`, every minute, down after 2     | Off (see below)       |
+| AI budget       | Existing budget alert email at the threshold, to the tenant | On (Onyx, not Sentry) |
+
+The uptime monitor stays off while the API is on Render's free plan: checking every minute
+keeps the service awake, which uses the workspace's shared free hours. Turn it on in Sentry
+(Monitors → Onyx API health) once the API is on a paid instance.
 
 ## Load test
 

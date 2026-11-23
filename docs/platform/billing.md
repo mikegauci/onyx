@@ -3,19 +3,24 @@
 Onyx charges tenants through **Stripe Billing**. A tenant's plan decides its modules and its
 included AI budget. Part 1 is the backend; part 2 the screens (see [Screens](#screens)).
 
-**Not connected to Stripe yet.** Tests use a fake provider. Going live needs the owner's
-Stripe account, the plans' prices (test mode first) and the webhook endpoint registered.
+**Preview uses the Stripe sandbox "Onyx Studio sandbox"** (test mode, set up 2026-11-23):
+products, EUR prices, the webhook endpoint and the customer portal exist, and Render has the
+webhook secret and price ids. Billing stays "not set up" until the owner adds
+`ONYX_API_STRIPE_API_KEY` (the sandbox secret key) on Render. Live mode needs separate approval.
+Tests use a fake provider.
 
 ## Plans
 
-Defined in `app/core/billing/plans.py` (placeholders until the owner decides):
+Defined in `app/core/billing/plans.py`:
 
-| Plan    | Modules                                                                   | AI per month |
-| ------- | ------------------------------------------------------------------------- | ------------ |
-| Starter | CRM, inbox                                                                | $0           |
-| Growth  | CRM, inbox, catalogue, quotations, outbound replies, assistant, knowledge | $50          |
+| Plan    | Price (Stripe, excl. VAT) | Modules                                                                             | AI per month |
+| ------- | ------------------------- | ----------------------------------------------------------------------------------- | ------------ |
+| Starter | €49 a month               | CRM, inbox                                                                          | $0           |
+| Growth  | €149 a month              | CRM, inbox, catalogue, quotations, outbound replies, assistant, knowledge, vehicles | $50          |
 
 Prices live in Stripe; `ONYX_API_STRIPE_PRICE_STARTER` / `_GROWTH` map each plan to its price.
+Subscriptions are charged in euros. The AI allowance and usage report stay in US dollars,
+because provider list prices are in dollars.
 A plan's modules always include what they require (`tests/test_billing_plans.py`).
 
 **Without an active subscription** (cancelled, unpaid, never subscribed after a cancellation)

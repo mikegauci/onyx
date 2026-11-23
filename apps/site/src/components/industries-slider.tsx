@@ -17,7 +17,7 @@ function IndustryCard({
   return (
     <article
       aria-labelledby={`industry-${industry.slug}`}
-      className="industry-card group relative flex w-[85vw] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:w-[28rem] sm:p-8 lg:h-[34rem] lg:w-[30rem]"
+      className="industry-card group relative flex w-[85vw] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:w-[28rem] sm:p-8 lg:min-h-[min(34rem,calc(100vh-10rem))] lg:w-[30rem]"
     >
       <span
         aria-hidden
@@ -97,7 +97,7 @@ export function IndustriesSlider({ industries }: { industries: readonly Industry
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = window.matchMedia("(min-width: 1024px) and (min-height: 640px)");
     const update = () => setWide(mq.matches);
     update();
     mq.addEventListener("change", update);
@@ -112,7 +112,12 @@ export function IndustriesSlider({ industries }: { industries: readonly Industry
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="[scrollbar-width:thin] overflow-x-auto px-5 pb-4 sm:px-8">
+      <div
+        role="region"
+        aria-label="Industries, scroll sideways"
+        tabIndex={0}
+        className="focus-visible:ring-ring/60 [scrollbar-width:thin] overflow-x-auto rounded-2xl px-5 pb-4 outline-none focus-visible:ring-[3px] sm:px-8"
+      >
         <div className="flex snap-x snap-mandatory gap-4">{cards}</div>
       </div>
     </div>

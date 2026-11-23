@@ -10,7 +10,7 @@ export function SmoothScroll() {
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ autoRaf: true, anchors: { offset: -80 }, lerp: 0.1 });
+    const lenis = new Lenis({ autoRaf: true, anchors: true, lerp: 0.1 });
     return () => lenis.destroy();
   }, []);
   return null;

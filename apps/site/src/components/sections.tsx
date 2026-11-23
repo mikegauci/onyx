@@ -86,14 +86,21 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
   );
 }
 
-function QueueMock() {
+function QueueMock({
+  label = "Illustration of the Onyx Platform approval queue",
+  onLoad = true,
+}: {
+  label?: string;
+  /** Rows animate in on page load (hero) or as they scroll into view (further down). */
+  onLoad?: boolean;
+}) {
   const tone: Record<string, string> = {
     "Draft ready": "bg-success/15 text-success",
     Booked: "bg-info/15 text-info",
     "Needs approval": "bg-brand/15 text-brand",
   };
   return (
-    <figure aria-label="Illustration of the Onyx Platform approval queue" className="w-full">
+    <figure aria-label={label} className="w-full">
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/50 shadow-2xl backdrop-blur-xl">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <span className="text-muted-foreground text-xs">Approvals</span>
@@ -105,8 +112,8 @@ function QueueMock() {
           {queueMock.map((row, i) => (
             <li
               key={row.text}
-              className="reveal-row flex items-center justify-between gap-3 px-4 py-3.5"
-              style={{ animationDelay: `${900 + i * 180}ms` }}
+              className={`${onLoad ? "reveal-row" : "reveal"} flex items-center justify-between gap-3 px-4 py-3.5`}
+              style={onLoad ? { animationDelay: `${900 + i * 180}ms` } : undefined}
             >
               <span className="min-w-0">
                 <span className="text-muted-foreground block text-[11px]">{row.channel}</span>
@@ -384,7 +391,7 @@ export function Platform({ platformUrl }: { platformUrl: string }) {
               Sign in to Onyx Platform →
             </a>
           </div>
-          <QueueMock />
+          <QueueMock label="Example of the approval queue in Onyx Platform" onLoad={false} />
         </div>
         <ul className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((m) => (
@@ -407,9 +414,13 @@ export function Principles() {
   const items = [...principles, ...principles];
   return (
     <section aria-label="Our principles" className="overflow-hidden border-y border-white/10 py-8">
-      <ul className="marquee flex w-max gap-12 text-[clamp(1.25rem,2.5vw,2rem)] font-light whitespace-nowrap">
+      <ul className="marquee flex w-max text-[clamp(1.25rem,2.5vw,2rem)] font-light whitespace-nowrap">
         {items.map((p, i) => (
-          <li key={i} aria-hidden={i >= principles.length} className="flex items-center gap-12">
+          <li
+            key={i}
+            aria-hidden={i >= principles.length}
+            className="flex items-center gap-12 pr-12"
+          >
             {p}
             <Mark className="size-2.5" />
           </li>

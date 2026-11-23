@@ -6,6 +6,7 @@ const CX = W / 2;
 const CY = H / 2;
 
 function rowY(i: number, n: number) {
+  if (n <= 1) return H / 2;
   return 70 + (i * (H - 140)) / (n - 1);
 }
 
@@ -30,10 +31,6 @@ export function SystemDiagram() {
         className="system-diagram hidden w-full md:block"
       >
         <defs>
-          <linearGradient id="pulse-in" x1="0" x2="1">
-            <stop offset="0" stopColor="var(--brand)" stopOpacity="0" />
-            <stop offset="1" stopColor="var(--brand)" />
-          </linearGradient>
           <radialGradient id="core-glow">
             <stop offset="0" stopColor="var(--brand)" stopOpacity="0.55" />
             <stop offset="1" stopColor="var(--brand)" stopOpacity="0" />

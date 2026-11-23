@@ -150,7 +150,21 @@ export function HeroCanvas() {
       const timer = new THREE.Timer();
       let frame = 0;
       let first = true;
-      // If the device can't hold ~25fps over the first 90 frames, stop and keep the gradient.
+
+      const teardown = () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener("pointermove", onPointer);
+        ro.disconnect();
+        io.disconnect();
+        geometry.dispose();
+        material.dispose();
+        timer.dispose();
+        renderer.dispose();
+        renderer.domElement.remove();
+      };
+
+      // If the device can't hold ~25fps over the first 90 rendered frames, release the GPU and
+      // keep the gradient. Gaps from hidden tabs or off-screen pauses (>250ms) are not counted.
       let sampled = 0;
       let slowTotal = 0;
       const tick = () => {
@@ -158,12 +172,13 @@ export function HeroCanvas() {
         timer.update();
         if (!visible || document.hidden) return;
         const dt = timer.getDelta();
-        if (sampled < 90 && !first) {
+        if (sampled < 90 && !first && dt <= 0.25) {
           sampled++;
           slowTotal += dt;
           if (sampled === 90 && slowTotal / sampled > 0.04) {
             setReady(false);
-            cancelAnimationFrame(frame);
+            teardown();
+            cleanup = undefined;
             return;
           }
         }
@@ -177,17 +192,7 @@ export function HeroCanvas() {
       };
       tick();
 
-      cleanup = () => {
-        cancelAnimationFrame(frame);
-        window.removeEventListener("pointermove", onPointer);
-        ro.disconnect();
-        io.disconnect();
-        geometry.dispose();
-        material.dispose();
-        timer.dispose();
-        renderer.dispose();
-        renderer.domElement.remove();
-      };
+      cleanup = teardown;
     };
 
     // Wait until the page is idle so the hero text paints first.

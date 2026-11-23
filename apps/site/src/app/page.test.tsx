@@ -31,7 +31,7 @@ describe("Onyx Studio home page", () => {
   });
 
   it("shows every industry with its workflows", () => {
-    expect(industries).toHaveLength(6);
+    expect(industries).toHaveLength(9);
     for (const industry of industries) {
       const card = screen.getByRole("article", { name: industry.name });
       expect(within(card).getAllByRole("listitem")).toHaveLength(industry.workflows.length);
@@ -46,6 +46,12 @@ describe("Onyx Studio home page", () => {
     for (const id of ["studio", "system", "industries", "process", "faq", "contact"]) {
       expect(document.getElementById(id)).not.toBeNull();
     }
+  });
+
+  it("gives the headline a stable accessible name with the first rotating word", () => {
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /Intelligence that works the front desk\./,
+    );
   });
 
   it("renders the full statement text", () => {

@@ -17,6 +17,7 @@ import {
 
 import { HeroCanvas } from "./hero-canvas";
 import { IndustriesSlider } from "./industries-slider";
+import { RotatingWord } from "./rotating-word";
 import { SystemDiagram } from "./system-diagram";
 import { WordReveal } from "./word-reveal";
 
@@ -152,17 +153,26 @@ export function Hero() {
           <Eyebrow>{hero.eyebrow}</Eyebrow>
         </div>
         <h1 className="mt-6 text-[clamp(3rem,10vw,8.5rem)] leading-[0.92] font-light tracking-[-0.04em]">
-          {hero.lines.map((line, i) => (
-            <span key={line} className="line-mask block">
-              <span className="line-in block" style={{ animationDelay: `${120 + i * 110}ms` }}>
-                {i === hero.lines.length - 1 ? (
-                  <em className="text-brand font-light not-italic">{line}</em>
-                ) : (
-                  line
-                )}
+          <span className="sr-only">
+            {hero.lines.join(" ")} {hero.rotating[0]}
+          </span>
+          <span aria-hidden>
+            {hero.lines.map((line, i) => (
+              <span key={line} className="line-mask block">
+                <span className="line-in block" style={{ animationDelay: `${120 + i * 110}ms` }}>
+                  {line}
+                </span>
+              </span>
+            ))}
+            <span className="line-mask block">
+              <span
+                className="line-in block"
+                style={{ animationDelay: `${120 + hero.lines.length * 110}ms` }}
+              >
+                <RotatingWord words={hero.rotating} />
               </span>
             </span>
-          ))}
+          </span>
         </h1>
         <div className="mt-10 grid items-end gap-10 lg:grid-cols-[1fr_22rem]">
           <div className="hero-in max-w-xl" style={{ animationDelay: "520ms" }}>

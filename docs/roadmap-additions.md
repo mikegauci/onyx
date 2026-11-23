@@ -5,7 +5,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | ID       | Phase      | Title                                         | Depends on                    | Effort     | Status                                                              |
 | -------- | ---------- | --------------------------------------------- | ----------------------------- | ---------- | ------------------------------------------------------------------- |
 | DF-001   | Foundation | Design foundation: research, tokens, base UI  | PR-001                        | 6–10h      | Merged [mikegauci/onyx#2](https://github.com/mikegauci/onyx/pull/2) |
-| SITE-001 | Marketing  | Build the Onyx Studio landing page (onyx.mt)  | DF-001 (and PR-002 to deploy) | 20–32h     | Approved 2026-11-04, not started                                    |
+| SITE-001 | Marketing  | Build the Onyx Studio landing page (onyx.mt)  | DF-001 (and PR-002 to deploy) | 20–32h     | Landing page live on onyx.mt 2026-11-23; copy awaits owner review   |
 | VA-001   | Ventur     | Vehicle stock extension and WordPress import  | PR-010                        | 16–28h     | Approved 2026-11-19, not started                                    |
 | VA-002   | Ventur     | Auto-send policy for low-risk AI replies      | PR-015, PR-016                | 12–20h     | Approved 2026-11-19, not started                                    |
 | VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                    |

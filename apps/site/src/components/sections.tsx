@@ -1,46 +1,84 @@
 import { Button } from "@onyx/ui/components/button";
-import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 
-import { modules, nav, queueMock, services, site, steps, trust } from "@/content/site";
+import {
+  faq,
+  hero,
+  industries,
+  modules,
+  nav,
+  principles,
+  process,
+  queueMock,
+  services,
+  site,
+  statement,
+  system,
+} from "@/content/site";
+
+import { HeroCanvas } from "./hero-canvas";
+import { IndustriesSlider } from "./industries-slider";
+import { SystemDiagram } from "./system-diagram";
+import { WordReveal } from "./word-reveal";
 
 const container = "mx-auto w-full max-w-6xl px-5 sm:px-8";
+const focusRing = "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
 
-function Wordmark() {
+function Mark({ className = "" }: { className?: string }) {
   return (
-    <a
-      href="#top"
-      className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-[3px]"
+    <span
+      aria-hidden
+      className={`bg-brand inline-block size-3 rotate-45 rounded-[3px] ${className}`}
+    />
+  );
+}
+
+function Eyebrow({ children, center = false }: { children: React.ReactNode; center?: boolean }) {
+  return (
+    <p
+      className={`text-muted-foreground flex items-center gap-3 font-mono text-xs tracking-[0.2em] uppercase ${center ? "justify-center" : ""}`}
     >
-      <span aria-hidden className="bg-brand inline-block size-3 rotate-45 rounded-[3px]" />
-      {site.name}
-    </a>
+      <span aria-hidden className="bg-brand h-px w-8" />
+      {children}
+    </p>
   );
 }
 
 export function SiteNav({ platformUrl }: { platformUrl: string }) {
   return (
-    <header className="sticky top-3 z-40 px-3 sm:top-4">
+    <header className="bg-background/60 fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] backdrop-blur-xl">
       <nav
         aria-label="Main"
-        className="bg-background/70 supports-[backdrop-filter]:bg-background/55 mx-auto flex max-w-5xl items-center justify-between gap-3 rounded-full border py-2 pr-2 pl-5 shadow-sm backdrop-blur-xl"
+        className={`${container} flex h-20 items-center justify-between gap-4`}
       >
-        <Wordmark />
-        <ul className="hidden items-center gap-1 text-sm md:flex">
+        <a
+          href="#top"
+          className={`flex items-center gap-2.5 rounded-md text-lg tracking-tight ${focusRing}`}
+        >
+          <Mark />
+          <span className="font-medium">onyx</span>
+          <span className="text-muted-foreground hidden text-sm sm:inline">studio</span>
+        </a>
+        <ul className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-1.5 text-sm backdrop-blur-xl md:flex">
           {nav.map((item) => (
             <li key={item.href}>
               <a
                 href={item.href}
-                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 rounded-md px-3 py-2 outline-none focus-visible:ring-[3px]"
+                className={`text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 transition-colors ${focusRing}`}
               >
                 {item.label}
               </a>
             </li>
           ))}
         </ul>
-        <div className="flex items-center gap-1.5">
-          <ThemeToggle />
-          <Button asChild size="sm" className="rounded-full">
-            <a href={platformUrl}>Sign in</a>
+        <div className="flex items-center gap-2">
+          <a
+            href={platformUrl}
+            className={`text-muted-foreground hover:text-foreground hidden rounded-full px-3 py-2 text-sm sm:inline ${focusRing}`}
+          >
+            Sign in
+          </a>
+          <Button asChild size="sm" variant="brand" className="rounded-full px-4">
+            <a href="#contact">Start a project</a>
           </Button>
         </div>
       </nav>
@@ -51,48 +89,39 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
 function QueueMock() {
   const tone: Record<string, string> = {
     "Draft ready": "bg-success/15 text-success",
+    Booked: "bg-info/15 text-info",
     "Needs approval": "bg-brand/15 text-brand",
-    Escalated: "bg-warning/15 text-warning",
   };
   return (
-    <figure
-      className="relative mx-auto mt-16 w-full max-w-4xl"
-      aria-label="Illustration of the Onyx Platform approval queue"
-    >
-      <div
-        aria-hidden
-        className="hero-glow pointer-events-none absolute inset-x-0 -top-16 bottom-0 sm:-inset-x-10"
-      />
-      <div className="bg-card/80 relative overflow-hidden rounded-xl border text-left shadow-2xl backdrop-blur">
-        <div className="flex items-center gap-2 border-b px-4 py-3">
-          <span aria-hidden className="bg-muted-foreground/30 size-2.5 rounded-full" />
-          <span aria-hidden className="bg-muted-foreground/30 size-2.5 rounded-full" />
-          <span aria-hidden className="bg-muted-foreground/30 size-2.5 rounded-full" />
-          <span className="text-muted-foreground ml-3 text-xs">Approvals · 3 waiting</span>
+    <figure aria-label="Illustration of the Onyx Platform approval queue" className="w-full">
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/50 shadow-2xl backdrop-blur-xl">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <span className="text-muted-foreground text-xs">Approvals</span>
+          <span className="text-brand flex items-center gap-1.5 text-xs">
+            <span className="live-dot bg-brand size-1.5 rounded-full" /> Live
+          </span>
         </div>
-        <ul className="divide-y">
+        <ul className="divide-y divide-white/10">
           {queueMock.map((row, i) => (
             <li
               key={row.text}
-              className="reveal-row grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-4 sm:grid-cols-[7rem_1fr_auto] sm:px-6"
-              style={{ animationDelay: `${300 + i * 150}ms` }}
+              className="reveal-row flex items-center justify-between gap-3 px-4 py-3.5"
+              style={{ animationDelay: `${900 + i * 180}ms` }}
             >
-              <span className="text-muted-foreground hidden text-xs sm:block">{row.channel}</span>
               <span className="min-w-0">
-                <span className="text-muted-foreground block text-xs sm:hidden">
-                  {row.channel} · {row.who}
-                </span>
-                <span className="text-muted-foreground hidden text-xs sm:block">{row.who}</span>
+                <span className="text-muted-foreground block text-[11px]">{row.channel}</span>
                 <span className="block truncate text-sm">“{row.text}”</span>
               </span>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone[row.state]}`}>
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${tone[row.state]}`}
+              >
                 {row.state}
               </span>
             </li>
           ))}
         </ul>
       </div>
-      <figcaption className="text-muted-foreground mt-3 text-center text-xs">
+      <figcaption className="text-muted-foreground/70 mt-2 text-[11px]">
         Illustration with fictional enquiries.
       </figcaption>
     </figure>
@@ -101,37 +130,76 @@ function QueueMock() {
 
 export function Hero() {
   return (
-    <section id="top" className={`${container} pt-20 pb-24 text-center sm:pt-28`}>
-      <p className="hero-in text-muted-foreground mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
-        <span aria-hidden className="bg-brand size-1.5 rounded-full" />
-        Websites, automation and AI for businesses in {site.location}
-      </p>
-      <h1 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-        {site.tagline}
-      </h1>
-      <p
-        className="hero-in text-muted-foreground mx-auto mt-6 max-w-2xl text-lg text-pretty"
-        style={{ animationDelay: "120ms" }}
-      >
-        {site.description}
-      </p>
+    <section id="top" className="relative flex min-h-[100svh] flex-col overflow-hidden">
+      <div aria-hidden className="hero-fallback absolute inset-0" />
+      <HeroCanvas />
       <div
-        className="hero-in mt-9 flex flex-wrap items-center justify-center gap-3"
-        style={{ animationDelay: "220ms" }}
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--background)]"
+      />
+
+      <div
+        className={`${container} relative flex flex-1 flex-col justify-end pt-32 pb-14 sm:pb-20`}
       >
-        <Button asChild size="lg" variant="brand">
-          <a href="#contact">Talk to us</a>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <a href="#how-it-works">See how it works</a>
-        </Button>
+        <div className="hero-in" style={{ animationDelay: "50ms" }}>
+          <Eyebrow>{hero.eyebrow}</Eyebrow>
+        </div>
+        <h1 className="mt-6 text-[clamp(3rem,10vw,8.5rem)] leading-[0.92] font-light tracking-[-0.04em]">
+          {hero.lines.map((line, i) => (
+            <span key={line} className="line-mask block">
+              <span className="line-in block" style={{ animationDelay: `${120 + i * 110}ms` }}>
+                {i === hero.lines.length - 1 ? (
+                  <em className="text-brand font-light not-italic">{line}</em>
+                ) : (
+                  line
+                )}
+              </span>
+            </span>
+          ))}
+        </h1>
+        <div className="mt-10 grid items-end gap-10 lg:grid-cols-[1fr_22rem]">
+          <div className="hero-in max-w-xl" style={{ animationDelay: "520ms" }}>
+            <p className="text-foreground/75 text-lg text-pretty sm:text-xl">{hero.body}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" variant="brand" className="h-12 rounded-full px-7">
+                <a href="#contact">{hero.primary} →</a>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="h-12 rounded-full border border-white/15 px-7"
+              >
+                <a href="#system">{hero.secondary}</a>
+              </Button>
+            </div>
+          </div>
+          <div className="hero-in hidden lg:block" style={{ animationDelay: "700ms" }}>
+            <QueueMock />
+          </div>
+        </div>
       </div>
-      <QueueMock />
     </section>
   );
 }
 
-function SectionHeading({
+export function Statement() {
+  return (
+    <section
+      id="studio"
+      aria-label="What we believe"
+      className={`${container} scroll-mt-24 py-28 sm:py-40`}
+    >
+      <Eyebrow>Onyx Studio</Eyebrow>
+      <WordReveal
+        text={statement}
+        className="mt-8 max-w-5xl text-[clamp(1.75rem,4.2vw,3.6rem)] leading-[1.12] font-light tracking-[-0.02em]"
+      />
+    </section>
+  );
+}
+
+function SectionHead({
   id,
   eyebrow,
   title,
@@ -140,16 +208,53 @@ function SectionHeading({
   id: string;
   eyebrow: string;
   title: string;
-  body: string;
+  body?: string;
 }) {
   return (
-    <div className="mx-auto mb-12 max-w-2xl text-center">
-      <p className="text-brand mb-3 text-sm font-medium">{eyebrow}</p>
-      <h2 id={id} className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {title}
-      </h2>
-      <p className="text-muted-foreground mt-4 text-pretty">{body}</p>
+    <div className="grid gap-6 lg:grid-cols-[1fr_24rem] lg:items-end">
+      <div>
+        <Eyebrow>{eyebrow}</Eyebrow>
+        <h2
+          id={id}
+          className="mt-6 text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.02] font-light tracking-[-0.03em] text-balance"
+        >
+          {title}
+        </h2>
+      </div>
+      {body ? <p className="text-muted-foreground text-pretty">{body}</p> : null}
     </div>
+  );
+}
+
+export function System() {
+  return (
+    <section
+      id="system"
+      aria-labelledby="system-title"
+      className="relative scroll-mt-24 border-y border-white/10 py-28"
+    >
+      <div aria-hidden className="grid-bg pointer-events-none absolute inset-0" />
+      <div className={`${container} relative`}>
+        <SectionHead
+          id="system-title"
+          eyebrow={system.eyebrow}
+          title={system.title}
+          body={system.body}
+        />
+        <div className="mt-16">
+          <SystemDiagram />
+        </div>
+        <ul className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 md:grid-cols-3">
+          {system.notes.map((n, i) => (
+            <li key={n.title} className="bg-background p-7">
+              <p className="text-brand font-mono text-xs">0{i + 1}</p>
+              <h3 className="mt-4 text-xl font-light">{n.title}</h3>
+              <p className="text-muted-foreground mt-2 text-sm">{n.body}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 
@@ -158,63 +263,91 @@ export function Services() {
     <section
       id="services"
       aria-labelledby="services-title"
-      className={`${container} scroll-mt-24 py-24`}
+      className={`${container} scroll-mt-24 py-28`}
     >
-      <SectionHeading
+      <SectionHead
         id="services-title"
-        eyebrow="Onyx Studio"
-        title="A small studio that ships working systems"
-        body="We start from how your business actually runs, then build what saves your team time. Most projects pair a service with Onyx Platform."
+        eyebrow="What we build"
+        title="Four things, done properly."
+        body="Most projects combine an assistant with a couple of automations. Websites and integrations come in when they unblock the rest."
       />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {services.map((s) => (
-          <li key={s.title} className="reveal bg-card rounded-xl border p-6">
-            <h3 className="font-medium">{s.title}</h3>
-            <p className="text-muted-foreground mt-2 text-sm">{s.body}</p>
+      <ol className="mt-16 border-t border-white/10">
+        {services.map((s, i) => (
+          <li
+            key={s.title}
+            className="service-row group relative grid gap-4 border-b border-white/10 py-8 sm:grid-cols-[5rem_1fr_1fr] sm:items-baseline sm:py-10"
+          >
+            <span
+              aria-hidden
+              className="service-sheen pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            />
+            <span className="text-muted-foreground relative font-mono text-sm">0{i + 1}</span>
+            <h3 className="relative text-3xl font-light tracking-tight transition-transform duration-500 group-hover:translate-x-2 sm:text-4xl">
+              {s.title}
+            </h3>
+            <div className="relative">
+              <p className="text-muted-foreground">{s.body}</p>
+              <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${s.title} examples`}>
+                {s.tags.map((t) => (
+                  <li key={t} className="rounded-full border border-white/10 px-2.5 py-1 text-xs">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
   );
 }
 
-export function HowItWorks() {
+export function Industries() {
   return (
     <section
-      id="how-it-works"
-      aria-labelledby="how-title"
-      className="bg-muted/40 scroll-mt-24 border-y py-24"
+      id="industries"
+      aria-labelledby="industries-title"
+      className="scroll-mt-24 pt-28 pb-12"
     >
       <div className={container}>
-        <SectionHeading
-          id="how-title"
-          eyebrow="How it works"
-          title="From first message to after-sale, with people in control"
-          body="The assistant does the legwork. Your staff decide what gets sent, and the platform keeps every step on record."
+        <SectionHead
+          id="industries-title"
+          eyebrow="Industries"
+          title="Built for businesses that live on enquiries."
+          body="The platform is the same for everyone; the workflows are shaped to how your trade actually sells."
         />
-        <ol className="relative grid gap-6 md:grid-cols-5 md:gap-4">
-          <span
-            aria-hidden
-            className="beam-track absolute top-5 right-[10%] left-[10%] hidden h-px md:block"
-          >
-            <span className="beam" />
-          </span>
-          {steps.map((step, i) => (
-            <li
-              key={step.title}
-              className="reveal relative flex gap-4 md:flex-col md:items-center md:text-center"
-            >
-              <span className="bg-background text-brand relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border font-mono text-sm">
-                {i + 1}
-              </span>
-              <span>
-                <span className="block font-medium">{step.title}</span>
-                <span className="text-muted-foreground mt-1 block text-sm">{step.body}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
       </div>
+      <div className="mt-14">
+        <IndustriesSlider industries={industries} />
+      </div>
+    </section>
+  );
+}
+
+export function Process() {
+  return (
+    <section
+      id="process"
+      aria-labelledby="process-title"
+      className={`${container} scroll-mt-24 py-28`}
+    >
+      <SectionHead
+        id="process-title"
+        eyebrow="How we work"
+        title="From first call to a system your team trusts."
+      />
+      <ol className="mt-16 grid gap-10 md:grid-cols-4 md:gap-6">
+        {process.map((p, i) => (
+          <li key={p.title} className="reveal relative border-t border-white/15 pt-6">
+            <span aria-hidden className="bg-brand absolute -top-px left-0 h-px w-10" />
+            <p className="text-[4.5rem] leading-none font-extralight tracking-tighter text-white/15">
+              0{i + 1}
+            </p>
+            <h3 className="mt-4 text-xl font-light">{p.title}</h3>
+            <p className="text-muted-foreground mt-2 text-sm">{p.body}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -224,78 +357,126 @@ export function Platform({ platformUrl }: { platformUrl: string }) {
     <section
       id="platform"
       aria-labelledby="platform-title"
-      className={`${container} scroll-mt-24 py-24`}
+      className="relative scroll-mt-24 overflow-hidden border-t border-white/10 py-28"
     >
-      <SectionHeading
-        id="platform-title"
-        eyebrow="Onyx Platform"
-        title="One workspace for enquiries, customers and stock"
-        body="Onyx Platform is our multi-business software. Each business gets its own workspace and turns on the modules it needs."
+      <div
+        aria-hidden
+        className="platform-glow pointer-events-none absolute top-20 -right-40 size-[36rem] rounded-full"
       />
-      <ul className="grid gap-4 md:grid-cols-3">
-        {modules.map((m) => (
-          <li
-            key={m.title}
-            className={`reveal group bg-card relative overflow-hidden rounded-xl border p-6 ${m.wide ? "md:col-span-2" : ""}`}
-          >
-            <span
-              aria-hidden
-              className="card-sheen pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            />
-            <h3 className="relative font-medium">{m.title}</h3>
-            <p className="text-muted-foreground relative mt-2 text-sm">{m.body}</p>
-          </li>
-        ))}
-      </ul>
-      <ul
-        aria-label="Our commitments"
-        className="text-muted-foreground mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm"
-      >
-        {trust.map((t) => (
-          <li key={t} className="flex items-center gap-2">
-            <svg
-              aria-hidden
-              viewBox="0 0 16 16"
-              className="text-success size-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+      <div className={`${container} relative`}>
+        <div className="grid gap-14 lg:grid-cols-[1fr_24rem] lg:items-center">
+          <div>
+            <Eyebrow>Onyx Platform</Eyebrow>
+            <h2
+              id="platform-title"
+              className="mt-6 text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.02] font-light tracking-[-0.03em] text-balance"
             >
-              <path d="m3.5 8.5 3 3 6-7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t}
+              Our own platform, under every project.
+            </h2>
+            <p className="text-muted-foreground mt-6 max-w-xl text-pretty">
+              We don&apos;t stitch together a dozen tools for each client. Every business gets its
+              own secure workspace on Onyx Platform and switches on the modules it needs.
+            </p>
+            <a
+              href={platformUrl}
+              className={`text-brand mt-8 inline-flex items-center gap-2 rounded-sm text-sm underline-offset-4 hover:underline ${focusRing}`}
+            >
+              Sign in to Onyx Platform →
+            </a>
+          </div>
+          <QueueMock />
+        </div>
+        <ul className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
+          {modules.map((m) => (
+            <li key={m.title} className="module-card group bg-background relative p-7">
+              <span
+                aria-hidden
+                className="module-sheen pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              />
+              <h3 className="relative text-lg font-light">{m.title}</h3>
+              <p className="text-muted-foreground relative mt-2 text-sm">{m.body}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+export function Principles() {
+  const items = [...principles, ...principles];
+  return (
+    <section aria-label="Our principles" className="overflow-hidden border-y border-white/10 py-8">
+      <ul className="marquee flex w-max gap-12 text-[clamp(1.25rem,2.5vw,2rem)] font-light whitespace-nowrap">
+        {items.map((p, i) => (
+          <li key={i} aria-hidden={i >= principles.length} className="flex items-center gap-12">
+            {p}
+            <Mark className="size-2.5" />
           </li>
         ))}
       </ul>
-      <p className="mt-10 text-center text-sm">
-        Already a customer?{" "}
-        <a
-          href={platformUrl}
-          className="text-brand focus-visible:ring-ring/50 rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-[3px]"
-        >
-          Sign in to Onyx Platform
-        </a>
-      </p>
+    </section>
+  );
+}
+
+export function Faq() {
+  return (
+    <section id="faq" aria-labelledby="faq-title" className={`${container} scroll-mt-24 py-28`}>
+      <div className="grid gap-12 lg:grid-cols-[22rem_1fr]">
+        <div>
+          <Eyebrow>FAQ</Eyebrow>
+          <h2 id="faq-title" className="mt-6 text-4xl font-light tracking-tight">
+            Fair questions.
+          </h2>
+        </div>
+        <div className="border-t border-white/10">
+          {faq.map((f) => (
+            <details key={f.q} className="faq group border-b border-white/10">
+              <summary
+                className={`flex cursor-pointer list-none items-center justify-between gap-6 rounded-sm py-6 text-lg font-light ${focusRing}`}
+              >
+                {f.q}
+                <span
+                  aria-hidden
+                  className="text-brand text-2xl leading-none transition-transform duration-300 group-open:rotate-45"
+                >
+                  +
+                </span>
+              </summary>
+              <p className="text-muted-foreground max-w-2xl pb-6">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
 export function Contact() {
   return (
-    <section id="contact" aria-labelledby="contact-title" className="scroll-mt-24 px-3 pb-24">
-      <div className="cta-band relative mx-auto max-w-6xl overflow-hidden rounded-2xl border px-6 py-20 text-center">
+    <section
+      id="contact"
+      aria-labelledby="contact-title"
+      className="relative scroll-mt-24 overflow-hidden py-32 sm:py-44"
+    >
+      <div
+        aria-hidden
+        className="cta-glow pointer-events-none absolute inset-x-0 bottom-0 h-full"
+      />
+      <div className={`${container} relative text-center`}>
+        <Eyebrow center>Start a project</Eyebrow>
         <h2
           id="contact-title"
-          className="relative text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
+          className="mx-auto mt-8 max-w-4xl text-[clamp(2.5rem,7vw,6rem)] leading-[0.98] font-light tracking-[-0.04em] text-balance"
         >
-          Tell us how your business runs today
+          Tell us how your business runs today.
         </h2>
-        <p className="text-muted-foreground relative mx-auto mt-4 max-w-xl text-pretty">
-          A short email is enough: what you sell, where enquiries come from, and what takes your
-          team the most time. We reply within two working days.
+        <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-pretty">
+          A short email is enough: what you sell, where enquiries come from and what takes your team
+          the most time. We reply within two working days.
         </p>
-        <div className="relative mt-8 flex justify-center">
-          <Button asChild size="lg" variant="brand">
+        <div className="mt-10 flex justify-center">
+          <Button asChild size="lg" variant="brand" className="h-14 rounded-full px-9 text-base">
             <a href={`mailto:${site.contactEmail}`}>Email {site.contactEmail}</a>
           </Button>
         </div>
@@ -307,18 +488,22 @@ export function Contact() {
 export function SiteFooter({ platformUrl }: { platformUrl: string }) {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t">
+    <footer className="relative overflow-hidden border-t border-white/10">
       <div className={`${container} grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4`}>
         <div className="lg:col-span-2">
-          <Wordmark />
+          <p className="flex items-center gap-2.5 text-lg">
+            <Mark /> {site.name}
+          </p>
           <p className="text-muted-foreground mt-3 max-w-sm text-sm">{site.description}</p>
         </div>
         <div>
-          <h2 className="text-sm font-medium">Explore</h2>
-          <ul className="text-muted-foreground mt-3 space-y-2 text-sm">
+          <h2 className="text-muted-foreground font-mono text-xs tracking-[0.2em] uppercase">
+            Explore
+          </h2>
+          <ul className="mt-4 space-y-2 text-sm">
             {nav.map((item) => (
               <li key={item.href}>
-                <a href={item.href} className="hover:text-foreground">
+                <a href={item.href} className={`hover:text-brand rounded-sm ${focusRing}`}>
                   {item.label}
                 </a>
               </li>
@@ -326,24 +511,29 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
           </ul>
         </div>
         <div>
-          <h2 className="text-sm font-medium">Company</h2>
-          <ul className="text-muted-foreground mt-3 space-y-2 text-sm">
+          <h2 className="text-muted-foreground font-mono text-xs tracking-[0.2em] uppercase">
+            Contact
+          </h2>
+          <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <a href={`mailto:${site.contactEmail}`} className="hover:text-foreground">
+              <a
+                href={`mailto:${site.contactEmail}`}
+                className={`hover:text-brand rounded-sm ${focusRing}`}
+              >
                 {site.contactEmail}
               </a>
             </li>
             <li>
-              <a href={platformUrl} className="hover:text-foreground">
+              <a href={platformUrl} className={`hover:text-brand rounded-sm ${focusRing}`}>
                 Onyx Platform sign-in
               </a>
             </li>
-            <li>{site.location}</li>
+            <li className="text-muted-foreground">{site.location}</li>
           </ul>
         </div>
       </div>
       <div
-        className={`${container} text-muted-foreground flex flex-wrap justify-between gap-2 border-t py-6 text-xs`}
+        className={`${container} text-muted-foreground flex flex-wrap justify-between gap-2 border-t border-white/10 py-6 text-xs`}
       >
         <p>
           © {year} {site.name}
@@ -352,9 +542,9 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
       </div>
       <p
         aria-hidden
-        className="text-foreground/[0.04] pointer-events-none overflow-hidden text-center text-[22vw] leading-none font-semibold tracking-tighter select-none"
+        className="footer-word pointer-events-none -mb-[0.18em] text-center text-[28vw] leading-none font-light tracking-[-0.06em] select-none"
       >
-        onyx
+        {site.shortName}
       </p>
     </footer>
   );

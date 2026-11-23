@@ -1,0 +1,113 @@
+import { system } from "@/content/site";
+
+const W = 1000;
+const H = 520;
+const CX = W / 2;
+const CY = H / 2;
+
+function rowY(i: number, n: number) {
+  return 70 + (i * (H - 140)) / (n - 1);
+}
+
+function curve(x1: number, y1: number, x2: number, y2: number) {
+  const mx = (x1 + x2) / 2;
+  return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+}
+
+/**
+ * Channels flow into Onyx, which connects them to the business. Pulses travel along each path
+ * (CSS, stopped under reduced motion); hovering a node highlights its path. Phones get a
+ * stacked version instead of the wide SVG.
+ */
+export function SystemDiagram() {
+  const { inputs, outputs, core } = system;
+  return (
+    <>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={`${inputs.join(", ")} flow into ${core}, which connects to ${outputs.join(", ")}.`}
+        className="system-diagram hidden w-full md:block"
+      >
+        <defs>
+          <linearGradient id="pulse-in" x1="0" x2="1">
+            <stop offset="0" stopColor="var(--brand)" stopOpacity="0" />
+            <stop offset="1" stopColor="var(--brand)" />
+          </linearGradient>
+          <radialGradient id="core-glow">
+            <stop offset="0" stopColor="var(--brand)" stopOpacity="0.55" />
+            <stop offset="1" stopColor="var(--brand)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        {inputs.map((label, i) => {
+          const y = rowY(i, inputs.length);
+          const d = curve(190, y, CX - 70, CY);
+          return (
+            <g key={label} className="node" style={{ ["--d" as string]: `${i * 0.45}s` }}>
+              <path d={d} className="track" />
+              <path d={d} className="pulse" pathLength={1} />
+              <rect x={20} y={y - 22} width={170} height={44} rx={22} className="pill" />
+              <text x={105} y={y + 5} textAnchor="middle" className="label">
+                {label}
+              </text>
+            </g>
+          );
+        })}
+
+        {outputs.map((label, i) => {
+          const y = rowY(i, outputs.length);
+          const d = curve(CX + 70, CY, W - 210, y);
+          return (
+            <g key={label} className="node" style={{ ["--d" as string]: `${1.2 + i * 0.45}s` }}>
+              <path d={d} className="track" />
+              <path d={d} className="pulse" pathLength={1} />
+              <rect x={W - 210} y={y - 22} width={190} height={44} rx={22} className="pill" />
+              <text x={W - 115} y={y + 5} textAnchor="middle" className="label">
+                {label}
+              </text>
+            </g>
+          );
+        })}
+
+        <circle cx={CX} cy={CY} r={150} fill="url(#core-glow)" />
+        <circle cx={CX} cy={CY} r={70} className="core-ring" />
+        <circle cx={CX} cy={CY} r={70} className="core-ring core-ring-2" />
+        <circle cx={CX} cy={CY} r={62} className="core" />
+        <text x={CX} y={CY + 8} textAnchor="middle" className="core-label">
+          {core}
+        </text>
+      </svg>
+
+      <div className="grid gap-6 md:hidden">
+        <ul aria-label="Channels" className="flex flex-wrap justify-center gap-2">
+          {inputs.map((l) => (
+            <li
+              key={l}
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm"
+            >
+              {l}
+            </li>
+          ))}
+        </ul>
+        <div aria-hidden className="mx-auto flex flex-col items-center gap-2">
+          <span className="h-8 w-px bg-gradient-to-b from-transparent to-[var(--brand)]" />
+          <span className="border-brand/60 bg-brand/10 text-brand flex size-20 items-center justify-center rounded-full border text-lg">
+            {core}
+          </span>
+          <span className="h-8 w-px bg-gradient-to-b from-[var(--brand)] to-transparent" />
+        </div>
+        <ul aria-label="Connected to" className="flex flex-wrap justify-center gap-2">
+          {outputs.map((l) => (
+            <li
+              key={l}
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm"
+            >
+              {l}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}

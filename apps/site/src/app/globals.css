@@ -1,85 +1,195 @@
 @import "@onyx/ui/globals.css";
 
-/* Landing-page effects. Content is always visible without JS; motion only runs when the
-   visitor has not asked for reduced motion. */
+/* Onyx Studio is dark-only: a deeper canvas than the platform, one hot orange accent. */
+.dark {
+  --background: oklch(0.12 0.004 45);
+  --card: oklch(0.15 0.005 45);
+  --brand: oklch(0.7 0.19 45);
+  --ring: oklch(0.7 0.19 45);
+}
 
-.hero-glow {
+html {
+  background: var(--background);
+}
+
+::selection {
+  background: color-mix(in oklch, var(--brand) 45%, transparent);
+}
+
+/* Hero: static gradient that shows without JS, under reduced motion and until WebGL is ready. */
+.hero-fallback {
   background:
     radial-gradient(
-      60% 50% at 50% 0%,
-      color-mix(in oklch, var(--brand) 28%, transparent),
+      70% 55% at 70% 40%,
+      color-mix(in oklch, var(--brand) 32%, transparent),
       transparent 70%
     ),
-    radial-gradient(
-      40% 40% at 20% 30%,
-      color-mix(in oklch, var(--info) 12%, transparent),
-      transparent 70%
-    );
-  filter: blur(20px);
+    radial-gradient(50% 40% at 25% 70%, oklch(0.35 0.12 30 / 35%), transparent 70%),
+    var(--background);
 }
 
-.beam-track {
-  background: var(--border);
+.line-mask {
   overflow: hidden;
+  padding-bottom: 0.06em;
 }
 
-.beam {
-  position: absolute;
-  inset-block: 0;
-  width: 18%;
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+.live-dot {
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--brand) 60%, transparent);
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 4%) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 4%) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(60% 60% at 50% 50%, black, transparent);
+}
+
+/* System diagram */
+.system-diagram .track {
+  fill: none;
+  stroke: oklch(1 0 0 / 12%);
+  stroke-width: 1.5;
+  transition: stroke 300ms;
+}
+.system-diagram .pulse {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.12 0.88;
+  stroke-dashoffset: 1;
   opacity: 0;
 }
+.system-diagram .pill {
+  fill: oklch(1 0 0 / 4%);
+  stroke: oklch(1 0 0 / 14%);
+  transition:
+    fill 300ms,
+    stroke 300ms;
+}
+.system-diagram .label {
+  fill: var(--foreground);
+  font-size: 17px;
+  font-weight: 300;
+}
+.system-diagram .core {
+  fill: color-mix(in oklch, var(--brand) 14%, var(--background));
+  stroke: var(--brand);
+  stroke-width: 1.5;
+}
+.system-diagram .core-ring {
+  fill: none;
+  stroke: var(--brand);
+  stroke-opacity: 0.5;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.system-diagram .core-label {
+  fill: var(--foreground);
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.system-diagram:has(.node:hover) .node:not(:hover) {
+  opacity: 0.35;
+}
+.system-diagram .node {
+  transition: opacity 300ms;
+}
+.system-diagram .node:hover .track {
+  stroke: var(--brand);
+}
+.system-diagram .node:hover .pill {
+  fill: color-mix(in oklch, var(--brand) 15%, transparent);
+  stroke: var(--brand);
+}
 
-.card-sheen {
-  background: radial-gradient(
-    120% 80% at 0% 0%,
-    color-mix(in oklch, var(--brand) 10%, transparent),
+.service-sheen,
+.module-sheen {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--brand) 9%, transparent),
     transparent 60%
   );
 }
 
-.cta-band {
-  background:
-    radial-gradient(
-      50% 80% at 50% 0%,
-      color-mix(in oklch, var(--brand) 18%, transparent),
-      transparent 70%
-    ),
-    var(--card);
-}
-
-.cta-band::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(
-    color-mix(in oklch, var(--foreground) 14%, transparent) 1px,
-    transparent 1px
+.industry-glow {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--brand) 45%, transparent),
+    transparent 65%
   );
-  background-size: 22px 22px;
-  mask-image: radial-gradient(70% 70% at 50% 50%, black, transparent);
+  filter: blur(10px);
 }
 
+.platform-glow {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--brand) 18%, transparent),
+    transparent 65%
+  );
+}
+
+.cta-glow {
+  background: radial-gradient(
+    60% 70% at 50% 100%,
+    color-mix(in oklch, var(--brand) 30%, transparent),
+    transparent 70%
+  );
+}
+
+.footer-word {
+  background: linear-gradient(
+    to bottom,
+    oklch(1 0 0 / 16%),
+    color-mix(in oklch, var(--brand) 6%, transparent) 85%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Motion: only when the visitor has not asked for less. Content is visible without it. */
 @media (prefers-reduced-motion: no-preference) {
   .hero-in {
-    animation: fade-up 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: fade-up 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
-
+  .line-in {
+    animation: line-up 1100ms cubic-bezier(0.2, 0.8, 0.1, 1) both;
+  }
   .reveal-row {
     animation: fade-up 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
-
-  .beam {
-    opacity: 1;
-    animation: beam 3.2s ease-in-out infinite;
+  .live-dot {
+    animation: ping 2s ease-out infinite;
   }
-
+  .system-diagram .pulse {
+    opacity: 1;
+    animation: pulse-travel 3.6s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+    animation-delay: var(--d, 0s);
+  }
+  .system-diagram .core-ring {
+    animation: ring 3.2s ease-out infinite;
+  }
+  .system-diagram .core-ring-2 {
+    animation-delay: 1.6s;
+  }
+  .marquee {
+    animation: marquee 40s linear infinite;
+  }
+  .marquee:hover {
+    animation-play-state: paused;
+  }
   @supports (animation-timeline: view()) {
     .reveal {
       animation: fade-up linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 60%;
+      animation-range: entry 0% entry 70%;
     }
   }
 }
@@ -87,7 +197,7 @@
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
@@ -95,11 +205,43 @@
   }
 }
 
-@keyframes beam {
+@keyframes line-up {
   from {
-    left: -18%;
+    transform: translateY(105%);
   }
   to {
-    left: 100%;
+    transform: none;
+  }
+}
+
+@keyframes ping {
+  to {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+@keyframes pulse-travel {
+  from {
+    stroke-dashoffset: 1.12;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ring {
+  from {
+    transform: scale(1);
+    stroke-opacity: 0.6;
+  }
+  to {
+    transform: scale(1.9);
+    stroke-opacity: 0;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }

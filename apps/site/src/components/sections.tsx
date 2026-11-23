@@ -17,6 +17,10 @@ import {
 
 import { HeroCanvas } from "./hero-canvas";
 import { IndustriesSlider } from "./industries-slider";
+import { LiveQueue } from "./live-queue";
+import { ProcessTimeline } from "./process-timeline";
+import { RevealHeading } from "./reveal-heading";
+import { ServicesList } from "./services-list";
 import { RotatingWord } from "./rotating-word";
 import { SystemDiagram } from "./system-diagram";
 import { WordReveal } from "./word-reveal";
@@ -66,11 +70,12 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
                 href={item.href}
                 className={`text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 transition-colors ${focusRing}`}
               >
-                {item.label}
+                <span className="link-draw">{item.label}</span>
               </a>
             </li>
           ))}
         </ul>
+
         <div className="flex items-center gap-2">
           <a
             href={platformUrl}
@@ -78,9 +83,11 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
           >
             Sign in
           </a>
-          <Button asChild size="sm" variant="brand" className="rounded-full px-4">
-            <a href="#contact">Start a project</a>
-          </Button>
+          <span data-magnetic className="magnetic inline-block">
+            <Button asChild size="sm" variant="brand" className="btn-sweep rounded-full px-4">
+              <a href="#contact">Start a project</a>
+            </Button>
+          </span>
         </div>
       </nav>
     </header>
@@ -109,25 +116,29 @@ function QueueMock({
             <span className="live-dot bg-brand size-1.5 rounded-full" /> Live
           </span>
         </div>
-        <ul className="divide-y divide-white/10">
-          {queueMock.map((row, i) => (
-            <li
-              key={row.text}
-              className={`${onLoad ? "reveal-row" : "reveal"} flex items-center justify-between gap-3 px-4 py-3.5`}
-              style={onLoad ? { animationDelay: `${900 + i * 180}ms` } : undefined}
-            >
-              <span className="min-w-0">
-                <span className="text-muted-foreground block text-[11px]">{row.channel}</span>
-                <span className="block truncate text-sm">“{row.text}”</span>
-              </span>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${tone[row.state]}`}
+        {onLoad ? (
+          <LiveQueue />
+        ) : (
+          <ul className="divide-y divide-white/10">
+            {queueMock.map((row, i) => (
+              <li
+                key={row.text}
+                className={`${onLoad ? "reveal-row" : "reveal"} flex items-center justify-between gap-3 px-4 py-3.5`}
+                style={onLoad ? { animationDelay: `${900 + i * 180}ms` } : undefined}
               >
-                {row.state}
-              </span>
-            </li>
-          ))}
-        </ul>
+                <span className="min-w-0">
+                  <span className="text-muted-foreground block text-[11px]">{row.channel}</span>
+                  <span className="block truncate text-sm">“{row.text}”</span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${tone[row.state]}`}
+                >
+                  {row.state}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <figcaption className="text-muted-foreground/70 mt-2 text-[11px]">
         Illustration with fictional enquiries.
@@ -178,9 +189,16 @@ export function Hero() {
           <div className="hero-in max-w-xl" style={{ animationDelay: "520ms" }}>
             <p className="text-foreground/75 text-lg text-pretty sm:text-xl">{hero.body}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" variant="brand" className="h-12 rounded-full px-7">
-                <a href="#contact">{hero.primary} →</a>
-              </Button>
+              <span data-magnetic className="magnetic inline-block">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="brand"
+                  className="btn-sweep h-12 rounded-full px-7"
+                >
+                  <a href="#contact">{hero.primary} →</a>
+                </Button>
+              </span>
               <Button
                 asChild
                 size="lg"
@@ -231,12 +249,11 @@ function SectionHead({
     <div className="grid gap-6 lg:grid-cols-[1fr_24rem] lg:items-end">
       <div>
         <Eyebrow>{eyebrow}</Eyebrow>
-        <h2
+        <RevealHeading
           id={id}
+          text={title}
           className="mt-6 text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.02] font-light tracking-[-0.03em] text-balance"
-        >
-          {title}
-        </h2>
+        />
       </div>
       {body ? <p className="text-muted-foreground text-pretty">{body}</p> : null}
     </div>
@@ -260,10 +277,13 @@ export function System() {
         />
         <div className="mt-16">
           <SystemDiagram />
+          <p className="text-muted-foreground/70 mt-3 text-[11px]">
+            Examples are fictional. Prices, names and stock are for illustration only.
+          </p>
         </div>
         <ul className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 md:grid-cols-3">
           {system.notes.map((n, i) => (
-            <li key={n.title} className="bg-background p-7">
+            <li key={n.title} className="spotlight bg-background relative p-7">
               <p className="text-brand font-mono text-xs">0{i + 1}</p>
               <h3 className="mt-4 text-xl font-light">{n.title}</h3>
               <p className="text-muted-foreground mt-2 text-sm">{n.body}</p>
@@ -288,33 +308,7 @@ export function Services() {
         title="Four things, done properly."
         body="Most projects combine an assistant with a couple of automations. Websites and integrations come in when they unblock the rest."
       />
-      <ol className="mt-16 border-t border-white/10">
-        {services.map((s, i) => (
-          <li
-            key={s.title}
-            className="service-row group relative grid gap-4 border-b border-white/10 py-8 sm:grid-cols-[5rem_1fr_1fr] sm:items-baseline sm:py-10"
-          >
-            <span
-              aria-hidden
-              className="service-sheen pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            />
-            <span className="text-muted-foreground relative font-mono text-sm">0{i + 1}</span>
-            <h3 className="relative text-3xl font-light tracking-tight transition-transform duration-500 group-hover:translate-x-2 sm:text-4xl">
-              {s.title}
-            </h3>
-            <div className="relative">
-              <p className="text-muted-foreground">{s.body}</p>
-              <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${s.title} examples`}>
-                {s.tags.map((t) => (
-                  <li key={t} className="rounded-full border border-white/10 px-2.5 py-1 text-xs">
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </li>
-        ))}
-      </ol>
+      <ServicesList services={services} />
     </section>
   );
 }
@@ -353,18 +347,7 @@ export function Process() {
         eyebrow="How we work"
         title="From first call to a system your team trusts."
       />
-      <ol className="mt-16 grid gap-10 md:grid-cols-4 md:gap-6">
-        {process.map((p, i) => (
-          <li key={p.title} className="reveal relative border-t border-white/15 pt-6">
-            <span aria-hidden className="bg-brand absolute -top-px left-0 h-px w-10" />
-            <p className="text-[4.5rem] leading-none font-extralight tracking-tighter text-white/15">
-              0{i + 1}
-            </p>
-            <h3 className="mt-4 text-xl font-light">{p.title}</h3>
-            <p className="text-muted-foreground mt-2 text-sm">{p.body}</p>
-          </li>
-        ))}
-      </ol>
+      <ProcessTimeline steps={process} />
     </section>
   );
 }
@@ -384,12 +367,11 @@ export function Platform({ platformUrl }: { platformUrl: string }) {
         <div className="grid gap-14 lg:grid-cols-[1fr_24rem] lg:items-center">
           <div>
             <Eyebrow>Onyx Platform</Eyebrow>
-            <h2
+            <RevealHeading
               id="platform-title"
+              text="Our own platform, under every project."
               className="mt-6 text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.02] font-light tracking-[-0.03em] text-balance"
-            >
-              Our own platform, under every project.
-            </h2>
+            />
             <p className="text-muted-foreground mt-6 max-w-xl text-pretty">
               We don&apos;t stitch together a dozen tools for each client. Every business gets its
               own secure workspace on Onyx Platform and switches on the modules it needs.
@@ -405,7 +387,7 @@ export function Platform({ platformUrl }: { platformUrl: string }) {
         </div>
         <ul className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((m) => (
-            <li key={m.title} className="module-card group bg-background relative p-7">
+            <li key={m.title} className="module-card spotlight group bg-background relative p-7">
               <span
                 aria-hidden
                 className="module-sheen pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -446,9 +428,11 @@ export function Faq() {
       <div className="grid gap-12 lg:grid-cols-[22rem_1fr]">
         <div>
           <Eyebrow>FAQ</Eyebrow>
-          <h2 id="faq-title" className="mt-6 text-4xl font-light tracking-tight">
-            Fair questions.
-          </h2>
+          <RevealHeading
+            id="faq-title"
+            text="Fair questions."
+            className="mt-6 text-4xl font-light tracking-tight"
+          />
         </div>
         <div className="border-t border-white/10">
           {faq.map((f) => (
@@ -486,20 +470,26 @@ export function Contact() {
       />
       <div className={`${container} relative text-center`}>
         <Eyebrow center>Start a project</Eyebrow>
-        <h2
+        <RevealHeading
           id="contact-title"
+          text="Tell us how your business runs today."
           className="mx-auto mt-8 max-w-4xl text-[clamp(2.5rem,7vw,6rem)] leading-[0.98] font-light tracking-[-0.04em] text-balance"
-        >
-          Tell us how your business runs today.
-        </h2>
+        />
         <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-pretty">
           A short email is enough: what you sell, where enquiries come from and what takes your team
           the most time. We reply within two working days.
         </p>
         <div className="mt-10 flex justify-center">
-          <Button asChild size="lg" variant="brand" className="h-14 rounded-full px-9 text-base">
-            <a href={`mailto:${site.contactEmail}`}>Email {site.contactEmail}</a>
-          </Button>
+          <span data-magnetic className="magnetic inline-block">
+            <Button
+              asChild
+              size="lg"
+              variant="brand"
+              className="btn-sweep h-14 rounded-full px-9 text-base"
+            >
+              <a href={`mailto:${site.contactEmail}`}>Email {site.contactEmail}</a>
+            </Button>
+          </span>
         </div>
       </div>
     </section>
@@ -509,7 +499,7 @@ export function Contact() {
 export function SiteFooter({ platformUrl }: { platformUrl: string }) {
   const year = new Date().getFullYear();
   return (
-    <footer className="relative overflow-hidden border-t border-white/10">
+    <footer data-cursor-glow className="relative overflow-hidden border-t border-white/10">
       <div className={`${container} grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4`}>
         <div className="lg:col-span-2">
           <p className="flex items-center gap-2.5 text-lg">
@@ -525,7 +515,7 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
             {nav.map((item) => (
               <li key={item.href}>
                 <a href={item.href} className={`hover:text-brand rounded-sm ${focusRing}`}>
-                  {item.label}
+                  <span className="link-draw">{item.label}</span>
                 </a>
               </li>
             ))}
@@ -541,12 +531,12 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
                 href={`mailto:${site.contactEmail}`}
                 className={`hover:text-brand rounded-sm ${focusRing}`}
               >
-                {site.contactEmail}
+                <span className="link-draw">{site.contactEmail}</span>
               </a>
             </li>
             <li>
               <a href={platformUrl} className={`hover:text-brand rounded-sm ${focusRing}`}>
-                Onyx Platform sign-in
+                <span className="link-draw">Onyx Platform sign-in</span>
               </a>
             </li>
           </ul>

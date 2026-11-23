@@ -36,9 +36,9 @@ describe("Onyx Studio home page", () => {
   });
 
   it("offers an email contact and in-page navigation targets", () => {
-    expect(screen.getAllByRole("link", { name: /hello@onyx\.mt/i })[0]).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: /info@onyx\.mt/i })[0]).toHaveAttribute(
       "href",
-      "mailto:hello@onyx.mt",
+      "mailto:info@onyx.mt",
     );
     for (const id of ["services", "how-it-works", "platform", "contact"]) {
       expect(document.getElementById(id)).not.toBeNull();

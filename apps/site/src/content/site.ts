@@ -8,7 +8,7 @@ export const site = {
   tagline: "Business operations and AI automation, built around your team.",
   description:
     "Onyx Studio builds websites, automations and AI assistants for growing businesses in Malta, and runs Onyx Platform: one place for enquiries, customers, stock and approvals.",
-  contactEmail: "hello@onyx.mt",
+  contactEmail: "info@onyx.mt",
   location: "Malta",
 } as const;
 

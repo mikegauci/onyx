@@ -55,6 +55,7 @@ export const webDesignPackages = [
 export const webDesignProjects = [
   {
     name: "Pantrila",
+    website: "https://pantrila.com/",
     type: "AI web app",
     screenshot: {
       src: "/portfolio/pantrila.webp",
@@ -67,6 +68,7 @@ export const webDesignProjects = [
   },
   {
     name: "QTM Detailing",
+    website: "https://www.qtmdetailing.mt/",
     type: "Service website",
     screenshot: {
       src: "/portfolio/qtm-detailing.webp",
@@ -79,6 +81,7 @@ export const webDesignProjects = [
   },
   {
     name: "MaltaGuns",
+    website: "https://www.maltaguns.com/",
     type: "Community platform",
     screenshot: {
       src: "/portfolio/maltaguns-homepage.webp",
@@ -91,6 +94,7 @@ export const webDesignProjects = [
   },
   {
     name: "Rotta",
+    website: "https://rotta.mt/",
     type: "Automotive community platform",
     screenshot: {
       src: "/portfolio/rotta.webp",
@@ -103,6 +107,7 @@ export const webDesignProjects = [
   },
   {
     name: "Malta Detailing Academy",
+    website: "https://mda.mt/",
     type: "Training website",
     screenshot: {
       src: "/portfolio/mda.webp",
@@ -115,6 +120,7 @@ export const webDesignProjects = [
   },
   {
     name: "Jam Weddings",
+    website: "https://jam.mt/",
     type: "Creative portfolio",
     screenshot: {
       src: "/portfolio/jam.webp",
@@ -127,6 +133,7 @@ export const webDesignProjects = [
   },
   {
     name: "Thrust Studio",
+    website: "https://www.thruststudio.co/",
     type: "Creative portfolio",
     screenshot: {
       src: "/portfolio/thrust-studio.webp",
@@ -139,6 +146,7 @@ export const webDesignProjects = [
   },
   {
     name: "Beachaven",
+    website: "https://www.beachavencomplex.com/",
     type: "Hospitality website",
     screenshot: {
       src: "/portfolio/beachaven.webp",
@@ -151,6 +159,7 @@ export const webDesignProjects = [
   },
   {
     name: "Motor Element",
+    website: "https://www.motorelement.com/",
     type: "E-commerce storefront",
     screenshot: {
       src: "/portfolio/motor-element-shopify.webp",

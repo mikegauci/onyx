@@ -16,23 +16,29 @@ describe("web design service page", () => {
     }
     expect(packages.getByText(/year including vat/i)).toBeVisible();
 
-    for (const [name, technology, screenshot] of [
-      ["Pantrila", "LangGraph", "/portfolio/pantrila.webp"],
-      ["QTM Detailing", "Motion", "/portfolio/qtm-detailing.webp"],
-      ["MaltaGuns", "Tiptap", "/portfolio/maltaguns-homepage.webp"],
-      ["Rotta", "Supabase", "/portfolio/rotta.webp"],
-      ["Malta Detailing Academy", "Next.js", "/portfolio/mda.webp"],
-      ["Jam Weddings", "Mailjet", "/portfolio/jam.webp"],
-      ["Thrust Studio", "Astro", "/portfolio/thrust-studio.webp"],
-      ["Beachaven", "React", "/portfolio/beachaven.webp"],
-      ["Motor Element", "Shopify", "/portfolio/motor-element-shopify.webp"],
+    for (const [name, technology, website] of [
+      ["Pantrila", "LangGraph", "https://pantrila.com/"],
+      ["QTM Detailing", "Motion", "https://www.qtmdetailing.mt/"],
+      ["MaltaGuns", "Tiptap", "https://www.maltaguns.com/"],
+      ["Rotta", "Supabase", "https://rotta.mt/"],
+      ["Malta Detailing Academy", "Next.js", "https://mda.mt/"],
+      ["Jam Weddings", "Mailjet", "https://jam.mt/"],
+      ["Thrust Studio", "Astro", "https://www.thruststudio.co/"],
+      ["Beachaven", "React", "https://www.beachavencomplex.com/"],
+      ["Motor Element", "Shopify", "https://www.motorelement.com/"],
     ] as const) {
       const project = within(screen.getByRole("article", { name }));
       expect(project.getByRole("heading", { name })).toBeVisible();
       expect(project.getByRole("img")).toBeVisible();
-      expect(
-        project.getByRole("link", { name: `View full-size screenshot of ${name}` }),
-      ).toHaveAttribute("href", screenshot);
+      for (const label of [
+        `${name} screenshot — visit website (opens in a new tab)`,
+        `Visit website — ${name} (opens in a new tab)`,
+      ]) {
+        const link = project.getByRole("link", { name: label });
+        expect(link).toHaveAttribute("href", website);
+        expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      }
       const technologies = within(project.getByRole("list", { name: `${name} technologies` }));
       expect(technologies.getByText(technology)).toBeVisible();
     }

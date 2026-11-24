@@ -161,56 +161,72 @@ export default function WebDesignPage() {
               Selected work
             </h2>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {webDesignProjects.map(({ name, type, description, screenshot, technologies }) => (
-                <article
-                  key={name}
-                  aria-label={name}
-                  className="bg-background flex flex-col overflow-hidden rounded-2xl border border-white/10"
-                >
-                  <a
-                    href={screenshot.src}
-                    aria-label={`View full-size screenshot of ${name}`}
-                    className="group focus-visible:ring-ring relative block aspect-[8/5] overflow-hidden border-b border-white/10 focus-visible:ring-2 focus-visible:ring-inset"
+              {webDesignProjects.map(
+                ({ name, type, description, screenshot, technologies, website }) => (
+                  <article
+                    key={name}
+                    aria-label={name}
+                    className="portfolio-card bg-background flex flex-col overflow-hidden rounded-2xl border border-white/10"
                   >
-                    <Image
-                      src={screenshot.src}
-                      alt={screenshot.alt}
-                      width={1280}
-                      height={screenshot.height}
-                      sizes="(min-width: 1152px) 352px, (min-width: 768px) 32vw, 100vw"
-                      className="h-full w-full object-contain"
-                    />
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/85 px-3 py-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                    <a
+                      href={website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${name} screenshot — visit website (opens in a new tab)`}
+                      className="portfolio-image group focus-visible:outline-ring relative block aspect-[8/5] overflow-hidden border-b border-white/10 focus-visible:outline-2 focus-visible:-outline-offset-3"
                     >
-                      View screenshot ↗
-                    </span>
-                  </a>
-                  <div className="flex flex-1 flex-col p-5 sm:p-6">
-                    <header>
-                      <p className={eyebrow}>{type}</p>
-                      <h3 className="mt-2 text-3xl font-light tracking-tight">{name}</h3>
-                    </header>
-                    <p className="text-muted-foreground mt-3 mb-5 flex-1 text-sm leading-relaxed">
-                      {description}
-                    </p>
-                    <p className="text-muted-foreground border-t border-white/10 pt-4 text-xs">
-                      Technologies
-                    </p>
-                    <ul aria-label={`${name} technologies`} className="mt-2 flex flex-wrap gap-1.5">
-                      {technologies.map((technology) => (
-                        <li
-                          key={technology}
-                          className="rounded-full border border-white/15 px-2.5 py-1 text-xs"
-                        >
-                          {technology}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </article>
-              ))}
+                      <Image
+                        src={screenshot.src}
+                        alt={screenshot.alt}
+                        width={1280}
+                        height={screenshot.height}
+                        sizes="(min-width: 1152px) 352px, (min-width: 768px) 32vw, 100vw"
+                        className="portfolio-image-content h-full w-full object-contain"
+                      />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute right-3 bottom-3 z-10 rounded-full bg-black/85 px-3 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 motion-safe:transition-opacity"
+                      >
+                        Visit website ↗
+                      </span>
+                    </a>
+                    <div className="flex flex-1 flex-col p-5 sm:p-6">
+                      <header>
+                        <p className={eyebrow}>{type}</p>
+                        <h3 className="mt-2 text-3xl font-light tracking-tight">{name}</h3>
+                      </header>
+                      <p className="text-muted-foreground mt-3 mb-5 flex-1 text-sm leading-relaxed">
+                        {description}
+                      </p>
+                      <p className="text-muted-foreground border-t border-white/10 pt-4 text-xs">
+                        Technologies
+                      </p>
+                      <ul
+                        aria-label={`${name} technologies`}
+                        className="mt-2 flex flex-wrap gap-1.5"
+                      >
+                        {technologies.map((technology) => (
+                          <li
+                            key={technology}
+                            className="rounded-full border border-white/15 px-2.5 py-1 text-xs"
+                          >
+                            {technology}
+                          </li>
+                        ))}
+                      </ul>
+                      <a
+                        href={website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Visit website — ${name} (opens in a new tab)`}
+                        className="text-brand focus-visible:outline-ring mt-5 inline-flex w-fit items-center gap-1.5 rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+                      >
+                        Visit website <span aria-hidden="true">↗</span>
+                      </a>
+                    </div>
+                  </article>
+                ),
+              )}
             </div>
           </div>
         </section>

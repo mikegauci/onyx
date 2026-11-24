@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 
 import { withApi } from "@/lib/api-client";
 import { requireOk } from "@/lib/guards";
@@ -11,9 +11,7 @@ export default async function NewOrganizationPage() {
   const timezones = Intl.supportedValuesOf("timeZone");
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <Link className="text-sm underline" href="/admin">
-        Back to organisations
-      </Link>
+      <BackLink href="/admin">Back to organisations</BackLink>
       <div className="flex flex-col gap-1">
         <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
           New organisation

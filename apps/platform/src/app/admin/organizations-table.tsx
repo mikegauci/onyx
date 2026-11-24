@@ -15,7 +15,7 @@ const columns: ColumnDef<Org>[] = [
       <span className="flex flex-col">
         <Link
           href={`/admin/organizations/${row.original.slug}`}
-          className="font-medium hover:underline"
+          className="hover:text-brand font-medium underline-offset-4 transition-colors hover:underline"
         >
           {row.original.name}
         </Link>

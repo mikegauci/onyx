@@ -1,3 +1,5 @@
+import { selectClass } from "@onyx/ui/lib/form-classes";
+import { Button } from "@onyx/ui/components/button";
 import { Badge } from "@onyx/ui/components/badge";
 import {
   Table,
@@ -45,16 +47,25 @@ export default async function BillingSettingsPage({ params, searchParams }: Prop
 
   return (
     <div className="flex flex-col gap-8">
-      <section aria-labelledby="billing-heading" className="flex flex-col gap-4">
-        <h2 id="billing-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="billing-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="billing-heading" className="text-base font-medium tracking-tight">
           Billing
         </h2>
         {checkout === "done" ? (
-          <p role="status" className="rounded-md border p-3 text-sm">
+          <p
+            role="status"
+            className="border-success/25 bg-success/[0.06] rounded-xl border px-4 py-3 text-sm"
+          >
             Thank you. Your plan updates here as soon as the payment is confirmed.
           </p>
         ) : checkout === "cancelled" ? (
-          <p role="status" className="rounded-md border p-3 text-sm">
+          <p
+            role="status"
+            className="border-success/25 bg-success/[0.06] rounded-xl border px-4 py-3 text-sm"
+          >
             Checkout cancelled. Nothing was charged.
           </p>
         ) : null}
@@ -83,13 +94,19 @@ export default async function BillingSettingsPage({ params, searchParams }: Prop
         ) : null}
       </section>
 
-      <section aria-labelledby="plans-heading" className="flex flex-col gap-4">
-        <h2 id="plans-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="plans-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="plans-heading" className="text-base font-medium tracking-tight">
           Plans
         </h2>
         <ul className="grid gap-4 sm:grid-cols-2" aria-label="Plans">
           {billing.plans.map((plan) => (
-            <li key={plan.key} className="flex flex-col gap-3 rounded-md border p-4">
+            <li
+              key={plan.key}
+              className="bg-background/40 flex flex-col gap-3 rounded-xl border p-5"
+            >
               <h3 className="font-medium">{plan.name}</h3>
               <p className="text-sm">{plan.modules.map(moduleLabel).join(", ")}</p>
               <p className="text-muted-foreground text-sm">
@@ -112,18 +129,17 @@ export default async function BillingSettingsPage({ params, searchParams }: Prop
         </p>
       </section>
 
-      <section aria-labelledby="usage-heading" className="flex flex-col gap-4">
-        <h2 id="usage-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="usage-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="usage-heading" className="text-base font-medium tracking-tight">
           AI usage
         </h2>
         <form className="flex flex-wrap items-end gap-3" action={path}>
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="text-muted-foreground flex flex-col gap-1 text-xs">
             Month
-            <select
-              name="month"
-              defaultValue={shown}
-              className="border-input bg-background h-9 rounded-md border px-3 text-sm"
-            >
+            <select name="month" defaultValue={shown} className={`${selectClass} w-40`}>
               {months.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -131,10 +147,10 @@ export default async function BillingSettingsPage({ params, searchParams }: Prop
               ))}
             </select>
           </label>
-          <button type="submit" className="h-9 rounded-md border px-3 text-sm">
+          <Button type="submit" variant="outline">
             Show
-          </button>
-          <a className="text-sm underline" href={csv} download>
+          </Button>
+          <a className="text-brand text-sm underline-offset-4 hover:underline" href={csv} download>
             Download CSV
           </a>
         </form>

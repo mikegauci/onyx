@@ -11,8 +11,11 @@ export default async function GeneralSettingsPage({ params }: Props) {
   if (!timezones.includes(workspace.timezone)) timezones.unshift(workspace.timezone);
 
   return (
-    <section aria-labelledby="general-heading" className="flex max-w-lg flex-col gap-4">
-      <h2 id="general-heading" className="text-lg font-medium">
+    <section
+      aria-labelledby="general-heading"
+      className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+    >
+      <h2 id="general-heading" className="text-base font-medium tracking-tight">
         General
       </h2>
       <GeneralForm

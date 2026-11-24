@@ -1,11 +1,13 @@
-import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 import { Button } from "@onyx/ui/components/button";
+import { Eyebrow } from "@onyx/ui/components/page";
 import Link from "next/link";
+
+import { AuthFrame } from "@/components/auth-frame";
 
 export default function PlatformHomePage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 px-6 py-16">
-      <ThemeToggle className="fixed top-4 right-4" />
+    <AuthFrame>
+      <Eyebrow>Onyx Platform</Eyebrow>
       <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
         Onyx Platform
       </h1>
@@ -18,6 +20,6 @@ export default function PlatformHomePage() {
           <Link href="/dashboard">API status</Link>
         </Button>
       </div>
-    </main>
+    </AuthFrame>
   );
 }

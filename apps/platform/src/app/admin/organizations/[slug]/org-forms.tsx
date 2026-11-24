@@ -171,7 +171,7 @@ export function InvitationRow({
     IDLE,
   );
   return (
-    <li className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
+    <li className="bg-background/40 flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center">
       <div className="flex flex-1 flex-col gap-1">
         <span className="font-medium break-all">
           {invitation.email} <span className="text-muted-foreground">({invitation.role})</span>

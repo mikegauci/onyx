@@ -15,8 +15,11 @@ export default async function IntegrationsSettingsPage({ params }: Props) {
     path,
   );
   return (
-    <section aria-labelledby="integrations-heading" className="flex flex-col gap-4">
-      <h2 id="integrations-heading" className="text-lg font-medium">
+    <section
+      aria-labelledby="integrations-heading"
+      className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+    >
+      <h2 id="integrations-heading" className="text-base font-medium tracking-tight">
         Integrations
       </h2>
       <p className="text-muted-foreground text-sm">

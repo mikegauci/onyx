@@ -553,7 +553,12 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
         <p>
           © {year} {site.name}
         </p>
-        <p>This site sets no cookies and runs no analytics.</p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <a href="/privacy" className={`hover:text-foreground rounded-sm ${focusRing}`}>
+            Privacy policy
+          </a>
+          <span>This site sets no cookies and runs no analytics.</span>
+        </p>
       </div>
       <p
         aria-hidden

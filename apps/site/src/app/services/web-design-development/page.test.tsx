@@ -16,8 +16,25 @@ describe("web design service page", () => {
     }
     expect(packages.getByText(/year including vat/i)).toBeVisible();
 
-    for (const name of ["Pantrila", "QTM Detailing", "MaltaGuns"]) {
-      expect(screen.getByRole("heading", { name })).toBeVisible();
+    for (const [name, technology, screenshot] of [
+      ["Pantrila", "LangGraph", "/portfolio/pantrila.webp"],
+      ["QTM Detailing", "Motion", "/portfolio/qtm-detailing.webp"],
+      ["MaltaGuns", "Tiptap", "/portfolio/maltaguns-homepage.webp"],
+      ["Rotta", "Supabase", "/portfolio/rotta.webp"],
+      ["Malta Detailing Academy", "Next.js", "/portfolio/mda.webp"],
+      ["Jam Weddings", "Mailjet", "/portfolio/jam.webp"],
+      ["Thrust Studio", "Astro", "/portfolio/thrust-studio.webp"],
+      ["Beachaven", "React", "/portfolio/beachaven.webp"],
+      ["Motor Element", "Shopify", "/portfolio/motor-element-shopify.webp"],
+    ] as const) {
+      const project = within(screen.getByRole("article", { name }));
+      expect(project.getByRole("heading", { name })).toBeVisible();
+      expect(project.getByRole("img")).toBeVisible();
+      expect(
+        project.getByRole("link", { name: `View full-size screenshot of ${name}` }),
+      ).toHaveAttribute("href", screenshot);
+      const technologies = within(project.getByRole("list", { name: `${name} technologies` }));
+      expect(technologies.getByText(technology)).toBeVisible();
     }
     const form = within(screen.getByRole("form", { name: "Web project enquiry" }));
     expect(form.getByRole("textbox", { name: "Project brief" })).toBeRequired();

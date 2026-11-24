@@ -1,5 +1,6 @@
 import { Button } from "@onyx/ui/components/button";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { SiteFooter, SiteNav } from "@/components/sections";
 import { site } from "@/content/site";
@@ -160,18 +161,54 @@ export default function WebDesignPage() {
               Selected work
             </h2>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {webDesignProjects.map(({ name, type, description }) => (
+              {webDesignProjects.map(({ name, type, description, screenshot, technologies }) => (
                 <article
                   key={name}
-                  className="bg-background overflow-hidden rounded-2xl border border-white/10"
+                  aria-label={name}
+                  className="bg-background flex flex-col overflow-hidden rounded-2xl border border-white/10"
                 >
-                  <header className="from-brand/15 flex min-h-32 flex-col justify-end gap-3 border-b border-white/10 bg-gradient-to-br to-transparent p-5 sm:p-6">
-                    <p className={eyebrow}>{type}</p>
-                    <h3 className="text-3xl font-light tracking-tight">{name}</h3>
-                  </header>
-                  <p className="text-muted-foreground p-5 text-sm leading-relaxed sm:p-6">
-                    {description}
-                  </p>
+                  <a
+                    href={screenshot.src}
+                    aria-label={`View full-size screenshot of ${name}`}
+                    className="group focus-visible:ring-ring relative block aspect-[8/5] overflow-hidden border-b border-white/10 focus-visible:ring-2 focus-visible:ring-inset"
+                  >
+                    <Image
+                      src={screenshot.src}
+                      alt={screenshot.alt}
+                      width={1280}
+                      height={screenshot.height}
+                      sizes="(min-width: 1152px) 352px, (min-width: 768px) 32vw, 100vw"
+                      className="h-full w-full object-contain"
+                    />
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/85 px-3 py-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                    >
+                      View screenshot ↗
+                    </span>
+                  </a>
+                  <div className="flex flex-1 flex-col p-5 sm:p-6">
+                    <header>
+                      <p className={eyebrow}>{type}</p>
+                      <h3 className="mt-2 text-3xl font-light tracking-tight">{name}</h3>
+                    </header>
+                    <p className="text-muted-foreground mt-3 mb-5 flex-1 text-sm leading-relaxed">
+                      {description}
+                    </p>
+                    <p className="text-muted-foreground border-t border-white/10 pt-4 text-xs">
+                      Technologies
+                    </p>
+                    <ul aria-label={`${name} technologies`} className="mt-2 flex flex-wrap gap-1.5">
+                      {technologies.map((technology) => (
+                        <li
+                          key={technology}
+                          className="rounded-full border border-white/15 px-2.5 py-1 text-xs"
+                        >
+                          {technology}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </article>
               ))}
             </div>

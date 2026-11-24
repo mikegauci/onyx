@@ -9,10 +9,10 @@ client signing off or the defects tracked.
 
 ## Owner decisions (2026-11-24)
 
-| Question  | Decision                                                                                                      |
-| --------- | ------------------------------------------------------------------------------------------------------------- |
-| Scope     | Insights page, feature switches, manual mode and written guides                                                |
-| Guides    | Two guides: an operator guide (a short daily quick reference) **and** an onboarding guide (how to use the system), both as PDF |
+| Question | Decision                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Scope    | Insights page, feature switches, manual mode and written guides                                                                |
+| Guides   | Two guides: an operator guide (a short daily quick reference) **and** an onboarding guide (how to use the system), both as PDF |
 
 ## What gets built
 

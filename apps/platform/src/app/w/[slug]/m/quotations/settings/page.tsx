@@ -21,10 +21,12 @@ export default async function QuotationSettingsPage({
   );
   return (
     <section className="flex flex-col gap-4" aria-labelledby="settings-heading">
-      <h2 id="settings-heading" className="text-lg font-medium">
+      <h2 id="settings-heading" className="text-lg font-light tracking-tight">
         Quotation settings
       </h2>
-      <SettingsForm slug={slug} settings={settings} />
+      <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+        <SettingsForm slug={slug} settings={settings} />
+      </div>
       <p className="text-muted-foreground text-xs">
         Changes apply to new quotes and lines; approved versions keep what they were approved with.
       </p>

@@ -32,7 +32,7 @@ export default async function ContactsPage({
   );
   return (
     <section className="flex flex-col gap-4" aria-labelledby="contacts-heading">
-      <h2 id="contacts-heading" className="text-lg font-medium">
+      <h2 id="contacts-heading" className="text-lg font-light tracking-tight">
         Contacts
       </h2>
       <ListToolbar

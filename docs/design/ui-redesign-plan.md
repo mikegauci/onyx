@@ -28,7 +28,7 @@ Status: **in progress** · Started: 2026-11-24 · Owner request: "the whole UI a
 - Shell: wordmark, sticky top bar, content width cap.
 - Pages: `PageHeader` with pill tabs on every module; redesigned overview, tasks, sign-in and workspace picker.
 
-### 2. Inbox: in review (PR "UI inbox redesign")
+### 2. Inbox: merged (#57)
 
 Conversation page (`m/inbox/conversations/[id]`):
 
@@ -43,7 +43,7 @@ Conversations list: queue pills, a compact search and filter bar, and rows that 
 
 Also: channels, blocked addresses, new conversation form, outbound replies list and draft page.
 
-### 3. Sales records
+### 3. Sales records: in review
 
 CRM (leads, contacts, customers, import), catalogue (products, imports, settings), vehicles (list, detail, import) and quotations (list, detail, new, settings):
 

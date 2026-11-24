@@ -29,8 +29,11 @@ export async function ActivitySection({
     path,
   );
   return (
-    <section className="flex max-w-2xl flex-col gap-4" aria-labelledby="activity-heading">
-      <h3 id="activity-heading" className="font-medium">
+    <section
+      className="bg-card flex flex-col gap-4 rounded-2xl border p-5"
+      aria-labelledby="activity-heading"
+    >
+      <h3 id="activity-heading" className="text-sm font-medium">
         Activity
       </h3>
       {canWrite ? <NoteForm slug={slug} subjectType={subjectType} subjectId={id} /> : null}

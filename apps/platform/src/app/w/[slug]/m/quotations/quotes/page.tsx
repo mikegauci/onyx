@@ -30,7 +30,7 @@ import { SELECT_CLASS } from "../../../settings/form-status";
 import { ListToolbar, Pager } from "../../crm/_components/list-controls";
 import { param, type SearchParams } from "../../crm/data";
 
-const LINK = "font-medium underline-offset-4 hover:underline";
+const LINK = "hover:text-brand font-medium underline-offset-4 transition-colors hover:underline";
 
 export default async function QuotesPage({
   params,
@@ -60,7 +60,7 @@ export default async function QuotesPage({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="quotes-heading">
-      <h2 id="quotes-heading" className="text-lg font-medium">
+      <h2 id="quotes-heading" className="text-lg font-light tracking-tight">
         Quotes
       </h2>
       <ListToolbar
@@ -101,7 +101,7 @@ export default async function QuotesPage({
           description={canWrite && !q ? "Draft a quote for a CRM contact." : undefined}
         />
       ) : (
-        <Table>
+        <Table stack>
           <TableCaption className="sr-only">Quotes</TableCaption>
           <TableHeader>
             <TableRow>
@@ -116,7 +116,7 @@ export default async function QuotesPage({
           <TableBody>
             {page.items.map((quote) => (
               <TableRow key={quote.id}>
-                <TableCell>
+                <TableCell data-label="Number">
                   <Link className={LINK} href={quotationsPath(slug, "quotes", quote.id)}>
                     {quote.number}
                   </Link>
@@ -124,13 +124,15 @@ export default async function QuotesPage({
                     <span className="text-muted-foreground text-xs"> v{quote.current_version}</span>
                   ) : null}
                 </TableCell>
-                <TableCell>{quote.title}</TableCell>
-                <TableCell>{quote.contact.label}</TableCell>
-                <TableCell>
+                <TableCell data-label="Title">{quote.title}</TableCell>
+                <TableCell data-label="Contact">{quote.contact.label}</TableCell>
+                <TableCell data-label="Status">
                   <Badge variant={STATUS_VARIANT[quote.status]}>{STATUS_LABEL[quote.status]}</Badge>
                 </TableCell>
-                <TableCell className="text-right">{euro(quote.gross.amount)}</TableCell>
-                <TableCell>
+                <TableCell data-label="Total" className="text-right">
+                  {euro(quote.gross.amount)}
+                </TableCell>
+                <TableCell data-label="Updated">
                   <time dateTime={quote.updated_at}>
                     {formatInZone(quote.updated_at, workspace.timezone)}
                   </time>

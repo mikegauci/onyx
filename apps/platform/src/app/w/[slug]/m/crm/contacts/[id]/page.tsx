@@ -1,5 +1,10 @@
+import { Badge } from "@onyx/ui/components/badge";
+import { Button } from "@onyx/ui/components/button";
+import { Panel } from "@onyx/ui/components/page";
+import { Building2, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 
+import { RecordHeader, RecordLayout } from "@/components/record";
 import { withApi } from "@/lib/api-client";
 import { crmPath } from "@/lib/crm";
 import { requireOk } from "@/lib/guards";
@@ -30,51 +35,72 @@ export default async function ContactPage({
   const customers = canWrite ? await customerOptions(slug) : [];
   if (record.customer && !customers.some((c) => c.id === record.customer?.id))
     customers.unshift({ id: record.customer.id, label: record.customer.name });
+  const archiveForm = workspace.permissions.includes("crm.archive") ? (
+    <ArchiveButton slug={slug} kind="contact" id={id} archived={!!record.archived_at} />
+  ) : null;
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={crmPath(slug, "contacts")}>
-        Back to contacts
-      </Link>
-      <h2 className="text-xl font-medium">{record.full_name}</h2>
-      {record.archived_at ? (
-        <p className="text-muted-foreground text-sm">Archived contact</p>
-      ) : null}
-      <div className="flex flex-col items-start gap-2">
-        <p>
-          {record.email ?? "No email"} · {record.phone ?? "No phone"}
-        </p>
-        {record.customer ? (
-          <Link className="underline" href={crmPath(slug, "customers", record.customer.id)}>
-            {record.customer.name}
-          </Link>
-        ) : null}
-      </div>
-      {canWrite ? (
-        <ContactForm slug={slug} contact={record} customers={customers} />
-      ) : (
-        <p className="whitespace-pre-wrap">{record.notes}</p>
-      )}
-      {workspace.permissions.includes("crm.archive") ? (
-        <ArchiveButton slug={slug} kind="contact" id={id} archived={!!record.archived_at} />
-      ) : null}
-      <Link className="text-sm underline" href={`${crmPath(slug, "leads")}?contact_id=${id}`}>
-        View related leads
-      </Link>
-      {canWrite && !record.archived_at ? (
-        <Link
-          className="text-sm underline"
-          href={`${crmPath(slug, "leads", "new")}?contact_id=${id}`}
-        >
-          New lead for this contact
-        </Link>
-      ) : null}
-      <ActivitySection
-        slug={slug}
-        subjectType="contact"
-        id={id}
-        timezone={workspace.timezone}
-        canWrite={canWrite}
-        cursor={param((await searchParams).cursor)}
+      <RecordHeader
+        back={{ href: crmPath(slug, "contacts"), label: "Back to contacts" }}
+        title={record.full_name}
+        badges={record.archived_at ? <Badge variant="secondary">Archived contact</Badge> : null}
+        meta={
+          <>
+            <span className="inline-flex items-center gap-1.5">
+              <Mail aria-hidden className="size-3.5" />
+              {record.email ?? "No email"}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Phone aria-hidden className="size-3.5" />
+              {record.phone ?? "No phone"}
+            </span>
+            {record.customer ? (
+              <Link
+                className="text-brand inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
+                href={crmPath(slug, "customers", record.customer.id)}
+              >
+                <Building2 aria-hidden className="size-3.5" />
+                {record.customer.name}
+              </Link>
+            ) : null}
+          </>
+        }
+        actions={
+          <>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`${crmPath(slug, "leads")}?contact_id=${id}`}>View related leads</Link>
+            </Button>
+            {canWrite && !record.archived_at ? (
+              <Button asChild size="sm">
+                <Link href={`${crmPath(slug, "leads", "new")}?contact_id=${id}`}>
+                  New lead for this contact
+                </Link>
+              </Button>
+            ) : null}
+          </>
+        }
+      />
+      <RecordLayout
+        main={
+          <Panel title="Contact details" divided={false}>
+            {canWrite ? (
+              <ContactForm slug={slug} contact={record} customers={customers} />
+            ) : (
+              <p className="text-sm whitespace-pre-wrap">{record.notes || "No notes."}</p>
+            )}
+            {archiveForm ? <div className="mt-5 border-t pt-4">{archiveForm}</div> : null}
+          </Panel>
+        }
+        aside={
+          <ActivitySection
+            slug={slug}
+            subjectType="contact"
+            id={id}
+            timezone={workspace.timezone}
+            canWrite={canWrite}
+            cursor={param((await searchParams).cursor)}
+          />
+        }
       />
     </div>
   );

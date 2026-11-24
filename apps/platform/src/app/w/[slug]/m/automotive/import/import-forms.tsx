@@ -3,6 +3,7 @@
 import { Button } from "@onyx/ui/components/button";
 import { FormField } from "@onyx/ui/components/form-field";
 import { Input } from "@onyx/ui/components/input";
+import { textareaClass } from "@onyx/ui/lib/form-classes";
 import { useActionState } from "react";
 
 import { IDLE } from "@/lib/form-state";
@@ -10,8 +11,7 @@ import { IDLE } from "@/lib/form-state";
 import { FormStatus } from "../../../settings/form-status";
 import { applyImport, type ImportState, previewImport, saveSource } from "../actions";
 
-const TEXTAREA =
-  "border-input bg-background focus-visible:ring-ring min-h-48 w-full rounded-md border px-3 py-2 font-mono text-xs focus-visible:ring-2 focus-visible:outline-none";
+const TEXTAREA = `${textareaClass} min-h-48 font-mono text-xs`;
 
 export function SourceForm({
   slug,
@@ -56,7 +56,7 @@ export function SourceForm({
 
 function Summary({ preview }: { preview: NonNullable<ImportState["preview"]> }) {
   return (
-    <div className="flex flex-col gap-2 rounded-md border p-3 text-sm">
+    <div className="bg-card flex flex-col gap-2 rounded-2xl border p-5 text-sm">
       <p>
         {preview.listings} listings on the site: <strong>{preview.create}</strong> new,{" "}
         <strong>{preview.update}</strong> changed, {preview.unchanged} unchanged,{" "}

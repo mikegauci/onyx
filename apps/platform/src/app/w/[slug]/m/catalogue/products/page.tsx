@@ -21,7 +21,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 import { ListToolbar, Pager } from "../../crm/_components/list-controls";
 import { param, type SearchParams } from "../../crm/data";
 
-const LINK = "font-medium underline-offset-4 hover:underline";
+const LINK = "hover:text-brand font-medium underline-offset-4 transition-colors hover:underline";
 
 export default async function ProductsPage({
   params,
@@ -53,7 +53,7 @@ export default async function ProductsPage({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="products-heading">
-      <h2 id="products-heading" className="text-lg font-medium">
+      <h2 id="products-heading" className="text-lg font-light tracking-tight">
         Products
       </h2>
       <ListToolbar
@@ -97,14 +97,17 @@ export default async function ProductsPage({
           }
           action={
             canImport && !q && !category ? (
-              <Link className="text-sm underline" href={cataloguePath(slug, "import")}>
+              <Link
+                className="text-brand text-sm underline-offset-4 hover:underline"
+                href={cataloguePath(slug, "import")}
+              >
                 Import a catalogue
               </Link>
             ) : undefined
           }
         />
       ) : (
-        <Table>
+        <Table stack>
           <TableCaption className="sr-only">Products</TableCaption>
           <TableHeader>
             <TableRow>
@@ -119,7 +122,7 @@ export default async function ProductsPage({
           <TableBody>
             {page.items.map((product) => (
               <TableRow key={product.id}>
-                <TableCell>
+                <TableCell data-label="Product">
                   <span className="flex items-center gap-2">
                     <Link className={LINK} href={cataloguePath(slug, "products", product.id)}>
                       {product.name}
@@ -127,17 +130,21 @@ export default async function ProductsPage({
                     {product.archived_at ? <Badge variant="outline">Archived</Badge> : null}
                   </span>
                 </TableCell>
-                <TableCell className="font-mono text-xs">{product.code}</TableCell>
-                <TableCell>{product.brand ?? "—"}</TableCell>
-                <TableCell>{product.category ?? "—"}</TableCell>
-                <TableCell>
+                <TableCell data-label="Code" className="font-mono text-xs">
+                  {product.code}
+                </TableCell>
+                <TableCell data-label="Brand">{product.brand ?? "—"}</TableCell>
+                <TableCell data-label="Category">{product.category ?? "—"}</TableCell>
+                <TableCell data-label="VAT">
                   {product.vat ? (
                     `${product.vat.code} ${product.vat.rate_percent}%`
                   ) : (
                     <Badge variant="warning">VAT not set</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-right">{product.variant_count}</TableCell>
+                <TableCell data-label="SKUs" className="text-right">
+                  {product.variant_count}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

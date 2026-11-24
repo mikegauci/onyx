@@ -34,7 +34,7 @@ export function ImportForm({ slug }: { slug: string }) {
           </p>
           {result.errors.length > 0 ? (
             <div>
-              <h3 className="font-medium">Rows with errors</h3>
+              <h3 className="text-sm font-medium">Rows with errors</h3>
               <ul className="list-inside list-disc text-sm">
                 {result.errors.map((error, i) => (
                   <li key={i}>
@@ -46,7 +46,7 @@ export function ImportForm({ slug }: { slug: string }) {
           ) : null}
           {result.duplicates.length > 0 ? (
             <div>
-              <h3 className="font-medium">Duplicates skipped</h3>
+              <h3 className="text-sm font-medium">Duplicates skipped</h3>
               <ul className="list-inside list-disc text-sm">
                 {result.duplicates.map((duplicate, i) => (
                   <li key={i}>
@@ -54,7 +54,7 @@ export function ImportForm({ slug }: { slug: string }) {
                     {duplicate.first_row ? ` in row ${duplicate.first_row}` : ""}.{" "}
                     {duplicate.existing_contact_id ? (
                       <Link
-                        className="underline"
+                        className="text-brand underline-offset-4 hover:underline"
                         href={crmPath(slug, "contacts", duplicate.existing_contact_id)}
                       >
                         View existing contact

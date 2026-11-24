@@ -138,7 +138,7 @@ export default async function ConversationsPage({
           }
         />
       ) : (
-        <Table>
+        <Table stack>
           <TableCaption className="sr-only">Conversations</TableCaption>
           <TableHeader>
             <TableRow>
@@ -153,7 +153,7 @@ export default async function ConversationsPage({
           <TableBody>
             {page.items.map((c) => (
               <TableRow key={c.id}>
-                <TableCell>
+                <TableCell data-label="Subject">
                   <span className="flex max-w-[22rem] items-center gap-2">
                     <Link
                       className={cn(LINK, "truncate")}
@@ -164,15 +164,17 @@ export default async function ConversationsPage({
                     {c.handler === "assistant" ? <Badge variant="brand">Assistant</Badge> : null}
                   </span>
                 </TableCell>
-                <TableCell>{c.customer_label}</TableCell>
-                <TableCell>
+                <TableCell data-label="Customer">{c.customer_label}</TableCell>
+                <TableCell data-label="Status">
                   <Badge variant={STATUS_VARIANT[c.status]}>{STATUS_LABEL[c.status]}</Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell data-label="Assigned to" className="text-muted-foreground">
                   {c.assignee?.display_name ?? "Unassigned"}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{c.channel.name}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell data-label="Channel" className="text-muted-foreground">
+                  {c.channel.name}
+                </TableCell>
+                <TableCell data-label="Last message" className="text-muted-foreground">
                   <time dateTime={c.last_message_at}>
                     {formatInZone(c.last_message_at, workspace.timezone)}
                   </time>

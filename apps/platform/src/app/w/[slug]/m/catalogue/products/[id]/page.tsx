@@ -8,7 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@onyx/ui/components/table";
-import Link from "next/link";
+import { DetailList } from "@onyx/ui/components/page";
+
+import { RecordHeader } from "@/components/record";
 
 import { withApi } from "@/lib/api-client";
 import {
@@ -92,46 +94,48 @@ export default async function ProductPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={cataloguePath(slug, "products")}>
-        Back to products
-      </Link>
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-medium">{product.name}</h2>
-        <p className="text-muted-foreground font-mono text-xs">{product.code}</p>
-        {product.archived_at ? (
-          <p className="text-muted-foreground text-sm">Archived product</p>
-        ) : null}
-      </div>
-      <dl className="grid max-w-2xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Brand</dt>
-        <dd>{product.brand ?? "Not provided"}</dd>
-        <dt className="text-muted-foreground">Category</dt>
-        <dd>{product.category ?? "Not provided"}</dd>
-        <dt className="text-muted-foreground">VAT</dt>
-        <dd>
-          {product.vat ? (
-            `${product.vat.name} (${product.vat.code}, ${product.vat.rate_percent}%)`
-          ) : (
-            <Badge variant="warning">VAT not set</Badge>
-          )}
-        </dd>
-        <dt className="text-muted-foreground">Last import</dt>
-        <dd>
-          {product.last_import ? describeSource(product.last_import, format) : "Not imported"}
-        </dd>
+      <RecordHeader
+        back={{ href: cataloguePath(slug, "products"), label: "Back to products" }}
+        title={product.name}
+        badges={product.archived_at ? <Badge variant="secondary">Archived product</Badge> : null}
+        meta={<span className="font-mono text-xs">{product.code}</span>}
+        actions={
+          canManage ? (
+            <ArchiveButton slug={slug} kind="product" id={id} archived={!!product.archived_at} />
+          ) : null
+        }
+      />
+      <section className="bg-card rounded-2xl border p-5" aria-label="Product details">
+        <DetailList
+          className="lg:grid-cols-4"
+          items={[
+            { label: "Brand", value: product.brand ?? "Not provided" },
+            { label: "Category", value: product.category ?? "Not provided" },
+            {
+              label: "VAT",
+              value: product.vat ? (
+                `${product.vat.name} (${product.vat.code}, ${product.vat.rate_percent}%)`
+              ) : (
+                <Badge variant="warning">VAT not set</Badge>
+              ),
+            },
+            {
+              label: "Last import",
+              value: product.last_import
+                ? describeSource(product.last_import, format)
+                : "Not imported",
+            },
+          ]}
+        />
         {product.description ? (
-          <>
-            <dt className="text-muted-foreground">Description</dt>
-            <dd className="whitespace-pre-wrap">{product.description}</dd>
-          </>
+          <p className="text-muted-foreground mt-5 border-t pt-4 text-sm whitespace-pre-wrap">
+            {product.description}
+          </p>
         ) : null}
-      </dl>
-      {canManage ? (
-        <ArchiveButton slug={slug} kind="product" id={id} archived={!!product.archived_at} />
-      ) : null}
+      </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="skus-heading">
-        <h3 id="skus-heading" className="font-medium">
+        <h3 id="skus-heading" className="text-lg font-light tracking-tight">
           SKUs
         </h3>
         {product.price_lists.length === 0 ? (

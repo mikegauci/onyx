@@ -296,8 +296,8 @@ export function ApproveForm({ slug, quote }: { slug: string; quote: QuoteDetail 
     return line?.sku ?? line?.description ?? "line";
   };
   return (
-    <form action={action} className="flex flex-col gap-3 rounded-md border p-4">
-      <h3 className="font-medium">Approve version {quote.version}</h3>
+    <form action={action} className="bg-background/40 flex flex-col gap-3 rounded-xl border p-4">
+      <h3 className="text-sm font-medium">Approve version {quote.version}</h3>
       <FormStatus state={state} />
       {blocking.length > 0 ? (
         <p className="text-destructive text-sm">

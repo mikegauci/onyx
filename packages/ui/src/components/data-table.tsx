@@ -50,7 +50,7 @@ export function DataTable<TData>({
 
   return (
     <div className={className}>
-      <Table>
+      <Table stack>
         <caption className="sr-only">{caption}</caption>
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
@@ -106,7 +106,14 @@ export function DataTable<TData>({
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    data-label={
+                      typeof cell.column.columnDef.header === "string"
+                        ? cell.column.columnDef.header
+                        : undefined
+                    }
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

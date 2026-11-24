@@ -39,7 +39,7 @@ export default async function CatalogueSettingsPage({
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-4" aria-labelledby="vat-heading">
-        <h2 id="vat-heading" className="text-lg font-medium">
+        <h2 id="vat-heading" className="text-lg font-light tracking-tight">
           VAT rates
         </h2>
         {vatRates.length > 0 ? (
@@ -78,11 +78,13 @@ export default async function CatalogueSettingsPage({
         ) : (
           <p className="text-muted-foreground text-sm">No VAT rates yet.</p>
         )}
-        <VatRateForm slug={slug} />
+        <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+          <VatRateForm slug={slug} />
+        </div>
       </section>
 
       <section className="flex flex-col gap-4" aria-labelledby="price-lists-heading">
-        <h2 id="price-lists-heading" className="text-lg font-medium">
+        <h2 id="price-lists-heading" className="text-lg font-light tracking-tight">
           Price lists
         </h2>
         {priceLists.length > 0 ? (
@@ -118,7 +120,9 @@ export default async function CatalogueSettingsPage({
         ) : (
           <p className="text-muted-foreground text-sm">No price lists yet.</p>
         )}
-        <PriceListForm slug={slug} />
+        <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+          <PriceListForm slug={slug} />
+        </div>
       </section>
     </div>
   );

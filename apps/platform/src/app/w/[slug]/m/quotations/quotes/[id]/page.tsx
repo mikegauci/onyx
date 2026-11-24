@@ -10,6 +10,10 @@ import {
   TableRow,
 } from "@onyx/ui/components/table";
 import Link from "next/link";
+import { Button } from "@onyx/ui/components/button";
+import { FileText } from "lucide-react";
+
+import { RecordHeader, RecordLayout } from "@/components/record";
 
 import { withApi } from "@/lib/api-client";
 import { crmPath, formatInZone } from "@/lib/crm";
@@ -80,53 +84,68 @@ export default async function QuotePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={quotationsPath(slug, "quotes")}>
-        Back to quotes
-      </Link>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-medium">
-          {quote.number} · {quote.title}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Badge variant={STATUS_VARIANT[quote.status]}>{STATUS_LABEL[quote.status]}</Badge>
-          <span>
-            Version {quote.version} ({quote.version_status})
-          </span>
-          <Link className="underline" href={crmPath(slug, "contacts", quote.contact.id)}>
-            {quote.contact.label}
-          </Link>
-          {quote.customer ? <span>· {quote.customer.label}</span> : null}
-          {quote.lead ? (
-            <Link className="underline" href={crmPath(slug, "leads", quote.lead.id)}>
-              Lead: {quote.lead.label}
+      <RecordHeader
+        back={{ href: quotationsPath(slug, "quotes"), label: "Back to quotes" }}
+        title={
+          <>
+            <span className="text-muted-foreground">{quote.number} · </span>
+            {quote.title}
+          </>
+        }
+        badges={<Badge variant={STATUS_VARIANT[quote.status]}>{STATUS_LABEL[quote.status]}</Badge>}
+        meta={
+          <>
+            <span>
+              Version {quote.version} ({quote.version_status})
+            </span>
+            <Link
+              className="text-brand underline-offset-4 hover:underline"
+              href={crmPath(slug, "contacts", quote.contact.id)}
+            >
+              {quote.contact.label}
             </Link>
-          ) : null}
-          <span className="text-muted-foreground">
-            · {quote.price_list.label}, prices {quote.prices_include_vat ? "include" : "exclude"}{" "}
-            VAT
-          </span>
-        </div>
-        <p className="text-sm">
-          {quote.approved_at ? (
-            <>
-              Approved by {quote.approved_by?.label ?? "a former member"} on{" "}
-              {formatInZone(quote.approved_at, zone)}
-              {quote.valid_until ? ` · valid until ${quote.valid_until}` : ""}
-            </>
-          ) : (
-            "Not approved yet."
-          )}
-          {quote.outcome_reason ? ` · Reason: ${quote.outcome_reason}` : ""}
-        </p>
-        <a
-          className="text-sm underline"
-          href={pdfPath(slug, quote.id, quote.version)}
-          target="_blank"
-          rel="noopener"
-        >
-          Open PDF preview (version {quote.version})
-        </a>
-      </div>
+            {quote.customer ? <span>{quote.customer.label}</span> : null}
+            {quote.lead ? (
+              <Link
+                className="text-brand underline-offset-4 hover:underline"
+                href={crmPath(slug, "leads", quote.lead.id)}
+              >
+                Lead: {quote.lead.label}
+              </Link>
+            ) : null}
+            <span>
+              {quote.price_list.label}, prices {quote.prices_include_vat ? "include" : "exclude"}{" "}
+              VAT
+            </span>
+          </>
+        }
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <a href={pdfPath(slug, quote.id, quote.version)} target="_blank" rel="noopener">
+              <FileText aria-hidden />
+              Open PDF preview (version {quote.version})
+            </a>
+          </Button>
+        }
+      />
+      <p
+        className={
+          quote.approved_at
+            ? "border-success/25 bg-success/[0.06] rounded-xl border px-4 py-3 text-sm"
+            : "text-muted-foreground rounded-xl border border-dashed px-4 py-3 text-sm"
+        }
+      >
+        {quote.approved_at ? (
+          <>
+            Approved by {quote.approved_by?.label ?? "a former member"} on{" "}
+            {formatInZone(quote.approved_at, zone)}
+            {quote.valid_until ? ` · valid until ${quote.valid_until}` : ""}
+          </>
+        ) : (
+          "Not approved yet."
+        )}
+        {quote.outcome_reason ? ` · Reason: ${quote.outcome_reason}` : ""}
+      </p>
 
       <Table>
         <TableCaption className="sr-only">Lines of {quote.number}</TableCaption>
@@ -189,11 +208,13 @@ export default async function QuotePage({
             <TableRow>
               <TableCell colSpan={6}>Discount</TableCell>
               <TableCell className="text-right">-{euro(quote.totals.discount.amount)}</TableCell>
+              {editable ? <TableCell /> : null}
             </TableRow>
           ) : null}
           <TableRow>
             <TableCell colSpan={6}>Net</TableCell>
             <TableCell className="text-right">{euro(quote.totals.net.amount)}</TableCell>
+            {editable ? <TableCell /> : null}
           </TableRow>
           {quote.totals.vat_breakdown.map((group) => (
             <TableRow key={`${group.code}-${group.rate_percent}`}>
@@ -201,6 +222,7 @@ export default async function QuotePage({
                 VAT {group.code} {group.rate_percent}%
               </TableCell>
               <TableCell className="text-right">{euro(group.vat.amount)}</TableCell>
+              {editable ? <TableCell /> : null}
             </TableRow>
           ))}
           <TableRow>
@@ -210,52 +232,75 @@ export default async function QuotePage({
             <TableCell className="text-right font-medium" data-testid="quote-total">
               {euro(quote.totals.gross.amount)}
             </TableCell>
+            {editable ? <TableCell /> : null}
           </TableRow>
         </TableFooter>
       </Table>
 
-      {editable ? (
-        <section className="flex flex-col gap-4" aria-labelledby="add-heading">
-          <h3 id="add-heading" className="font-medium">
-            Add lines
-          </h3>
-          <AddSkuForm slug={slug} quoteId={quote.id} />
-          {vatRates.length > 0 ? (
-            <AddCustomLineForm slug={slug} quoteId={quote.id} vatRates={vatRates} />
-          ) : null}
-          <p className="text-muted-foreground text-xs">
-            Members can give discounts up to {quote.max_discount_percent}%.
-          </p>
-          <QuoteHeaderForm slug={slug} quote={quote} />
-        </section>
-      ) : quote.notes ? (
-        <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
-      ) : null}
-
-      {canApprove ? <ApproveForm slug={slug} quote={quote} /> : null}
-      {canAct ? <QuoteActions slug={slug} quote={quote} /> : null}
-
-      <section className="flex flex-col gap-2" aria-labelledby="versions-heading">
-        <h3 id="versions-heading" className="font-medium">
-          Versions
-        </h3>
-        <ul className="flex flex-col gap-1 text-sm">
-          {quote.versions.map((v) => (
-            <li key={v.version}>
-              <Link
-                className="underline"
-                href={`${quotationsPath(slug, "quotes", quote.id)}?version=${v.version}`}
-                aria-current={v.version === quote.version ? "page" : undefined}
+      <RecordLayout
+        main={
+          <>
+            {editable ? (
+              <section
+                className="bg-card flex flex-col gap-4 rounded-2xl border p-5"
+                aria-labelledby="add-heading"
               >
-                Version {v.version}
-              </Link>{" "}
-              · {v.status}
-              {v.gross ? ` · ${euro(v.gross.amount)}` : ""}
-              {v.approved_at ? ` · approved ${formatInZone(v.approved_at, zone)}` : ""}
-            </li>
-          ))}
-        </ul>
-      </section>
+                <h3 id="add-heading" className="text-sm font-medium">
+                  Add lines
+                </h3>
+                <AddSkuForm slug={slug} quoteId={quote.id} />
+                {vatRates.length > 0 ? (
+                  <AddCustomLineForm slug={slug} quoteId={quote.id} vatRates={vatRates} />
+                ) : null}
+                <p className="text-muted-foreground text-xs">
+                  Members can give discounts up to {quote.max_discount_percent}%.
+                </p>
+                <QuoteHeaderForm slug={slug} quote={quote} />
+              </section>
+            ) : quote.notes ? (
+              <p className="text-sm whitespace-pre-wrap">{quote.notes}</p>
+            ) : null}
+          </>
+        }
+        aside={
+          <>
+            {canApprove || canAct ? (
+              <section
+                className="bg-card flex flex-col gap-4 rounded-2xl border p-5"
+                aria-label="Quote actions"
+              >
+                {canApprove ? <ApproveForm slug={slug} quote={quote} /> : null}
+                {canAct ? <QuoteActions slug={slug} quote={quote} /> : null}
+              </section>
+            ) : null}
+
+            <section
+              className="bg-card flex flex-col gap-3 rounded-2xl border p-5"
+              aria-labelledby="versions-heading"
+            >
+              <h3 id="versions-heading" className="text-sm font-medium">
+                Versions
+              </h3>
+              <ul className="flex flex-col gap-1 text-sm">
+                {quote.versions.map((v) => (
+                  <li key={v.version}>
+                    <Link
+                      className="text-brand underline-offset-4 hover:underline"
+                      href={`${quotationsPath(slug, "quotes", quote.id)}?version=${v.version}`}
+                      aria-current={v.version === quote.version ? "page" : undefined}
+                    >
+                      Version {v.version}
+                    </Link>{" "}
+                    · {v.status}
+                    {v.gross ? ` · ${euro(v.gross.amount)}` : ""}
+                    {v.approved_at ? ` · approved ${formatInZone(v.approved_at, zone)}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        }
+      />
     </div>
   );
 }

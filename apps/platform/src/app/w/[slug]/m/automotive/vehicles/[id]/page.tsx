@@ -1,6 +1,9 @@
 import { Badge } from "@onyx/ui/components/badge";
-import Link from "next/link";
+import { Button } from "@onyx/ui/components/button";
+import { Panel } from "@onyx/ui/components/page";
+import { ArrowUpRight } from "lucide-react";
 
+import { RecordHeader, RecordLayout } from "@/components/record";
 import { withApi } from "@/lib/api-client";
 import {
   automotivePath,
@@ -47,59 +50,87 @@ export default async function VehiclePage({
     ["Condition", v.condition],
   ];
 
+  const [hero, ...rest] = v.photos;
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={automotivePath(slug, "vehicles")}>
-        Back to vehicles
-      </Link>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-medium">{v.title}</h2>
-        <p className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-medium tabular-nums">{euros(v.price_cents)}</span>
+      <RecordHeader
+        back={{ href: automotivePath(slug, "vehicles"), label: "Back to vehicles" }}
+        title={v.title}
+        badges={
           <Badge variant={VEHICLE_STATUS_VARIANT[v.status]}>{VEHICLE_STATUS_LABEL[v.status]}</Badge>
-          {v.listing_url ? (
-            <a className="underline" href={v.listing_url} target="_blank" rel="noreferrer">
-              View on the website
-            </a>
-          ) : null}
-        </p>
-      </div>
-      {v.photos.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Photos">
-          {v.photos.map((src, i) => (
-            <li key={src}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`Photo ${i + 1}`}
-                loading="lazy"
-                className="bg-muted aspect-[4/3] w-full rounded object-cover"
-              />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <dl className="grid max-w-2xl grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-        {rows.map(([label, value]) => (
-          <div key={label} className="contents">
-            <dt className="text-muted-foreground">{label}</dt>
-            <dd>{value ?? "—"}</dd>
-          </div>
-        ))}
-      </dl>
-      {v.features.length > 0 ? (
-        <section aria-labelledby="features-heading" className="flex flex-col gap-2">
-          <h3 id="features-heading" className="font-medium">
-            Features
-          </h3>
-          <p className="text-sm">{v.features.join(", ")}</p>
-        </section>
-      ) : null}
-      <p className="text-muted-foreground text-xs">
-        Imported from the website. Last updated{" "}
-        <time dateTime={v.updated_at}>{formatInZone(v.updated_at, workspace.timezone)}</time>. Empty
-        fields were not on the listing.
-      </p>
+        }
+        meta={
+          <>
+            <span className="text-foreground text-lg font-light tabular-nums">
+              {euros(v.price_cents)}
+            </span>
+            {v.stock_number ? <span>Stock #{v.stock_number}</span> : null}
+          </>
+        }
+        actions={
+          v.listing_url ? (
+            <Button asChild variant="outline" size="sm">
+              <a href={v.listing_url} target="_blank" rel="noreferrer">
+                View on the website
+                <ArrowUpRight aria-hidden />
+              </a>
+            </Button>
+          ) : null
+        }
+      />
+      <RecordLayout
+        main={
+          <>
+            {hero ? (
+              <ul className="grid grid-cols-4 gap-2" aria-label="Photos">
+                {[hero, ...rest].map((src, i) => (
+                  <li key={src} className={i === 0 ? "col-span-4" : undefined}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={`Photo ${i + 1}`}
+                      loading={i === 0 ? "eager" : "lazy"}
+                      className={
+                        i === 0
+                          ? "bg-muted aspect-[16/9] w-full rounded-2xl border object-cover"
+                          : "bg-muted aspect-[4/3] w-full rounded-xl border object-cover"
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {v.features.length > 0 ? (
+              <Panel title="Features" as="h3" divided={false}>
+                <ul className="flex flex-wrap gap-2">
+                  {v.features.map((feature) => (
+                    <li key={feature}>
+                      <Badge variant="secondary">{feature}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            ) : null}
+          </>
+        }
+        aside={
+          <Panel title="Specification" as="h3" divided={false}>
+            <dl className="divide-y text-sm">
+              {rows.map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-4 py-2 first:pt-0 last:pb-0">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="text-right">{value ?? "—"}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-muted-foreground mt-4 border-t pt-4 text-xs">
+              Imported from the website. Last updated{" "}
+              <time dateTime={v.updated_at}>{formatInZone(v.updated_at, workspace.timezone)}</time>.
+              Empty fields were not on the listing.
+            </p>
+          </Panel>
+        }
+      />
     </div>
   );
 }

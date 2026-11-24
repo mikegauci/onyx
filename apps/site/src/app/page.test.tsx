@@ -48,6 +48,13 @@ describe("Onyx Studio home page", () => {
     }
   });
 
+  it("links to the dedicated web design service from the services section", () => {
+    const services = within(screen.getByRole("region", { name: /four things/i }));
+    expect(
+      services.getByRole("link", { name: /explore web design and development/i }),
+    ).toHaveAttribute("href", "/services/web-design-development");
+  });
+
   it("gives the headline a stable accessible name with the first rotating word", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       /Intelligence that works the front desk\./,

@@ -1,3 +1,5 @@
+import { webDesignPath } from "./web-design";
+
 /**
  * Copy and settings for the Onyx Studio landing page, kept in one place so the owner can review
  * and change wording without touching layout code. No testimonials, client logos, prices or
@@ -52,7 +54,7 @@ export const hero = {
 
 /** Read word by word as the visitor scrolls. */
 export const statement =
-  "Most businesses don't need more software. They need the enquiries, bookings and follow-ups they already have to stop slipping through the cracks. That is the only problem we solve.";
+  "Most businesses don't need more software. They need the enquiries, bookings and follow-ups they already have to stop slipping through the cracks. We build websites and automations that make those everyday tasks easier.";
 
 export const system = {
   eyebrow: "The system",
@@ -96,8 +98,9 @@ export const services = [
   },
   {
     title: "Websites that sell",
-    body: "Fast, accessible websites wired to your stock and your inbox, not brochures that sit apart from the business.",
-    tags: ["Next.js", "Listings", "SEO"],
+    body: "Business websites, online shops and custom web apps, with optional connections to your stock, bookings and inbox.",
+    tags: ["Web design", "Development", "SEO"],
+    href: webDesignPath,
   },
   {
     title: "Integrations",

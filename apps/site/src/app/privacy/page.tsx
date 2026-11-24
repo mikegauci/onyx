@@ -30,7 +30,11 @@ const PROVIDERS: { name: string; purpose: string; where: string }[] = [
     purpose: "Drafts replies and searches documents when a business uses the AI assistant",
     where: "US",
   },
-  { name: "Resend", purpose: "Sends sign-in links and email replies", where: "EU and US" },
+  {
+    name: "Resend",
+    purpose: "Delivers website enquiries, sign-in links and email replies",
+    where: "EU and US",
+  },
   {
     name: "Stripe",
     purpose: "Subscription billing for our business customers",
@@ -106,6 +110,10 @@ export default function PrivacyPage() {
 
       <Section title="What we process">
         <ul>
+          <li>
+            <strong>Website enquiries:</strong> the name, email address and project details you send
+            us, plus any business name or package choice you provide.
+          </li>
           <li>
             <strong>Account data:</strong> name, work email and role of the staff who use Onyx
             Platform, and sign-in records.
@@ -192,6 +200,10 @@ export default function PrivacyPage() {
           Account and business data are kept while the business’s subscription is active. When it
           ends, we delete or return the business’s data as agreed in its contract. Billing records
           are kept as long as tax law requires.
+        </p>
+        <p>
+          We delete website enquiries that do not lead to a project within 90 days of receiving
+          them. Enquiries that become projects form part of the project record.
         </p>
       </Section>
 

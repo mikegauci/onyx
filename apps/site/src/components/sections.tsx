@@ -16,6 +16,7 @@ import {
   statement,
   system,
 } from "@/content/site";
+import { webDesignPath } from "@/content/web-design";
 
 import { HandoffMark } from "./handoff-mark";
 import { IndustriesSlider } from "./industries-slider";
@@ -45,21 +46,23 @@ function Eyebrow({ children, center = false }: { children: React.ReactNode; cent
   );
 }
 
-export function SiteNav({ platformUrl }: { platformUrl: string }) {
+type SiteChromeProps = { platformUrl: string; innerPage?: boolean };
+
+export function SiteNav({ platformUrl, innerPage = false }: SiteChromeProps) {
   return (
     <header className="bg-background/60 fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] backdrop-blur-xl">
       <nav
         aria-label="Main"
         className={`${container} flex h-20 items-center justify-between gap-4`}
       >
-        <a href="#top" className={`rounded-md text-lg ${focusRing}`}>
+        <a href={innerPage ? "/" : "#top"} className={`rounded-md text-lg ${focusRing}`}>
           <StudioLogo />
         </a>
         <ul className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-1.5 text-sm backdrop-blur-xl md:flex">
           {nav.map((item) => (
             <li key={item.href}>
               <a
-                href={item.href}
+                href={innerPage ? `/${item.href}` : item.href}
                 className={`text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 transition-colors ${focusRing}`}
               >
                 <span className="link-draw">{item.label}</span>
@@ -77,7 +80,7 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
           </a>
           <span data-magnetic className="magnetic inline-block">
             <Button asChild size="sm" variant="brand" className="btn-sweep rounded-full px-4">
-              <a href="#contact">Start a project</a>
+              <a href={innerPage ? "#enquiry" : "#contact"}>Start a project</a>
             </Button>
           </span>
         </div>
@@ -298,7 +301,7 @@ export function Services() {
         id="services-title"
         eyebrow="What we build"
         title="Four things, done properly."
-        body="Most projects combine an assistant with a couple of automations. Websites and integrations come in when they unblock the rest."
+        body="Start with a website, AI assistant, automation or integration. We can connect them as your needs grow."
       />
       <ServicesList services={services} />
     </section>
@@ -488,7 +491,7 @@ export function Contact() {
   );
 }
 
-export function SiteFooter({ platformUrl }: { platformUrl: string }) {
+export function SiteFooter({ platformUrl, innerPage = false }: SiteChromeProps) {
   const year = new Date().getFullYear();
   return (
     <footer data-cursor-glow className="relative overflow-hidden border-t border-white/10">
@@ -506,11 +509,19 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
           <ul className="mt-4 space-y-2 text-sm">
             {nav.map((item) => (
               <li key={item.href}>
-                <a href={item.href} className={`hover:text-brand rounded-sm ${focusRing}`}>
+                <a
+                  href={innerPage ? `/${item.href}` : item.href}
+                  className={`hover:text-brand rounded-sm ${focusRing}`}
+                >
                   <span className="link-draw">{item.label}</span>
                 </a>
               </li>
             ))}
+            <li>
+              <a href={webDesignPath} className={`hover:text-brand rounded-sm ${focusRing}`}>
+                <span className="link-draw">Web design and development</span>
+              </a>
+            </li>
           </ul>
         </div>
         <div>

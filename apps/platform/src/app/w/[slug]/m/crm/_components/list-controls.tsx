@@ -1,5 +1,6 @@
 import { Button } from "@onyx/ui/components/button";
 import { Input } from "@onyx/ui/components/input";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -22,10 +23,23 @@ export function ListToolbar({
       <form action={action} method="get" role="search" className="flex flex-wrap items-end gap-2">
         {extra}
         <div className="flex flex-col gap-1">
-          <label htmlFor="q" className="text-sm font-medium">
+          <label htmlFor="q" className="text-muted-foreground text-xs">
             {label}
           </label>
-          <Input id="q" name="q" type="search" defaultValue={q} maxLength={100} className="w-64" />
+          <div className="relative">
+            <Search
+              aria-hidden
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            />
+            <Input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              maxLength={100}
+              className="w-full pl-9 sm:w-72"
+            />
+          </div>
         </div>
         <Button type="submit" variant="outline">
           Search
@@ -60,7 +74,7 @@ export function Pager({
   return (
     <div className="flex gap-2">
       {cursor ? (
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="ghost" size="sm">
           <Link href={href({})}>First page</Link>
         </Button>
       ) : null}

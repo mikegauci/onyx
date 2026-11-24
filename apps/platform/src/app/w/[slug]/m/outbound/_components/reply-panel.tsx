@@ -74,20 +74,26 @@ export async function ReplyPanel({
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded-md border p-3" aria-labelledby="reply-heading">
-      <h3 id="reply-heading" className="font-medium">
-        Reply for approval
-      </h3>
-      <p className="text-muted-foreground text-xs">
-        Replies go to the customer only after an admin or owner approves the exact text, and any
-        quote with it.
-      </p>
+    <section
+      className="bg-card flex flex-col gap-4 rounded-2xl border p-5"
+      aria-labelledby="reply-heading"
+    >
+      <div className="flex flex-col gap-1">
+        <h3 id="reply-heading" className="flex items-center gap-2 text-sm font-medium">
+          <span aria-hidden className="bg-brand size-1.5 rounded-full" />
+          Reply for approval
+        </h3>
+        <p className="text-muted-foreground text-xs">
+          Replies go to the customer only after an admin or owner approves the exact text, and any
+          quote with it.
+        </p>
+      </div>
       {detail ? (
         <DraftCard slug={slug} draft={detail} permissions={permissions} timezone={timezone} />
       ) : null}
       {canWrite && !open ? (
         <div className="flex flex-col gap-2">
-          {detail ? <h4 className="text-sm font-medium">New reply</h4> : null}
+          {detail ? <h4 className="border-t pt-4 text-sm font-medium">New reply</h4> : null}
           <NewDraftForm
             slug={slug}
             conversationId={conversation.id}
@@ -99,7 +105,10 @@ export async function ReplyPanel({
       {conversation.status === "closed" && !open ? (
         <p className="text-muted-foreground text-xs">Reopen the conversation to write a reply.</p>
       ) : null}
-      <Link className="text-xs underline" href={outboundPath(slug)}>
+      <Link
+        className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+        href={outboundPath(slug)}
+      >
         All replies waiting for approval
       </Link>
     </section>

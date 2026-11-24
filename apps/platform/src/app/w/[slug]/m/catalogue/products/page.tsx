@@ -63,7 +63,7 @@ export default async function ProductsPage({
         extra={
           <>
             <div className="flex flex-col gap-1">
-              <label htmlFor="category" className="text-sm font-medium">
+              <label htmlFor="category" className="text-muted-foreground text-xs">
                 Category
               </label>
               <Input

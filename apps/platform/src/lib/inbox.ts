@@ -19,10 +19,10 @@ export const STATUS_LABEL: Record<ConversationStatus, string> = {
   closed: "Closed",
 };
 
-export const STATUS_VARIANT: Record<ConversationStatus, "default" | "outline" | "secondary"> = {
-  open: "default",
-  waiting_on_customer: "secondary",
-  closed: "outline",
+export const STATUS_VARIANT: Record<ConversationStatus, "brand" | "info" | "secondary"> = {
+  open: "brand",
+  waiting_on_customer: "info",
+  closed: "secondary",
 };
 
 export const STATUS_ACTION: Record<ConversationStatus, string> = {

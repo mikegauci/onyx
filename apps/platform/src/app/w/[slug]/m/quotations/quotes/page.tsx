@@ -69,7 +69,7 @@ export default async function QuotesPage({
         label="Search number or title"
         extra={
           <div className="flex flex-col gap-1">
-            <label htmlFor="status" className="text-sm font-medium">
+            <label htmlFor="status" className="text-muted-foreground text-xs">
               Status
             </label>
             <select

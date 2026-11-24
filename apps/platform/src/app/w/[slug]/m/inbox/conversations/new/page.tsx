@@ -24,16 +24,21 @@ export default async function NewConversationPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={inboxPath(slug, "conversations")}>
+      <Link
+        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+        href={inboxPath(slug, "conversations")}
+      >
         Back to conversations
       </Link>
-      <h2 className="text-xl font-medium">New conversation</h2>
+      <h2 className="text-2xl font-light tracking-[-0.02em]">New conversation</h2>
       {channels.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground rounded-2xl border border-dashed px-5 py-4 text-sm">
           There is no phone / in-person channel yet. An admin can add one under Channels.
         </p>
       ) : (
-        <NewConversationForm slug={slug} channels={channels} contacts={contacts} />
+        <div className="bg-card max-w-xl rounded-2xl border p-5 sm:p-6">
+          <NewConversationForm slug={slug} channels={channels} contacts={contacts} />
+        </div>
       )}
     </div>
   );

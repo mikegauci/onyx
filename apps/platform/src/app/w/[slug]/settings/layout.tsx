@@ -1,3 +1,4 @@
+import { PageHeader } from "@onyx/ui/components/page";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -17,11 +18,9 @@ export default async function SettingsLayout({ children, params }: Props) {
   if (sections.length === 0) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
-        Settings
-      </h1>
-      <div className="flex flex-col gap-6 md:flex-row">
+    <div className="flex flex-col gap-8">
+      <PageHeader eyebrow="Workspace" title="Settings" />
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <SettingsNav
           base={`/w/${workspace.slug}/settings`}
           sections={sections.map(({ slug: s, label }) => ({ slug: s, label }))}

@@ -27,9 +27,12 @@ export default async function AuditLogPage({ params, searchParams }: Props) {
   );
 
   return (
-    <section aria-labelledby="audit-heading" className="flex flex-col gap-4">
+    <section
+      aria-labelledby="audit-heading"
+      className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+    >
       <div className="flex flex-col gap-1">
-        <h2 id="audit-heading" className="text-lg font-medium">
+        <h2 id="audit-heading" className="text-base font-medium tracking-tight">
           Audit log
         </h2>
         <p className="text-muted-foreground text-sm">

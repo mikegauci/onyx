@@ -1,6 +1,6 @@
 # Platform UI redesign plan
 
-Status: **in progress** · Started: 2026-11-24 · Owner request: "the whole UI and UX needs some serious work".
+Status: **complete** (parts 1–5) · Started: 2026-11-24 · Owner request: "the whole UI and UX needs some serious work".
 
 ## Decisions (owner, 2026-11-24)
 
@@ -51,11 +51,11 @@ CRM (leads, contacts, customers, import), catalogue (products, imports, settings
 - Detail pages: a header with key facts, `DetailList` panels and an activity timeline.
 - Forms: grouped in panels, with labels and help text aligned and one primary action.
 
-### 4. Assistant and knowledge: in review
+### 4. Assistant and knowledge: merged (#60)
 
 Sales assistant policies, knowledge documents and search, in the same patterns as part 3.
 
-### 5. Settings, admin and remaining pages
+### 5. Settings, admin and remaining pages: in review
 
 - Workspace settings: general, members, modules, integrations, billing and audit.
 - Platform admin: organisations, organisation detail and status.

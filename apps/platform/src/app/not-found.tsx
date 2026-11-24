@@ -3,9 +3,11 @@ import { EmptyState } from "@onyx/ui/components/states";
 import { SearchX } from "lucide-react";
 import Link from "next/link";
 
+import { AuthFrame } from "@/components/auth-frame";
+
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-16">
+    <AuthFrame>
       <EmptyState
         icon={SearchX}
         title="Not found"
@@ -16,6 +18,6 @@ export default function NotFound() {
           </Button>
         }
       />
-    </main>
+    </AuthFrame>
   );
 }

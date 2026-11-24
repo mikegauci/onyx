@@ -1,4 +1,6 @@
-import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
+import { Eyebrow } from "@onyx/ui/components/page";
+
+import { AuthFrame } from "@/components/auth-frame";
 
 import { AcceptForm } from "./accept-form";
 
@@ -9,8 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function AcceptInvitationPage({ searchParams }: Props) {
   const { token = "" } = await searchParams;
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">
-      <ThemeToggle className="fixed top-4 right-4" />
+    <AuthFrame>
+      <Eyebrow>Invitation</Eyebrow>
       <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
         Join a workspace
       </h1>
@@ -18,7 +20,9 @@ export default async function AcceptInvitationPage({ searchParams }: Props) {
         Accept this invitation to join the workspace with the role it grants. It only works for the
         email address it was sent to.
       </p>
-      <AcceptForm token={token} />
-    </main>
+      <div className="bg-card/70 rounded-2xl border p-6 backdrop-blur-xl">
+        <AcceptForm token={token} />
+      </div>
+    </AuthFrame>
   );
 }

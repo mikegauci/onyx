@@ -1,5 +1,5 @@
+import { BackLink } from "@/components/back-link";
 import { Badge } from "@onyx/ui/components/badge";
-import Link from "next/link";
 
 import { withApi } from "@/lib/api-client";
 import { formatInZone } from "@/lib/crm";
@@ -41,9 +41,7 @@ export default async function AdminOrganizationPage({ params }: Props) {
 
   return (
     <>
-      <Link className="text-sm underline" href="/admin">
-        Back to organisations
-      </Link>
+      <BackLink href="/admin">Back to organisations</BackLink>
       <div className="flex flex-col gap-1">
         <h1 className="flex flex-wrap items-center gap-3 text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
           {org.name}
@@ -56,30 +54,39 @@ export default async function AdminOrganizationPage({ params }: Props) {
         </p>
       </div>
 
-      <section aria-labelledby="details-heading" className="flex flex-col gap-3">
-        <h2 id="details-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="details-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="details-heading" className="text-base font-medium tracking-tight">
           Details
         </h2>
         <DetailsForm org={org} timezones={timezones} />
       </section>
 
-      <section aria-labelledby="status-heading" className="flex flex-col gap-3">
-        <h2 id="status-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="status-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="status-heading" className="text-base font-medium tracking-tight">
           Status
         </h2>
         {/* Remounted when the status changes, so the button always acts on the current one. */}
         <StatusControl key={org.status} slug={org.slug} name={org.name} status={org.status} />
       </section>
 
-      <section aria-labelledby="invitations-heading" className="flex flex-col gap-3">
-        <h2 id="invitations-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="invitations-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="invitations-heading" className="text-base font-medium tracking-tight">
           Invitations
         </h2>
         <p className="text-muted-foreground text-sm">
           Links are shown once, when created. A new link to the same address replaces the old one.
         </p>
         {invitations.length === 0 ? (
-          <p className="text-sm">No invitations.</p>
+          <p className="text-muted-foreground text-sm">No invitations.</p>
         ) : (
           <ul className="flex flex-col gap-2" aria-label="Invitations">
             {invitations.map((invitation) => (
@@ -95,8 +102,11 @@ export default async function AdminOrganizationPage({ params }: Props) {
         <NewInvitationForm slug={org.slug} />
       </section>
 
-      <section aria-labelledby="billing-heading" className="flex flex-col gap-3">
-        <h2 id="billing-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="billing-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="billing-heading" className="text-base font-medium tracking-tight">
           Billing
         </h2>
         <p className="flex flex-wrap items-center gap-2 text-sm">
@@ -118,8 +128,11 @@ export default async function AdminOrganizationPage({ params }: Props) {
         </p>
       </section>
 
-      <section aria-labelledby="budget-heading" className="flex flex-col gap-3">
-        <h2 id="budget-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="budget-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="budget-heading" className="text-base font-medium tracking-tight">
           AI budget
         </h2>
         <p className="text-sm">
@@ -133,15 +146,21 @@ export default async function AdminOrganizationPage({ params }: Props) {
         />
       </section>
 
-      <section aria-labelledby="integrations-heading" className="flex flex-col gap-3">
-        <h2 id="integrations-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="integrations-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="integrations-heading" className="text-base font-medium tracking-tight">
           Integrations
         </h2>
         <IntegrationList status={integrations} />
       </section>
 
-      <section aria-labelledby="entitlements-heading" className="flex flex-col gap-3">
-        <h2 id="entitlements-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="entitlements-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="entitlements-heading" className="text-base font-medium tracking-tight">
           Module entitlements
         </h2>
         <p className="text-muted-foreground text-sm">

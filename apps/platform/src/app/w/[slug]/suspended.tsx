@@ -1,14 +1,18 @@
 import { Button } from "@onyx/ui/components/button";
+import { Eyebrow } from "@onyx/ui/components/page";
 import Link from "next/link";
+
+import { AuthFrame } from "@/components/auth-frame";
 
 /** Shown instead of the workspace while Onyx has suspended it. Nothing has been deleted. */
 export function SuspendedWorkspace({ name, hasOthers }: { name: string; hasOthers: boolean }) {
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center gap-4 p-6">
+    <AuthFrame>
+      <Eyebrow>Workspace suspended</Eyebrow>
       <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
         This workspace is suspended
       </h1>
-      <p className="text-sm">
+      <p className="text-muted-foreground text-sm">
         {name} is suspended, so it cannot be opened and incoming messages are not received. Nothing
         has been deleted. Contact Onyx support to reactivate it.
       </p>
@@ -22,6 +26,6 @@ export function SuspendedWorkspace({ name, hasOthers }: { name: string; hasOther
           <Link href="/login">Sign in as someone else</Link>
         </Button>
       </div>
-    </main>
+    </AuthFrame>
   );
 }

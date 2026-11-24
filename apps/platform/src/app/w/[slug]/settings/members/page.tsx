@@ -20,15 +20,21 @@ export default async function MembersSettingsPage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
-      <section aria-labelledby="members-heading" className="flex flex-col gap-4">
-        <h2 id="members-heading" className="text-lg font-medium">
+      <section
+        aria-labelledby="members-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="members-heading" className="text-base font-medium tracking-tight">
           Members
         </h2>
         <MembersTable members={members} />
       </section>
       {workspace.permissions.includes("invitations.create") ? (
-        <section aria-labelledby="invite-heading" className="flex max-w-lg flex-col gap-4">
-          <h2 id="invite-heading" className="text-lg font-medium">
+        <section
+          aria-labelledby="invite-heading"
+          className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+        >
+          <h2 id="invite-heading" className="text-base font-medium tracking-tight">
             Invite someone
           </h2>
           <InviteForm slug={workspace.slug} canInviteOwner={workspace.role === "owner"} />

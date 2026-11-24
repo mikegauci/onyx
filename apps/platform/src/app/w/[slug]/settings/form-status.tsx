@@ -9,8 +9,8 @@ export function FormStatus({ state }: { state: FormState }) {
       role={state.status === "error" ? "alert" : "status"}
       className={
         state.status === "error"
-          ? "border-destructive/40 text-destructive rounded-md border p-3 text-sm"
-          : "border-success/40 rounded-md border p-3 text-sm"
+          ? "border-destructive/30 bg-destructive/[0.06] text-destructive rounded-xl border px-4 py-3 text-sm"
+          : "border-success/30 bg-success/[0.06] rounded-xl border px-4 py-3 text-sm"
       }
     >
       <p>{state.message}</p>

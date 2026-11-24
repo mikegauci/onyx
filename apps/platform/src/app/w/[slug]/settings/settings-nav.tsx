@@ -11,7 +11,7 @@ type Props = { base: string; sections: { slug: string; label: string }[] };
 export function SettingsNav({ base, sections }: Props) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Settings" className="md:w-48 md:shrink-0">
+    <nav aria-label="Settings" className="md:sticky md:top-20 md:w-52 md:shrink-0">
       <ul className="flex gap-1 overflow-x-auto md:flex-col">
         {sections.map((s) => {
           const href = `${base}/${s.slug}`;

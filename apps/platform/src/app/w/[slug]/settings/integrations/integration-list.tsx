@@ -24,7 +24,7 @@ export function IntegrationList({ status }: { status: IntegrationStatus }) {
           {status.channels.map((c) => (
             <li
               key={c.id}
-              className="flex flex-wrap items-center gap-2 rounded-md border p-3 text-sm"
+              className="bg-background/40 flex flex-wrap items-center gap-2 rounded-xl border p-3 text-sm"
             >
               <span className="font-medium">{c.name}</span>
               <span className="text-muted-foreground">{CHANNEL_KIND_LABEL[c.kind]}</span>

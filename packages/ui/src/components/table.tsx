@@ -17,7 +17,7 @@ function Table({
     <div
       data-slot="table-container"
       data-stack={stack ? "" : undefined}
-      className="bg-card relative w-full overflow-x-auto rounded-2xl border"
+      className="bg-card relative w-full overflow-x-auto rounded-2xl border [.bg-card_&]:rounded-xl [.bg-card_&]:bg-transparent"
     >
       <table
         role="table"

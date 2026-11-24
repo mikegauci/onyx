@@ -14,7 +14,7 @@
  * Every text/background pair is checked for WCAG contrast in globals.contrast.test.ts.
  */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   --background: oklch(0.99 0.002 60);
   --foreground: oklch(0.17 0.005 60);
@@ -65,22 +65,23 @@
 }
 
 .dark {
-  --background: oklch(0.145 0.004 60);
+  /* Matches the onyx.mt site: a deep warm black, hairline borders, one hot orange accent. */
+  --background: oklch(0.13 0.004 45);
   --foreground: oklch(0.96 0.004 60);
-  --card: oklch(0.18 0.005 60);
+  --card: oklch(0.165 0.005 45);
   --card-foreground: oklch(0.96 0.004 60);
-  --popover: oklch(0.18 0.005 60);
+  --popover: oklch(0.18 0.005 45);
   --popover-foreground: oklch(0.96 0.004 60);
   --primary: oklch(0.96 0.004 60);
   --primary-foreground: oklch(0.17 0.005 60);
-  --secondary: oklch(0.22 0.005 60);
+  --secondary: oklch(0.21 0.005 45);
   --secondary-foreground: oklch(0.96 0.004 60);
-  --muted: oklch(0.22 0.005 60);
+  --muted: oklch(0.21 0.005 45);
   --muted-foreground: oklch(0.7 0.008 60);
-  --accent: oklch(0.24 0.006 60);
+  --accent: oklch(0.23 0.006 45);
   --accent-foreground: oklch(0.96 0.004 60);
-  --brand: oklch(0.74 0.16 52);
-  --brand-foreground: oklch(0.17 0.005 60);
+  --brand: oklch(0.7 0.19 45);
+  --brand-foreground: oklch(0.15 0.005 45);
   --destructive: oklch(0.68 0.19 25);
   --destructive-foreground: oklch(0.17 0.005 60);
   --success: oklch(0.72 0.15 155);
@@ -89,24 +90,24 @@
   --warning-foreground: oklch(0.17 0.005 60);
   --info: oklch(0.72 0.12 240);
   --info-foreground: oklch(0.17 0.005 60);
-  --border: oklch(1 0 0 / 9%);
+  --border: oklch(1 0 0 / 10%);
   --input: oklch(0.48 0.006 60);
-  --ring: oklch(0.74 0.16 52);
+  --ring: oklch(0.7 0.19 45);
 
-  --chart-1: oklch(0.74 0.16 52);
+  --chart-1: oklch(0.7 0.19 45);
   --chart-2: oklch(0.72 0.12 240);
   --chart-3: oklch(0.74 0.11 185);
   --chart-4: oklch(0.82 0.14 85);
   --chart-5: oklch(0.7 0.02 260);
 
-  --sidebar: oklch(0.165 0.005 60);
+  --sidebar: oklch(0.115 0.004 45);
   --sidebar-foreground: oklch(0.96 0.004 60);
   --sidebar-primary: oklch(0.96 0.004 60);
   --sidebar-primary-foreground: oklch(0.17 0.005 60);
-  --sidebar-accent: oklch(0.24 0.006 60);
+  --sidebar-accent: oklch(0.2 0.006 45);
   --sidebar-accent-foreground: oklch(0.96 0.004 60);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.74 0.16 52);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.7 0.19 45);
 }
 
 @theme inline {

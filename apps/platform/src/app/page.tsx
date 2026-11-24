@@ -6,7 +6,9 @@ export default function PlatformHomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 px-6 py-16">
       <ThemeToggle className="fixed top-4 right-4" />
-      <h1 className="text-3xl font-semibold tracking-tight">Onyx Platform</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        Onyx Platform
+      </h1>
       <p className="text-muted-foreground">Sign in with your work email to open your workspaces.</p>
       <div className="flex gap-3">
         <Button asChild>

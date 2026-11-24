@@ -101,4 +101,5 @@ const ICON_FOR_MODULE: Record<string, IconName> = {
   assistant: "assistant",
   outbound: "outbound",
   automotive: "automotive",
+  knowledge: "knowledge",
 };

@@ -31,7 +31,7 @@ export default async function DraftPage({
       <Link className="text-sm underline" href={outboundPath(slug)}>
         Back to outbound replies
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
         Reply: {draft.conversation_subject || "Conversation"}
       </h1>
       <DraftCard

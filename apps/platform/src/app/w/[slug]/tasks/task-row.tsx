@@ -38,12 +38,15 @@ export function TaskRow({
   );
   const busy = completing || cancelling;
   return (
-    <li className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
+    <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
       <div className="flex flex-1 flex-col gap-1">
         <span className="flex flex-wrap items-center gap-2">
           {task.priority === "urgent" ? <Badge variant="destructive">Urgent</Badge> : null}
           {task.href ? (
-            <Link className="font-medium underline" href={task.href}>
+            <Link
+              className="hover:text-brand font-medium underline-offset-4 transition-colors hover:underline"
+              href={task.href}
+            >
               {task.title}
             </Link>
           ) : (
@@ -66,7 +69,7 @@ export function TaskRow({
               <Button
                 type="submit"
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 disabled={busy}
                 aria-label={`Cancel: ${task.title}`}
               >

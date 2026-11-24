@@ -7,7 +7,9 @@ export default async function AdminStatusPage() {
   const health = await getApiHealth(platformEnv().apiUrl);
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">API status</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        API status
+      </h1>
       <ApiStatus health={health} />
     </>
   );

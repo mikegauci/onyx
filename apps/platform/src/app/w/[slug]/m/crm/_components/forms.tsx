@@ -3,6 +3,7 @@
 import { Button } from "@onyx/ui/components/button";
 import { FormField } from "@onyx/ui/components/form-field";
 import { Input } from "@onyx/ui/components/input";
+import { textareaClass } from "@onyx/ui/lib/form-classes";
 import { useActionState, useEffect, useRef } from "react";
 
 import { type Contact, type Customer, type Lead, STATUS_ACTION, type SubjectType } from "@/lib/crm";
@@ -23,8 +24,7 @@ import {
   updateLead,
 } from "../actions";
 
-const TEXTAREA_CLASS =
-  "border-input bg-background focus-visible:ring-ring min-h-20 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none aria-invalid:border-destructive";
+const TEXTAREA_CLASS = `${textareaClass} min-h-20`;
 
 type Option = { id: string; label: string };
 

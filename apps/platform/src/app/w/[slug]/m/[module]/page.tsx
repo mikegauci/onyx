@@ -19,7 +19,9 @@ export default async function ModulePage({ params }: Props) {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">{status.name}</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        {status.name}
+      </h1>
       <EmptyState
         icon={Construction}
         title={`${moduleLabel(status.key)} is on its way`}

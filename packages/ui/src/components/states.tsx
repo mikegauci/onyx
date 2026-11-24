@@ -16,11 +16,15 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-10 text-center",
+        "bg-foreground/[0.015] flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-12 text-center",
         className,
       )}
     >
-      {Icon ? <Icon aria-hidden className="text-muted-foreground size-8" /> : null}
+      {Icon ? (
+        <span className="bg-brand/10 text-brand flex size-11 items-center justify-center rounded-full">
+          <Icon aria-hidden className="size-5" />
+        </span>
+      ) : null}
       <h2 className="font-medium">{title}</h2>
       {description ? <p className="text-muted-foreground max-w-sm text-sm">{description}</p> : null}
       {action}
@@ -40,7 +44,7 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "border-destructive/40 flex flex-col gap-2 rounded-lg border p-6 text-sm",
+        "border-destructive/40 bg-destructive/5 flex flex-col gap-2 rounded-2xl border p-6 text-sm",
         className,
       )}
     >

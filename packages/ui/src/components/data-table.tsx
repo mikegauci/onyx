@@ -11,7 +11,6 @@ import {
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "../lib/utils";
 import { Button } from "./button";
 import { Skeleton } from "./skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";

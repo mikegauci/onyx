@@ -1,3 +1,4 @@
+import { PageHeader } from "@onyx/ui/components/page";
 import type { ReactNode } from "react";
 
 import { withApi } from "@/lib/api-client";
@@ -23,11 +24,10 @@ export default async function KnowledgeLayout({ children, params }: Props) {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Knowledge</h1>
+    <div className="flex flex-col gap-8">
+      <PageHeader eyebrow="Module" title="Knowledge">
         <SectionNav label="Knowledge" sections={sections} />
-      </div>
+      </PageHeader>
       {children}
     </div>
   );

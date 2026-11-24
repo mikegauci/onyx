@@ -1,4 +1,5 @@
 import type { FormState } from "./actions";
+import { selectClass } from "@onyx/ui/lib/form-classes";
 
 /** Announces the result of a settings form to screen readers and sighted users. */
 export function FormStatus({ state }: { state: FormState }) {
@@ -20,5 +21,4 @@ export function FormStatus({ state }: { state: FormState }) {
   );
 }
 
-export const SELECT_CLASS =
-  "border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none aria-invalid:border-destructive";
+export const SELECT_CLASS = selectClass;

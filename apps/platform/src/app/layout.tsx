@@ -23,7 +23,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">
-        <ThemeProvider>
+        {/* Dark by default, like onyx.mt; staff can still switch to light or system. */}
+        <ThemeProvider defaultTheme="dark">
           <TooltipProvider>
             {children}
             <Toaster />

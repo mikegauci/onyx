@@ -3,6 +3,7 @@
 import { Button } from "@onyx/ui/components/button";
 import { FormField } from "@onyx/ui/components/form-field";
 import { Input } from "@onyx/ui/components/input";
+import { textareaClass } from "@onyx/ui/lib/form-classes";
 import { useActionState, useEffect, useRef } from "react";
 
 import type { AssistantPolicy } from "@/lib/assistant";
@@ -11,8 +12,7 @@ import { IDLE } from "@/lib/form-state";
 import { FormStatus } from "../../../settings/form-status";
 import { deletePolicy, savePolicy } from "../actions";
 
-const TEXTAREA_CLASS =
-  "border-input bg-background focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none aria-invalid:border-destructive";
+const TEXTAREA_CLASS = `${textareaClass} min-h-32`;
 
 /** Add a policy (``policy`` absent) or edit one; the topic of an existing policy is fixed. */
 export function PolicyForm({ slug, policy }: { slug: string; policy?: AssistantPolicy }) {

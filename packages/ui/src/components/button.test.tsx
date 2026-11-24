@@ -8,7 +8,7 @@ describe("Button", () => {
 
     const button = screen.getByRole("button", { name: "Save" });
     expect(button).toHaveAttribute("data-slot", "button");
-    expect(button.className).toContain("bg-primary");
+    expect(button.className).toContain("bg-brand");
   });
 
   it("renders its child element when asChild is set", () => {

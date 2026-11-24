@@ -30,7 +30,9 @@ export default async function AssistantPage({ params }: { params: Promise<{ slug
   return (
     <div className="flex max-w-3xl flex-col gap-8">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Sales assistant</h1>
+        <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+          Sales assistant
+        </h1>
         <p className="text-sm">
           Open a conversation in the{" "}
           <Link className="underline" href={inboxPath(slug, "conversations")}>

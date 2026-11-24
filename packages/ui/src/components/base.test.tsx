@@ -31,8 +31,8 @@ describe("base components", () => {
     render(<Badge variant="warning">Low stock</Badge>);
 
     const badge = screen.getByText("Low stock");
-    expect(badge.className).toContain("bg-warning");
-    expect(badge.className).toContain("text-warning-foreground");
+    expect(badge.className).toContain("bg-warning/15");
+    expect(badge.className).toContain("text-warning");
   });
 
   it("applies the destructive button variant", () => {

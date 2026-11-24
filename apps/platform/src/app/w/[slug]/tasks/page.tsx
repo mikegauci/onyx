@@ -1,3 +1,7 @@
+import { PageHeader } from "@onyx/ui/components/page";
+import { EmptyState } from "@onyx/ui/components/states";
+import { CircleCheck } from "lucide-react";
+
 import { withApi } from "@/lib/api-client";
 import { formatInZone } from "@/lib/crm";
 import { requireOk } from "@/lib/guards";
@@ -19,18 +23,21 @@ export default async function TasksPage({ params }: Props) {
   );
   const canCancel = workspace.permissions.includes("tasks.manage");
   return (
-    <section aria-labelledby="tasks-heading" className="flex max-w-3xl flex-col gap-4">
-      <h1 id="tasks-heading" className="text-2xl font-semibold tracking-tight">
-        Tasks
-      </h1>
-      <p className="text-muted-foreground text-sm">
-        Things that need a person, such as replies waiting for approval. They close by themselves
-        when the work is done, for example when the reply is approved.
-      </p>
+    <section aria-labelledby="tasks-heading" className="flex max-w-3xl flex-col gap-8">
+      <PageHeader
+        id="tasks-heading"
+        eyebrow="Workspace"
+        title="Tasks"
+        description="Things that need a person, such as replies waiting for approval. They close by themselves when the work is done, for example when the reply is approved."
+      />
       {tasks.items.length === 0 ? (
-        <p className="text-sm">Nothing waiting for you.</p>
+        <EmptyState
+          icon={CircleCheck}
+          title="Nothing waiting for you."
+          description="New tasks appear here when a workflow needs a person."
+        />
       ) : (
-        <ul className="flex flex-col gap-2" aria-label="Open tasks">
+        <ul className="bg-card divide-y rounded-2xl border" aria-label="Open tasks">
           {tasks.items.map((t) => (
             <TaskRow
               key={t.id}

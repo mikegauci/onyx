@@ -9,18 +9,19 @@ import { cn } from "../lib/utils";
  * its text label (and an icon where it helps), e.g. "Low stock", "AI draft".
  */
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground",
-        secondary: "border-transparent bg-secondary text-secondary-foreground",
+        // Soft tints, as on the onyx.mt site: a coloured label on a faint wash of the same hue.
+        default: "border-transparent bg-foreground/10 text-foreground",
+        secondary: "border-transparent bg-foreground/[0.07] text-muted-foreground",
         outline: "text-foreground",
-        brand: "border-transparent bg-brand text-brand-foreground",
-        success: "border-transparent bg-success text-success-foreground",
-        warning: "border-transparent bg-warning text-warning-foreground",
-        destructive: "border-transparent bg-destructive text-destructive-foreground",
-        info: "border-transparent bg-info text-info-foreground",
+        brand: "border-brand/25 bg-brand/15 text-brand",
+        success: "border-success/25 bg-success/15 text-success",
+        warning: "border-warning/25 bg-warning/15 text-warning",
+        destructive: "border-destructive/25 bg-destructive/15 text-destructive",
+        info: "border-info/25 bg-info/15 text-info",
       },
     },
     defaultVariants: {

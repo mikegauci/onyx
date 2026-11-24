@@ -18,7 +18,9 @@ export default async function SettingsLayout({ children, params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        Settings
+      </h1>
       <div className="flex flex-col gap-6 md:flex-row">
         <SettingsNav
           base={`/w/${workspace.slug}/settings`}

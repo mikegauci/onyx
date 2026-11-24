@@ -45,7 +45,7 @@ export default async function AdminOrganizationPage({ params }: Props) {
         Back to organisations
       </Link>
       <div className="flex flex-col gap-1">
-        <h1 className="flex flex-wrap items-center gap-3 text-2xl font-semibold tracking-tight">
+        <h1 className="flex flex-wrap items-center gap-3 text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
           {org.name}
           <Badge variant={org.status === "suspended" ? "destructive" : "success"}>
             {org.status === "suspended" ? "Suspended" : "Active"}

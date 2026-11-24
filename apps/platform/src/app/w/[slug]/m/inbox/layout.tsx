@@ -1,3 +1,4 @@
+import { PageHeader } from "@onyx/ui/components/page";
 import type { ReactNode } from "react";
 
 import { withApi } from "@/lib/api-client";
@@ -27,11 +28,10 @@ export default async function InboxLayout({ children, params }: Props) {
   sections.push({ href: inboxPath(slug, "suppressions"), label: "Blocked addresses" });
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
+    <div className="flex flex-col gap-8">
+      <PageHeader eyebrow="Module" title="Inbox">
         <SectionNav label="Inbox" sections={sections} />
-      </div>
+      </PageHeader>
       {children}
     </div>
   );

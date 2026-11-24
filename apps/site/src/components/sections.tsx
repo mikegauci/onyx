@@ -203,7 +203,7 @@ export function Hero() {
                 asChild
                 size="lg"
                 variant="ghost"
-                className="h-12 rounded-full border border-white/15 px-7"
+                className="text-foreground h-12 rounded-full border border-white/15 px-7"
               >
                 <a href="#system">{hero.secondary}</a>
               </Button>

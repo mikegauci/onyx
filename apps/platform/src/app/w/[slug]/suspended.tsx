@@ -5,7 +5,9 @@ import Link from "next/link";
 export function SuspendedWorkspace({ name, hasOthers }: { name: string; hasOthers: boolean }) {
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">This workspace is suspended</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        This workspace is suspended
+      </h1>
       <p className="text-sm">
         {name} is suspended, so it cannot be opened and incoming messages are not received. Nothing
         has been deleted. Contact Onyx support to reactivate it.

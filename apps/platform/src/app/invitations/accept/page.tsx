@@ -11,7 +11,9 @@ export default async function AcceptInvitationPage({ searchParams }: Props) {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">
       <ThemeToggle className="fixed top-4 right-4" />
-      <h1 className="text-2xl font-semibold tracking-tight">Join a workspace</h1>
+      <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
+        Join a workspace
+      </h1>
       <p className="text-muted-foreground">
         Accept this invitation to join the workspace with the role it grants. It only works for the
         email address it was sent to.

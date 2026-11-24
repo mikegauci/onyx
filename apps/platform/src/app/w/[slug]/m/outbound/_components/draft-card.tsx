@@ -4,6 +4,7 @@ import { Badge } from "@onyx/ui/components/badge";
 import { Button } from "@onyx/ui/components/button";
 import { FormField } from "@onyx/ui/components/form-field";
 import { Input } from "@onyx/ui/components/input";
+import { textareaClass } from "@onyx/ui/lib/form-classes";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
@@ -33,8 +34,7 @@ import {
   updateExpiry,
 } from "../actions";
 
-const TEXTAREA_CLASS =
-  "border-input bg-background focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none aria-invalid:border-destructive";
+const TEXTAREA_CLASS = `${textareaClass} min-h-32`;
 
 type QuoteOption = { id: string; label: string };
 

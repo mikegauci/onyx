@@ -36,6 +36,7 @@ import {
   Gauge,
   Inbox,
   LayoutDashboard,
+  Library,
   type LucideIcon,
   Package,
   Send,
@@ -68,6 +69,7 @@ const ICONS = {
   admin: ShieldCheck,
   tasks: ListTodo,
   automotive: Car,
+  knowledge: Library,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
@@ -122,7 +124,17 @@ export function AppShell({
         Skip to content
       </a>
       <Sidebar collapsible="icon" className={cn(admin && "border-brand border-r-2")}>
-        <SidebarHeader>{header}</SidebarHeader>
+        <SidebarHeader className="gap-3">
+          <Link
+            href="/workspaces"
+            aria-label="Onyx Platform, all workspaces"
+            className="focus-visible:ring-ring flex items-center gap-2 rounded-md px-2 pt-2 text-[15px] font-light tracking-[-0.02em] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <span aria-hidden className="bg-brand size-2 shrink-0 rounded-full" />
+            <span className="group-data-[collapsible=icon]:hidden">onyx</span>
+          </Link>
+          {header}
+        </SidebarHeader>
         <SidebarContent>
           <nav aria-label={admin ? "Platform admin" : "Workspace"}>
             {nav.map((group, i) => (
@@ -164,7 +176,7 @@ export function AppShell({
             Platform admin · account metadata only · no tenant business data
           </div>
         ) : null}
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur-xl md:px-6">
           <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
           <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
           <Breadcrumb>
@@ -187,7 +199,11 @@ export function AppShell({
           </Breadcrumb>
           <ThemeToggle className="ml-auto" />
         </header>
-        <main id="main" tabIndex={-1} className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 py-6 outline-none md:px-8 md:py-10"
+        >
           {children}
         </main>
       </SidebarInset>

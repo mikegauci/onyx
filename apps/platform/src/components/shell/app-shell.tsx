@@ -33,6 +33,7 @@ import {
   Bot,
   Building2,
   Car,
+  CircleHelp,
   Contact,
   FileText,
   Gauge,
@@ -73,6 +74,7 @@ const ICONS = {
   automotive: Car,
   knowledge: Library,
   insights: BarChart3,
+  help: CircleHelp,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

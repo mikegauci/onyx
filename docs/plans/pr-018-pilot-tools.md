@@ -130,6 +130,12 @@ emailed or printed. They are written for any client; nothing in them is specific
   only, as Onyx support's kill switch. The feature switches stay with the workspace's owners
   and admins.
 - **Insights scope:** only enabled modules are queried; a module the plan lacks shows no section.
+- **Guide source:** the guides are a typed data file (`apps/platform/src/lib/guides.ts`), not
+  Markdown. The platform has no Markdown renderer, and one plain-data file feeds both the Help
+  pages and the PDF script without adding a dependency.
+- **Guide screenshots:** taken from the seeded test data in the app's dark theme, so they match
+  what staff see. To refresh them, run `GUIDE_SHOTS=1 pnpm exec playwright test guide-screenshots`.
+  The PDFs are committed in `apps/platform/public/guides/` and served from `/guides/`.
 
 ## Not in this PR
 

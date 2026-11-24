@@ -13,7 +13,7 @@ export const site = {
   location: "Malta",
   /** The registered business details, as on official documents (Meta business verification). */
   legal: {
-    name: "Onyx Studio",
+    name: "Michael Gauci",
     address: [
       "Villa Lugano, No 1",
       "Triq Dawret in-Nawfragju",

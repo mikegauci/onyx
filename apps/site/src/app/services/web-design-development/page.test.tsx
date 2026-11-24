@@ -25,7 +25,7 @@ describe("web design service page", () => {
       ["Jam Weddings", "Mailjet", "/portfolio/jam.webp"],
       ["Thrust Studio", "Astro", "/portfolio/thrust-studio.webp"],
       ["Beachaven", "React", "/portfolio/beachaven.webp"],
-      ["Motor Element", "Printify", "/portfolio/motor-element.webp"],
+      ["Motor Element", "Shopify", "/portfolio/motor-element-shopify.webp"],
     ] as const) {
       const project = within(screen.getByRole("article", { name }));
       expect(project.getByRole("heading", { name })).toBeVisible();

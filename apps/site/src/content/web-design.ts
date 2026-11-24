@@ -151,14 +151,14 @@ export const webDesignProjects = [
   },
   {
     name: "Motor Element",
-    type: "E-commerce rebuild",
+    type: "E-commerce storefront",
     screenshot: {
-      src: "/portfolio/motor-element.webp",
+      src: "/portfolio/motor-element-shopify.webp",
       height: 800,
-      alt: "Motor Element’s rebuilt storefront homepage introducing custom car apparel.",
+      alt: "Motor Element’s Shopify homepage showcasing custom car apparel.",
     },
-    technologies: ["Next.js", "TypeScript", "Supabase", "fal.ai", "Stripe", "Printify"],
+    technologies: ["Shopify"],
     description:
-      "A storefront rebuild for custom automotive apparel, designed to turn a customer’s car photo into artwork for print-on-demand merchandise.",
+      "A Shopify storefront showcasing custom car T-shirts, hoodies, wall art and other merchandise for automotive enthusiasts.",
   },
 ] as const;

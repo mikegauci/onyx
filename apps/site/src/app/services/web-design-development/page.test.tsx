@@ -20,6 +20,12 @@ describe("web design service page", () => {
       ["Pantrila", "LangGraph", "/portfolio/pantrila.webp"],
       ["QTM Detailing", "Motion", "/portfolio/qtm-detailing.webp"],
       ["MaltaGuns", "Tiptap", "/portfolio/maltaguns.webp"],
+      ["Rotta", "Supabase", "/portfolio/rotta.webp"],
+      ["Malta Detailing Academy", "Next.js", "/portfolio/mda.webp"],
+      ["Jam Weddings", "Mailjet", "/portfolio/jam.webp"],
+      ["Thrust Studio", "Astro", "/portfolio/thrust-studio.webp"],
+      ["Beachaven", "React", "/portfolio/beachaven.webp"],
+      ["Motor Element", "Printify", "/portfolio/motor-element.webp"],
     ] as const) {
       const project = within(screen.getByRole("article", { name }));
       expect(project.getByRole("heading", { name })).toBeVisible();

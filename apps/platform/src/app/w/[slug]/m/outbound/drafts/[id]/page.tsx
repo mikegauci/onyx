@@ -28,19 +28,24 @@ export default async function DraftPage({
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <Link className="text-sm underline" href={outboundPath(slug)}>
+      <Link
+        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+        href={outboundPath(slug)}
+      >
         Back to outbound replies
       </Link>
       <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
         Reply: {draft.conversation_subject || "Conversation"}
       </h1>
-      <DraftCard
-        slug={slug}
-        draft={draft}
-        permissions={workspace.permissions}
-        timezone={workspace.timezone}
-        showConversation
-      />
+      <div className="bg-card rounded-2xl border p-5 sm:p-6">
+        <DraftCard
+          slug={slug}
+          draft={draft}
+          permissions={workspace.permissions}
+          timezone={workspace.timezone}
+          showConversation
+        />
+      </div>
     </div>
   );
 }

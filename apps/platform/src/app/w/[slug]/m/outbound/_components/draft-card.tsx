@@ -67,26 +67,30 @@ export function NewDraftForm({
       <input type="hidden" name="mode" value={mode} />
       {whatsapp ? (
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm font-medium">Reply as</legend>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="reply-mode"
-              checked={mode === "text"}
-              disabled={!whatsapp.windowOpen}
-              onChange={() => setMode("text")}
-            />
-            Text message
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="reply-mode"
-              checked={mode === "template"}
-              onChange={() => setMode("template")}
-            />
-            Approved template
-          </label>
+          <legend className="mb-2 text-sm font-medium">Reply as</legend>
+          <div className="bg-foreground/[0.03] flex flex-wrap gap-1 self-start rounded-full border p-1">
+            <label className="text-muted-foreground has-[:checked]:bg-foreground/10 has-[:checked]:text-foreground has-[:focus-visible]:ring-ring flex cursor-pointer items-center rounded-full px-3 py-1.5 text-xs font-medium transition-colors has-[:disabled]:opacity-50 has-[:focus-visible]:ring-2">
+              <input
+                className="sr-only"
+                type="radio"
+                name="reply-mode"
+                checked={mode === "text"}
+                disabled={!whatsapp.windowOpen}
+                onChange={() => setMode("text")}
+              />
+              Text message
+            </label>
+            <label className="text-muted-foreground has-[:checked]:bg-foreground/10 has-[:checked]:text-foreground has-[:focus-visible]:ring-ring flex cursor-pointer items-center rounded-full px-3 py-1.5 text-xs font-medium transition-colors has-[:disabled]:opacity-50 has-[:focus-visible]:ring-2">
+              <input
+                className="sr-only"
+                type="radio"
+                name="reply-mode"
+                checked={mode === "template"}
+                onChange={() => setMode("template")}
+              />
+              Approved template
+            </label>
+          </div>
           {!whatsapp.windowOpen ? (
             <p className="text-muted-foreground text-xs">
               The 24-hour window is closed, so only a template can be sent.
@@ -105,7 +109,10 @@ export function NewDraftForm({
           />
         </FormField>
       ) : usable.length === 0 ? (
-        <p role="note" className="rounded-md border p-2 text-sm">
+        <p
+          role="note"
+          className="border-warning/30 bg-warning/[0.07] rounded-lg border px-3 py-2 text-sm"
+        >
           No template can be sent yet. An admin refreshes the approved utility templates under Inbox
           → Channels.
         </p>
@@ -208,7 +215,7 @@ function TemplateFields({
         <div className="flex flex-col gap-1">
           <p className="text-muted-foreground text-xs">Preview</p>
           <blockquote
-            className="rounded-md border p-3 text-sm whitespace-pre-wrap"
+            className="bg-background rounded-xl border p-3 text-sm whitespace-pre-wrap"
             aria-label="Template preview"
           >
             {previewTemplate(body, values.slice(0, count))}
@@ -226,13 +233,16 @@ function QuoteLine({ slug, draft }: { slug: string; draft: DraftDetail }) {
     <div className="flex flex-col gap-1 text-sm">
       <p>
         With quote{" "}
-        <Link className="underline" href={quotationsPath(slug, "quotes", quote.id)}>
+        <Link
+          className="text-brand underline-offset-4 hover:underline"
+          href={quotationsPath(slug, "quotes", quote.id)}
+        >
           {quote.number}
         </Link>{" "}
         (version {quote.approved_version ?? quote.version}, {quote.status})
       </p>
       {quote.blocked ? (
-        <p className="text-warning-foreground bg-warning/20 rounded px-2 py-1 text-xs">
+        <p className="text-warning bg-warning/15 rounded-md px-2 py-1 text-xs">
           {quote.blocked.message}
         </p>
       ) : null}
@@ -298,14 +308,17 @@ export function DraftCard({
       </div>
       {showConversation ? (
         <Link
-          className="text-sm underline"
+          className="text-brand text-sm underline-offset-4 hover:underline"
           href={`/w/${encodeURIComponent(slug)}/m/inbox/conversations/${draft.conversation_id}`}
         >
           Conversation: {draft.conversation_subject}
         </Link>
       ) : null}
       {draft.expiry ? (
-        <p role="note" className="rounded-md border p-2 text-sm">
+        <p
+          role="note"
+          className="border-warning/30 bg-warning/[0.07] rounded-lg border px-3 py-2 text-sm"
+        >
           {draft.expiry.message}
         </p>
       ) : null}
@@ -335,7 +348,7 @@ export function DraftCard({
           />
         </FormField>
       ) : (
-        <blockquote className="rounded-md border p-3 text-sm whitespace-pre-wrap">
+        <blockquote className="border-brand/25 bg-brand/[0.07] rounded-2xl rounded-tr-md border px-4 py-3 text-sm whitespace-pre-wrap">
           {draft.body}
         </blockquote>
       )}
@@ -395,7 +408,9 @@ export function DraftCard({
 
       {controls.canEdit && template ? (
         <details>
-          <summary className="cursor-pointer text-sm underline">Change the values</summary>
+          <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-sm">
+            Change the values
+          </summary>
           <form action={revise} className="mt-2 flex flex-col gap-2">
             <input type="hidden" name="mode" value="template" />
             <TemplateFields
@@ -424,7 +439,9 @@ export function DraftCard({
 
       {controls.canReject ? (
         <details>
-          <summary className="cursor-pointer text-sm underline">Reject this reply</summary>
+          <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-sm">
+            Reject this reply
+          </summary>
           <form action={reject} className="mt-2 flex flex-col gap-2">
             <FormField
               id={`reject-${draft.id}`}
@@ -443,12 +460,12 @@ export function DraftCard({
 
       {draft.revisions.length > 1 ? (
         <details>
-          <summary className="cursor-pointer text-sm underline">
+          <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-sm">
             All revisions ({draft.revisions.length})
           </summary>
           <ol className="mt-2 flex flex-col gap-2" aria-label="Revisions">
             {draft.revisions.map((revision) => (
-              <li key={revision.revision} className="border-l-2 pl-3 text-sm">
+              <li key={revision.revision} className="border-foreground/15 border-l-2 pl-3 text-sm">
                 <p className="text-muted-foreground text-xs">
                   Revision {revision.revision} by {revisionAuthor(revision)} ·{" "}
                   <time dateTime={revision.created_at}>
@@ -462,7 +479,10 @@ export function DraftCard({
         </details>
       ) : null}
       {!showConversation ? (
-        <Link className="text-xs underline" href={outboundPath(slug, "drafts", draft.id)}>
+        <Link
+          className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+          href={outboundPath(slug, "drafts", draft.id)}
+        >
           Open the draft page
         </Link>
       ) : null}

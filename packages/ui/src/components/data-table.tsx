@@ -11,7 +11,6 @@ import {
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "../lib/utils";
 import { Button } from "./button";
 import { Skeleton } from "./skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
@@ -50,7 +49,7 @@ export function DataTable<TData>({
   });
 
   return (
-    <div className={cn("rounded-md border", className)}>
+    <div className={className}>
       <Table>
         <caption className="sr-only">{caption}</caption>
         <TableHeader>
@@ -123,7 +122,7 @@ export function DataTable<TData>({
 /** Placeholder rows while a table loads. */
 export function DataTableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
-    <div className="rounded-md border p-4" aria-busy="true" aria-label="Loading">
+    <div className="bg-card rounded-2xl border p-4" aria-busy="true" aria-label="Loading">
       <div className="flex flex-col gap-3">
         {Array.from({ length: rows }, (_, r) => (
           <div key={r} className="flex gap-4">

@@ -31,7 +31,7 @@ import { SELECT_CLASS } from "../../../settings/form-status";
 import { ListToolbar, Pager } from "../../crm/_components/list-controls";
 import { param, type SearchParams } from "../../crm/data";
 
-const LINK = "font-medium underline-offset-4 hover:underline";
+const LINK = "hover:text-brand font-medium underline-offset-4 transition-colors hover:underline";
 
 export default async function ConversationsPage({
   params,
@@ -68,27 +68,31 @@ export default async function ConversationsPage({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="conversations-heading">
-      <h2 id="conversations-heading" className="text-lg font-medium">
-        Conversations
-      </h2>
-      <nav aria-label="Queues">
-        <ul className="flex gap-2">
-          {QUEUES.map((item) => (
-            <li key={item.key}>
-              <Link
-                href={queueHref(item.key)}
-                aria-current={queue === item.key ? "page" : undefined}
-                className={cn(
-                  "rounded-md border px-3 py-1 text-sm",
-                  queue === item.key ? "bg-secondary font-medium" : "text-muted-foreground",
-                )}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="conversations-heading" className="text-lg font-light tracking-tight">
+          Conversations
+        </h2>
+        <nav aria-label="Queues">
+          <ul className="bg-foreground/[0.03] flex gap-1 rounded-full border p-1">
+            {QUEUES.map((item) => (
+              <li key={item.key}>
+                <Link
+                  href={queueHref(item.key)}
+                  aria-current={queue === item.key ? "page" : undefined}
+                  className={cn(
+                    "focus-visible:ring-ring inline-block rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                    queue === item.key
+                      ? "bg-foreground/10 text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
       <ListToolbar
         action={path}
         q={q}
@@ -97,7 +101,7 @@ export default async function ConversationsPage({
           <>
             <input type="hidden" name="queue" value={queue} />
             <div className="flex flex-col gap-1">
-              <label htmlFor="status" className="text-sm font-medium">
+              <label htmlFor="status" className="text-muted-foreground text-xs">
                 Status
               </label>
               <select
@@ -150,20 +154,25 @@ export default async function ConversationsPage({
             {page.items.map((c) => (
               <TableRow key={c.id}>
                 <TableCell>
-                  <span className="flex items-center gap-2">
-                    <Link className={LINK} href={inboxPath(slug, "conversations", c.id)}>
+                  <span className="flex max-w-[22rem] items-center gap-2">
+                    <Link
+                      className={cn(LINK, "truncate")}
+                      href={inboxPath(slug, "conversations", c.id)}
+                    >
                       {c.subject}
                     </Link>
-                    {c.handler === "assistant" ? <Badge variant="info">Assistant</Badge> : null}
+                    {c.handler === "assistant" ? <Badge variant="brand">Assistant</Badge> : null}
                   </span>
                 </TableCell>
                 <TableCell>{c.customer_label}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[c.status]}>{STATUS_LABEL[c.status]}</Badge>
                 </TableCell>
-                <TableCell>{c.assignee?.display_name ?? "Unassigned"}</TableCell>
-                <TableCell>{c.channel.name}</TableCell>
-                <TableCell>
+                <TableCell className="text-muted-foreground">
+                  {c.assignee?.display_name ?? "Unassigned"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{c.channel.name}</TableCell>
+                <TableCell className="text-muted-foreground">
                   <time dateTime={c.last_message_at}>
                     {formatInZone(c.last_message_at, workspace.timezone)}
                   </time>

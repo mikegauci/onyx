@@ -21,14 +21,14 @@ Status: **in progress** · Started: 2026-11-24 · Owner request: "the whole UI a
 
 ## Parts
 
-### 1. Foundation: done in PR #56
+### 1. Foundation: merged (#56)
 
 - Tokens: dark by default, the site's canvas and orange accent.
 - Primitives: pill buttons, soft badges, cards, inputs and tables.
 - Shell: wordmark, sticky top bar, content width cap.
 - Pages: `PageHeader` with pill tabs on every module; redesigned overview, tasks, sign-in and workspace picker.
 
-### 2. Inbox (next)
+### 2. Inbox: in review (PR "UI inbox redesign")
 
 Conversation page (`m/inbox/conversations/[id]`):
 

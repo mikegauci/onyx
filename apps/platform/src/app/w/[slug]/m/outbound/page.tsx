@@ -1,3 +1,4 @@
+import { PageHeader } from "@onyx/ui/components/page";
 import { Badge } from "@onyx/ui/components/badge";
 import Link from "next/link";
 
@@ -29,20 +30,31 @@ function DraftList({
   timezone: string;
   empty: string;
 }) {
-  if (drafts.length === 0) return <p className="text-muted-foreground text-sm">{empty}</p>;
+  if (drafts.length === 0) {
+    return (
+      <p className="text-muted-foreground rounded-2xl border border-dashed px-5 py-4 text-sm">
+        {empty}
+      </p>
+    );
+  }
   return (
-    <ul className="flex flex-col gap-3" aria-label={label}>
+    <ul className="bg-card divide-y rounded-2xl border" aria-label={label}>
       {drafts.map((draft) => (
-        <li key={draft.id} className="flex flex-col gap-1 rounded-md border p-3">
+        <li key={draft.id} className="flex flex-col gap-1.5 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Link className="font-medium underline" href={outboundPath(slug, "drafts", draft.id)}>
+            <Link
+              className="hover:text-brand font-medium underline-offset-4 transition-colors hover:underline"
+              href={outboundPath(slug, "drafts", draft.id)}
+            >
               {draft.conversation_subject || "Conversation"}
             </Link>
             <Badge variant={DRAFT_STATUS_VARIANT[draft.status]}>
               {DRAFT_STATUS_LABEL[draft.status]}
             </Badge>
           </div>
-          <p className="line-clamp-2 text-sm whitespace-pre-wrap">{draft.body}</p>
+          <p className="text-muted-foreground line-clamp-2 text-sm whitespace-pre-wrap">
+            {draft.body}
+          </p>
           <p className="text-muted-foreground text-xs">
             {originLabel(draft)}
             {draft.quote ? ` · quote ${draft.quote.number}` : ""} ·{" "}
@@ -87,28 +99,32 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
-          Outbound replies
-        </h1>
-        <p className="text-sm">
-          Replies drafted by staff or the{" "}
-          <Link className="underline" href={inboxPath(slug, "conversations")}>
-            assistant
-          </Link>{" "}
-          go to the customer only after an admin or owner approves the exact text. A reply with a
-          quote needs that quote approved first. Drafts stay valid for {hours} hours, and expire
-          sooner if the customer writes again or the quote changes.
-        </p>
-        {!canApprove ? (
-          <p className="text-muted-foreground text-xs">
-            Admins and owners approve replies. You can draft, edit and send approved ones.
-          </p>
-        ) : null}
-      </div>
+      <PageHeader
+        eyebrow="Module"
+        title="Outbound replies"
+        description={
+          <>
+            Replies drafted by staff or the{" "}
+            <Link
+              className="text-brand underline-offset-4 hover:underline"
+              href={inboxPath(slug, "conversations")}
+            >
+              assistant
+            </Link>{" "}
+            go to the customer only after an admin or owner approves the exact text. A reply with a
+            quote needs that quote approved first. Drafts stay valid for {hours} hours, and expire
+            sooner if the customer writes again or the quote changes.
+            {!canApprove ? (
+              <span className="mt-2 block text-xs">
+                Admins and owners approve replies. You can draft, edit and send approved ones.
+              </span>
+            ) : null}
+          </>
+        }
+      />
 
       <section className="flex flex-col gap-3" aria-labelledby="pending-heading">
-        <h2 id="pending-heading" className="text-lg font-medium">
+        <h2 id="pending-heading" className="text-lg font-light tracking-tight">
           Waiting for approval
         </h2>
         <DraftList
@@ -121,7 +137,7 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="approved-heading">
-        <h2 id="approved-heading" className="text-lg font-medium">
+        <h2 id="approved-heading" className="text-lg font-light tracking-tight">
           Approved, ready to send
         </h2>
         <DraftList
@@ -134,7 +150,7 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="sent-heading">
-        <h2 id="sent-heading" className="text-lg font-medium">
+        <h2 id="sent-heading" className="text-lg font-light tracking-tight">
           Recently sent
         </h2>
         <DraftList
@@ -148,7 +164,7 @@ export default async function OutboundPage({ params }: { params: Promise<{ slug:
 
       {canManage ? (
         <section className="flex flex-col gap-3" aria-labelledby="expiry-heading">
-          <h2 id="expiry-heading" className="text-lg font-medium">
+          <h2 id="expiry-heading" className="text-lg font-light tracking-tight">
             Draft expiry and reminders
           </h2>
           <ExpiryForm slug={slug} settings={outboundSettings} />

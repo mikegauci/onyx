@@ -34,7 +34,7 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ s
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4" aria-labelledby="suppressions-heading">
-        <h2 id="suppressions-heading" className="text-lg font-medium">
+        <h2 id="suppressions-heading" className="text-lg font-light tracking-tight">
           Blocked addresses
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -43,7 +43,9 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ s
           IEQAF on WhatsApp.
         </p>
         {suppressions.length === 0 ? (
-          <p className="text-sm">No blocked addresses.</p>
+          <p className="text-muted-foreground rounded-2xl border border-dashed px-5 py-4 text-sm">
+            No blocked addresses.
+          </p>
         ) : (
           <Table>
             <TableCaption className="sr-only">Blocked addresses</TableCaption>
@@ -89,10 +91,12 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ s
       </section>
       {canWrite ? (
         <section className="flex flex-col gap-4" aria-labelledby="new-suppression-heading">
-          <h2 id="new-suppression-heading" className="text-lg font-medium">
+          <h2 id="new-suppression-heading" className="text-lg font-light tracking-tight">
             Block an address
           </h2>
-          <AddSuppressionForm slug={slug} />
+          <div className="bg-card max-w-xl rounded-2xl border p-5">
+            <AddSuppressionForm slug={slug} />
+          </div>
         </section>
       ) : null}
     </div>

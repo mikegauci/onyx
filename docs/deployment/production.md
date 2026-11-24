@@ -14,8 +14,16 @@ has backups (Supabase Pro) and the client's data processing agreement is signed.
 | Errors    | Sentry `mikes-org-nt` (EU), projects `onyx-api`, `onyx-platform`, environment `production`         | Free                             |
 | Billing   | Stripe sandbox "Onyx Studio sandbox" (test mode), webhook `https://api.onyx.mt/v1/webhooks/stripe` | —                                |
 
-Not running in production yet: the Temporal worker (approval reminders and escalations), AI
-(no provider key), WhatsApp (needs Meta business verification), live Stripe.
+Not running in production yet: the Temporal worker (approval reminders and escalations) and
+live Stripe.
+
+- **AI:** OpenAI, model `gpt-5.4-mini` for replies and `text-embedding-3-small` for document
+  search. `gpt-6-luna` cannot be used: it rejects tool calls on the chat completions endpoint.
+- **WhatsApp:** Meta app "Onyx Platform", in the business portfolio "Onyx Studio" (business
+  verification in review). Webhook `https://api.onyx.mt/v1/webhooks/whatsapp`. The Meta test
+  number is attached to the `onyx-studio` workspace. Each WhatsApp Business account must be
+  subscribed to the app (`POST /{waba-id}/subscribed_apps`), or Meta never delivers its
+  messages.
 
 ## API settings (Render `onyx-api` → Environment)
 
@@ -23,7 +31,10 @@ Names only; values live in Render. `ONYX_API_ENVIRONMENT=production`, `ONYX_API_
 `ONYX_API_CORS_ORIGINS=https://app.onyx.mt`, `ONYX_API_SUPABASE_URL`, `ONYX_API_DATABASE_URL`
 (pooler, `onyx_api_login`), `ONYX_API_SENTRY_DSN`, `ONYX_API_SENTRY_TRACES_SAMPLE_RATE=0`,
 `ONYX_API_STRIPE_API_KEY`, `ONYX_API_STRIPE_WEBHOOK_SECRET`, `ONYX_API_STRIPE_PRICE_STARTER`,
-`ONYX_API_STRIPE_PRICE_GROWTH`. A custom domain `api.onyx.mt` is set on the service.
+`ONYX_API_STRIPE_PRICE_GROWTH`, `ONYX_API_OPENAI_API_KEY`, `ONYX_API_AI_DEFAULT_MODEL`,
+`ONYX_API_AI_WORKLOAD_MODELS`, `ONYX_API_AI_MODEL_PRICES`, `ONYX_API_WHATSAPP_APP_SECRET`,
+`ONYX_API_WHATSAPP_ACCESS_TOKEN` (a system user's token), `ONYX_API_WHATSAPP_VERIFY_TOKEN`. A
+custom domain `api.onyx.mt` is set on the service.
 
 ## Dashboard settings (Vercel `onyx-platform`, production target)
 

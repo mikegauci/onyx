@@ -53,7 +53,7 @@ export function NewConversationForm({
   const [key] = useState(newKey);
   const errors = state.fieldErrors ?? {};
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-4" noValidate>
+    <form action={action} className="flex flex-col gap-4" noValidate>
       <FormStatus state={state} />
       <input type="hidden" name="idempotency_key" value={key} />
       <FormField id="channel_id" label="Channel" error={errors.channel_id}>
@@ -87,7 +87,7 @@ export function NewConversationForm({
           ))}
         </select>
       </FormField>
-      <fieldset className="flex flex-col gap-3 rounded-md border p-3">
+      <fieldset className="bg-card flex flex-col gap-3 rounded-2xl border p-5">
         <legend className="px-1 text-sm font-medium">Or the customer&apos;s details</legend>
         {errors.sender ? (
           <p className="text-destructive text-sm" role="alert">
@@ -151,11 +151,15 @@ export function ComposeForm({
     <form ref={form} action={action} className="flex flex-col gap-3" noValidate>
       <FormStatus state={state} />
       <input ref={keyInput} type="hidden" name="idempotency_key" defaultValue={initialKey} />
-      <fieldset className="flex flex-wrap gap-4">
+      <fieldset className="bg-foreground/[0.03] flex flex-wrap gap-1 self-start rounded-2xl border p-1 sm:rounded-full">
         <legend className="sr-only">Message type</legend>
         {kinds.map((k) => (
-          <label key={k} className="flex items-center gap-2 text-sm">
+          <label
+            key={k}
+            className="text-muted-foreground has-[:checked]:bg-foreground/10 has-[:checked]:text-foreground has-[:focus-visible]:ring-ring flex cursor-pointer items-center rounded-full px-3 py-1.5 text-xs font-medium transition-colors has-[:disabled]:opacity-50 has-[:focus-visible]:ring-2"
+          >
             <input
+              className="sr-only"
               type="radio"
               name="kind"
               value={k}
@@ -194,9 +198,9 @@ export function ComposeForm({
           person.
         </p>
       ) : null}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end justify-end gap-3">
         {kind !== "note" ? (
-          <FormField id="set_status" label="Then" className="sm:w-64">
+          <FormField id="set_status" label="Then" className="w-full sm:w-56">
             <select id="set_status" name="set_status" className={SELECT_CLASS} defaultValue="">
               <option value="">Keep the status</option>
               {kind === "reply" ? (
@@ -237,7 +241,7 @@ export function AssignForm({
     <div className="flex flex-col gap-2">
       <FormStatus state={state} />
       <form action={action} className="flex flex-wrap items-end gap-2">
-        <FormField id="assignee" label="Assigned to" className="sm:w-64">
+        <FormField id="assignee" label="Assigned to" className="min-w-0 flex-1">
           <select
             id="assignee"
             name="assignee_user_id"
@@ -253,7 +257,7 @@ export function AssignForm({
             ))}
           </select>
         </FormField>
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button type="submit" variant="outline" size="sm" className="h-9" disabled={pending}>
           Assign
         </Button>
       </form>
@@ -283,14 +287,15 @@ export function StatusForm({
   return (
     <div className="flex flex-col gap-2">
       <FormStatus state={state} />
-      <form action={action} className="flex flex-wrap gap-2">
+      <form action={action} className="flex flex-wrap gap-2 md:justify-end">
         {conversation.allowed_statuses.map((status) => (
           <Button
             key={status}
             type="submit"
             name="status"
             value={status}
-            variant={status === "closed" ? "outline" : "default"}
+            size="sm"
+            variant={status === "open" ? "default" : "outline"}
             disabled={pending}
           >
             {STATUS_ACTION[status]}
@@ -342,7 +347,7 @@ export function HandoffForm({
       >
         <Input id="reason" name="reason" required maxLength={500} />
       </FormField>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" variant="outline" size="sm" disabled={pending} className="self-start">
         Hand to staff
       </Button>
     </form>
@@ -371,7 +376,7 @@ export function LinkContactForm({
           id="link-contact"
           label="CRM contact"
           error={state.fieldErrors?.contact_id ?? state.fieldErrors?.lead_id}
-          className="sm:w-64"
+          className="min-w-0 flex-1"
         >
           <select
             id="link-contact"
@@ -388,7 +393,7 @@ export function LinkContactForm({
             ))}
           </select>
         </FormField>
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button type="submit" variant="outline" size="sm" className="h-9" disabled={pending}>
           Save contact
         </Button>
       </div>

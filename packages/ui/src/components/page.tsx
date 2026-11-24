@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 
 import { cn } from "../lib/utils";
 
@@ -77,6 +77,8 @@ type PanelProps = Omit<React.ComponentProps<"section">, "title"> & {
   as?: "h2" | "h3";
   /** Remove the body padding, e.g. for a flush table or list. */
   flush?: boolean;
+  /** Draw a rule under the header (default). Off for compact side panels. */
+  divided?: boolean;
 };
 
 /** A bordered surface with an optional header row. The building block for page sections. */
@@ -86,16 +88,32 @@ export function Panel({
   actions,
   as: Heading = "h2",
   flush = false,
+  divided = true,
   className,
   children,
   ...props
 }: PanelProps) {
+  // The title names the region for assistive technology unless the caller names it.
+  const headingId = React.useId();
+  const labelled =
+    title && !props["aria-label"] && !props["aria-labelledby"]
+      ? { "aria-labelledby": headingId }
+      : {};
   return (
-    <section className={cn("bg-card rounded-2xl border", className)} {...props}>
+    <section className={cn("bg-card rounded-2xl border", className)} {...labelled} {...props}>
       {title || actions ? (
-        <div className="flex items-start justify-between gap-3 border-b px-5 py-4">
+        <div
+          className={cn(
+            "flex items-start justify-between gap-3 px-5 pt-4",
+            divided ? "border-b pb-4" : "pb-0",
+          )}
+        >
           <div className="flex min-w-0 flex-col gap-1">
-            {title ? <Heading className="text-sm font-medium">{title}</Heading> : null}
+            {title ? (
+              <Heading id={headingId} className="text-sm font-medium">
+                {title}
+              </Heading>
+            ) : null}
             {description ? (
               <p className="text-muted-foreground text-xs text-pretty">{description}</p>
             ) : null}

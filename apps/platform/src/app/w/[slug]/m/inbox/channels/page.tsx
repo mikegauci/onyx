@@ -56,7 +56,7 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4" aria-labelledby="channels-heading">
-        <h2 id="channels-heading" className="text-lg font-medium">
+        <h2 id="channels-heading" className="text-lg font-light tracking-tight">
           Channels
         </h2>
         <Table>
@@ -115,7 +115,7 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
       </section>
       {emailChannels.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="email-settings-heading">
-          <h2 id="email-settings-heading" className="text-lg font-medium">
+          <h2 id="email-settings-heading" className="text-lg font-light tracking-tight">
             Email sender details
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -124,8 +124,8 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
             customer&apos;s answer comes back to the same conversation.
           </p>
           {emailChannels.map((channel) => (
-            <div key={channel.id} className="flex flex-col gap-2 rounded-md border p-3">
-              <h3 className="font-medium">{channel.name}</h3>
+            <div key={channel.id} className="bg-card flex flex-col gap-3 rounded-2xl border p-5">
+              <h3 className="text-sm font-medium">{channel.name}</h3>
               <EmailSettingsForm slug={slug} channel={channel} />
             </div>
           ))}
@@ -133,7 +133,7 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
       ) : null}
       {templates.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="templates-heading">
-          <h2 id="templates-heading" className="text-lg font-medium">
+          <h2 id="templates-heading" className="text-lg font-light tracking-tight">
             WhatsApp templates
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -141,8 +141,8 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
             templates approved by Meta. Create them in WhatsApp Manager, then refresh the list here.
           </p>
           {templates.map(({ channel, items }) => (
-            <div key={channel.id} className="flex flex-col gap-3 rounded-md border p-3">
-              <h3 className="font-medium">
+            <div key={channel.id} className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium">
                 {channel.name} · {channel.phone_number}
               </h3>
               <TemplateTable items={items} name={channel.name} zone={workspace.timezone} />
@@ -152,10 +152,12 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
         </section>
       ) : null}
       <section className="flex flex-col gap-4" aria-labelledby="new-channel-heading">
-        <h2 id="new-channel-heading" className="text-lg font-medium">
+        <h2 id="new-channel-heading" className="text-lg font-light tracking-tight">
           Add a channel
         </h2>
-        <ChannelForm slug={slug} />
+        <div className="bg-card max-w-xl rounded-2xl border p-5">
+          <ChannelForm slug={slug} />
+        </div>
       </section>
     </div>
   );

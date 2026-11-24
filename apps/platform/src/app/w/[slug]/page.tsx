@@ -55,7 +55,7 @@ export default async function WorkspaceOverviewPage({ params }: Props) {
     <>
       <PageHeader
         eyebrow="Overview"
-        title={workspace.display_name ?? workspace.name}
+        title={workspace.name}
         description={
           <>
             Signed in as <span className="text-foreground capitalize">{workspace.role}</span> ·

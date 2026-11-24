@@ -5,7 +5,6 @@
  */
 export const site = {
   name: "Onyx Studio",
-  shortName: "onyx",
   tagline: "AI that answers, books and follows up. People who stay in charge.",
   description:
     "Onyx Studio is a Malta studio building AI automation, websites and integrations for growing businesses, on top of our own platform, Onyx Platform.",

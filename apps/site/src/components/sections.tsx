@@ -15,6 +15,7 @@ import {
   system,
 } from "@/content/site";
 
+import { HandoffMark } from "./handoff-mark";
 import { HeroCanvas } from "./hero-canvas";
 import { IndustriesSlider } from "./industries-slider";
 import { LiveQueue } from "./live-queue";
@@ -28,12 +29,12 @@ import { WordReveal } from "./word-reveal";
 const container = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const focusRing = "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
 
-function Mark({ className = "" }: { className?: string }) {
+function StudioLogo() {
   return (
-    <span
-      aria-hidden
-      className={`bg-brand inline-block size-3 rotate-45 rounded-[3px] ${className}`}
-    />
+    <span className="inline-flex shrink-0 items-center gap-2.5 font-bold tracking-tight whitespace-nowrap text-[#f4eee6]">
+      <HandoffMark className="size-5 shrink-0" />
+      {site.name}
+    </span>
   );
 }
 
@@ -55,13 +56,8 @@ export function SiteNav({ platformUrl }: { platformUrl: string }) {
         aria-label="Main"
         className={`${container} flex h-20 items-center justify-between gap-4`}
       >
-        <a
-          href="#top"
-          className={`flex items-center gap-2.5 rounded-md text-lg tracking-tight ${focusRing}`}
-        >
-          <Mark />
-          <span className="font-medium">onyx</span>
-          <span className="text-muted-foreground hidden text-sm sm:inline">studio</span>
+        <a href="#top" className={`rounded-md text-lg ${focusRing}`}>
+          <StudioLogo />
         </a>
         <ul className="hidden items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-1.5 text-sm backdrop-blur-xl md:flex">
           {nav.map((item) => (
@@ -414,7 +410,7 @@ export function Principles() {
             className="flex items-center gap-12 pr-12"
           >
             {p}
-            <Mark className="size-2.5" />
+            <HandoffMark className="size-4 shrink-0" />
           </li>
         ))}
       </ul>
@@ -502,8 +498,8 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
     <footer data-cursor-glow className="relative overflow-hidden border-t border-white/10">
       <div className={`${container} grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4`}>
         <div className="lg:col-span-2">
-          <p className="flex items-center gap-2.5 text-lg">
-            <Mark /> {site.name}
+          <p className="text-lg">
+            <StudioLogo />
           </p>
           <p className="text-muted-foreground mt-3 max-w-sm text-sm">{site.description}</p>
         </div>
@@ -561,9 +557,9 @@ export function SiteFooter({ platformUrl }: { platformUrl: string }) {
       </div>
       <p
         aria-hidden
-        className="footer-word pointer-events-none -mb-[0.18em] text-center text-[28vw] leading-none font-light tracking-[-0.06em] select-none"
+        className="footer-word pointer-events-none -mb-[0.18em] text-center text-[15vw] leading-none font-bold tracking-[-0.06em] whitespace-nowrap select-none"
       >
-        {site.shortName}
+        {site.name}
       </p>
     </footer>
   );

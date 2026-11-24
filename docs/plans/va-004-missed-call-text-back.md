@@ -1,6 +1,6 @@
 # VA-004 — Missed-call text-back: implementation plan
 
-Status: **draft for owner approval** · 2026-11-24 · Roadmap: `docs/roadmap-additions.md` (VA-004)
+Status: **approved 2026-11-24, implemented** · 2026-11-24 · Roadmap: `docs/roadmap-additions.md` (VA-004)
 
 ## Owner decisions (2026-11-24)
 
@@ -33,7 +33,6 @@ The production API has no Temporal worker yet, so sending happens in the API pro
 
 ## Data (migration 0026)
 
-- `ChannelKind.PHONE`: a "phone" channel per cloud number, so missed calls live in the normal inbox.
 - `inbox_phone_lines`:
   - Fields: tenant, channel, provider, number (E.164, unique per provider), text-back on/off, WhatsApp channel and template, SMS text, SMS sender ID, and cooldown hours.
   - RLS by tenant.
@@ -86,3 +85,10 @@ The production API has no Temporal worker yet, so sending happens in the API pro
 - Voicemail, call recording and transcription (VA-011).
 - WhatsApp alerts to staff phones.
 - Answering calls or IVR menus.
+
+## Changes during implementation
+
+- **No new channel kind:** missed calls are threaded into the linked **WhatsApp** channel's conversation with the caller, not a separate "phone" channel. The text-back and the customer's WhatsApp answer then share one thread, and staff can reply inside the 24-hour window without switching conversations.
+- **Connecting a number** has no admin screen. Like WhatsApp numbers, a platform admin connects it through the API (`POST /v1/admin/organizations/{slug}/phone-lines`).
+- **Landlines skipped:** text-back is also skipped for Maltese landlines (+356 2…), which can't receive WhatsApp or SMS.
+- **SMS fallback after a later failure:** the SMS fallback also runs when WhatsApp first accepts the message and later reports it failed (e.g. the number isn't on WhatsApp). The call is claimed first, so the SMS is still sent once.

@@ -847,6 +847,38 @@
         "title": "AuthorKind",
         "type": "string"
       },
+      "BaselineOut": {
+        "properties": {
+          "enquiries_per_week": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enquiries Per Week"
+          },
+          "first_reply_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Reply Minutes"
+          }
+        },
+        "required": [
+          "first_reply_minutes",
+          "enquiries_per_week"
+        ],
+        "title": "BaselineOut",
+        "type": "object"
+      },
       "BillingOut": {
         "properties": {
           "cancel_at_period_end": {
@@ -1871,6 +1903,166 @@
         "title": "ContactUpdate",
         "type": "object"
       },
+      "ControlsOut": {
+        "properties": {
+          "assistant_active": {
+            "title": "Assistant Active",
+            "type": "boolean"
+          },
+          "assistant_enabled": {
+            "title": "Assistant Enabled",
+            "type": "boolean"
+          },
+          "baseline_enquiries_per_week": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Enquiries Per Week"
+          },
+          "baseline_first_reply_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline First Reply Minutes"
+          },
+          "manual_mode": {
+            "title": "Manual Mode",
+            "type": "boolean"
+          },
+          "manual_mode_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Mode Reason"
+          },
+          "text_back_active": {
+            "title": "Text Back Active",
+            "type": "boolean"
+          },
+          "text_back_enabled": {
+            "title": "Text Back Enabled",
+            "type": "boolean"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "manual_mode",
+          "manual_mode_reason",
+          "assistant_enabled",
+          "text_back_enabled",
+          "assistant_active",
+          "text_back_active",
+          "baseline_first_reply_minutes",
+          "baseline_enquiries_per_week",
+          "updated_at"
+        ],
+        "title": "ControlsOut",
+        "type": "object"
+      },
+      "ControlsUpdate": {
+        "description": "Fields to change; omitted fields stay as they are. ``null`` clears a baseline or reason.",
+        "properties": {
+          "assistant_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assistant Enabled"
+          },
+          "baseline_enquiries_per_week": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Enquiries Per Week"
+          },
+          "baseline_first_reply_minutes": {
+            "anyOf": [
+              {
+                "maximum": 43200.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline First Reply Minutes"
+          },
+          "manual_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Mode"
+          },
+          "manual_mode_reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Mode Reason"
+          },
+          "text_back_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Back Enabled"
+          }
+        },
+        "title": "ControlsUpdate",
+        "type": "object"
+      },
       "ConversationCreate": {
         "additionalProperties": false,
         "description": "Record a new conversation, starting with the customer's message (e.g. a phone call).",
@@ -2258,6 +2450,24 @@
           }
         },
         "title": "ConversationUpdate",
+        "type": "object"
+      },
+      "Count": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "count"
+        ],
+        "title": "Count",
         "type": "object"
       },
       "CustomLineCreate": {
@@ -3471,6 +3681,61 @@
         "title": "DraftUserRef",
         "type": "object"
       },
+      "DraftsOut": {
+        "properties": {
+          "expired": {
+            "title": "Expired",
+            "type": "integer"
+          },
+          "median_approval_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Approval Seconds"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "sent_after_edit": {
+            "title": "Sent After Edit",
+            "type": "integer"
+          },
+          "sent_as_written": {
+            "title": "Sent As Written",
+            "type": "integer"
+          },
+          "superseded": {
+            "title": "Superseded",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "waiting": {
+            "title": "Waiting",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "sent_as_written",
+          "sent_after_edit",
+          "rejected",
+          "expired",
+          "waiting",
+          "superseded",
+          "median_approval_seconds"
+        ],
+        "title": "DraftsOut",
+        "type": "object"
+      },
       "EmailDeliveryOut": {
         "properties": {
           "detail": {
@@ -3521,6 +3786,27 @@
         "title": "EmailDeliveryStatus",
         "type": "string"
       },
+      "EnquiriesOut": {
+        "properties": {
+          "by_channel": {
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "By Channel",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "by_channel"
+        ],
+        "title": "EnquiriesOut",
+        "type": "object"
+      },
       "ErrorCode": {
         "enum": [
           "bad_request",
@@ -3535,7 +3821,8 @@
           "internal_error",
           "unavailable",
           "budget_exceeded",
-          "workspace_suspended"
+          "workspace_suspended",
+          "feature_paused"
         ],
         "title": "ErrorCode",
         "type": "string"
@@ -4117,6 +4404,95 @@
           "next_cursor"
         ],
         "title": "ImportRunPage",
+        "type": "object"
+      },
+      "InsightsOut": {
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/BaselineOut"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "drafts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DraftsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enquiries": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EnquiriesOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "missed_calls": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MissedCallsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quotes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotesOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "response_time": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseTimeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "since": {
+            "format": "date-time",
+            "title": "Since",
+            "type": "string"
+          }
+        },
+        "required": [
+          "days",
+          "since",
+          "baseline",
+          "enquiries",
+          "response_time",
+          "drafts",
+          "runs",
+          "quotes",
+          "missed_calls"
+        ],
+        "title": "InsightsOut",
         "type": "object"
       },
       "IntegrationStatus": {
@@ -4803,6 +5179,32 @@
         "title": "LinkOut",
         "type": "object"
       },
+      "ManualModeSet": {
+        "additionalProperties": false,
+        "properties": {
+          "manual_mode": {
+            "title": "Manual Mode",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "manual_mode"
+        ],
+        "title": "ManualModeSet",
+        "type": "object"
+      },
       "MeResponse": {
         "properties": {
           "is_platform_admin": {
@@ -5055,6 +5457,47 @@
           "next_cursor"
         ],
         "title": "MessagePage",
+        "type": "object"
+      },
+      "MissedCallsOut": {
+        "properties": {
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "skip_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "Skip Reasons",
+            "type": "array"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "sms_sent": {
+            "title": "Sms Sent",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "whatsapp_sent": {
+            "title": "Whatsapp Sent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "whatsapp_sent",
+          "sms_sent",
+          "skipped",
+          "failed",
+          "skip_reasons"
+        ],
+        "title": "MissedCallsOut",
         "type": "object"
       },
       "ModuleKey": {
@@ -6876,6 +7319,34 @@
         "title": "QuoteUpdate",
         "type": "object"
       },
+      "QuotesOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "sent": {
+            "title": "Sent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "approved",
+          "sent",
+          "accepted"
+        ],
+        "title": "QuotesOut",
+        "type": "object"
+      },
       "Reason": {
         "enum": [
           "model_escalated",
@@ -6952,6 +7423,53 @@
           "reason"
         ],
         "title": "RejectRequest",
+        "type": "object"
+      },
+      "ResponseTimeOut": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "automatic_replies": {
+            "title": "Automatic Replies",
+            "type": "integer"
+          },
+          "median_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Seconds"
+          },
+          "p90_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P90 Seconds"
+          },
+          "unanswered": {
+            "title": "Unanswered",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "answered",
+          "unanswered",
+          "median_seconds",
+          "p90_seconds",
+          "automatic_replies"
+        ],
+        "title": "ResponseTimeOut",
         "type": "object"
       },
       "RevisionCreate": {
@@ -7148,6 +7666,37 @@
         ],
         "title": "RunOutcome",
         "type": "string"
+      },
+      "RunsOut": {
+        "properties": {
+          "drafted": {
+            "title": "Drafted",
+            "type": "integer"
+          },
+          "escalated": {
+            "title": "Escalated",
+            "type": "integer"
+          },
+          "top_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "Top Reasons",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "drafted",
+          "escalated",
+          "top_reasons"
+        ],
+        "title": "RunsOut",
+        "type": "object"
       },
       "SearchHit": {
         "properties": {
@@ -10267,6 +10816,87 @@
         ]
       }
     },
+    "/v1/admin/organizations/{slug}/manual-mode": {
+      "put": {
+        "description": "Onyx support's kill switch: turn manual mode on or off for any workspace (audited).",
+        "operationId": "set_manual_mode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualModeSet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not a platform admin, or no such resource"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Manual Mode",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/v1/admin/organizations/{slug}/modules/{key}": {
       "put": {
         "operationId": "set_organization_module",
@@ -11279,7 +11909,7 @@
                 }
               }
             },
-            "description": "Conversation closed, or no customer message yet"
+            "description": "Conversation closed, no customer message yet, or the assistant is paused"
           },
           "422": {
             "content": {
@@ -14352,6 +14982,188 @@
         "summary": "Archive Vat Rate",
         "tags": [
           "catalogue"
+        ]
+      }
+    },
+    "/v1/w/{slug}/controls": {
+      "get": {
+        "operationId": "read_controls",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Controls",
+        "tags": [
+          "controls"
+        ]
+      },
+      "patch": {
+        "operationId": "update_controls",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Controls",
+        "tags": [
+          "controls"
         ]
       }
     },
@@ -18933,6 +19745,105 @@
         "summary": "Release Suppression",
         "tags": [
           "inbox"
+        ]
+      }
+    },
+    "/v1/w/{slug}/insights": {
+      "get": {
+        "operationId": "read_insights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "description": "7, 30 or 90",
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "description": "7, 30 or 90",
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Insights",
+        "tags": [
+          "controls"
         ]
       }
     },

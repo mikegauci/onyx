@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 
 import { AppShell, type IconName, type NavGroup } from "@/components/shell/app-shell";
 import { WorkspaceSwitcher } from "@/components/shell/workspace-switcher";
-import { getMe, getWorkspace } from "@/lib/data";
+import { getControls, getMe, getWorkspace } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
 import { moduleLabel } from "@/lib/modules";
 import { withApi } from "@/lib/api-client";
 import { SETTINGS_SECTIONS, visibleSettings } from "@/lib/nav";
 import { tasksLabel } from "@/lib/tasks";
 
+import { ManualModeBanner } from "./manual-mode-banner";
 import { SuspendedWorkspace } from "./suspended";
 
 export const dynamic = "force-dynamic";
@@ -32,9 +33,17 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     ? await withApi((api) => api.GET("/v1/w/{slug}/tasks", { params: { path: { slug } } }))
     : null;
 
+  // Manual mode is shown on every page; a failure to load it just hides the banner.
+  const controls = await getControls(slug);
+
   const settings = visibleSettings(workspace.permissions);
   const nav: NavGroup[] = [
-    { items: [{ href: base, label: "Overview", icon: "overview", exact: true }] },
+    {
+      items: [
+        { href: base, label: "Overview", icon: "overview", exact: true },
+        { href: `${base}/insights`, label: "Insights", icon: "insights" },
+      ],
+    },
   ];
   if (tasks) {
     nav[0]!.items.push({
@@ -61,6 +70,8 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     [base]: workspace.display_name ?? workspace.name,
     [`${base}/settings`]: "Settings",
     [`${base}/tasks`]: "Tasks",
+    [`${base}/insights`]: "Insights",
+    [`${base}/help`]: "Help",
   };
   for (const key of workspace.modules) crumbLabels[`${base}/m/${key}`] = moduleLabel(key);
   for (const s of SETTINGS_SECTIONS) crumbLabels[`${base}/settings/${s.slug}`] = s.label;
@@ -87,6 +98,14 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       crumbLabels={crumbLabels}
       defaultOpen={sidebarOpen}
     >
+      {controls.ok && controls.data.manual_mode ? (
+        <ManualModeBanner
+          reason={controls.data.manual_mode_reason}
+          settingsHref={
+            workspace.permissions.includes("workspace.update") ? `${base}/settings/pilot` : null
+          }
+        />
+      ) : null}
       {children}
     </AppShell>
   );

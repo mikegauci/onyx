@@ -9,7 +9,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | VA-001   | Ventur     | Vehicle stock extension and WordPress import  | PR-010                        | 16–28h     | Merged (#42, #43, #44); live import awaits Ventur sold-field mapping |
 | VA-002   | Ventur     | Auto-send policy for low-risk AI replies      | PR-015, PR-016                | 12–20h     | Paused by the owner 2026-11-23; partial work reverted                |
 | VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                     |
-| VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | In progress; plan in `docs/plans/va-004-missed-call-text-back.md`    |
+| VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | Merged ([#64](https://github.com/mikegauci/onyx/pull/64)); go-live needs a +356 number      |
 | VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Approved 2026-11-19, not started                                     |
 | VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Approved 2026-11-19, not started                                     |
 | VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Approved 2026-11-19, not started                                     |

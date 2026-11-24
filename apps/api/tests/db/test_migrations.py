@@ -56,6 +56,7 @@ EXPECTED_TABLES = {
     "inbox_whatsapp_sends",
     "inbox_phone_lines",
     "inbox_missed_calls",
+    "workspace_controls",
     "workflow_effects",
     "tasks",
     "billing_customers",

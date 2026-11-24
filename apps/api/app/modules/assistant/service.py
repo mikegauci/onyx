@@ -18,6 +18,7 @@ from app.ai.errors import AIBudgetExceededError, AIProviderError, AIUnavailableE
 from app.ai.gateway import AIGateway, AIResult
 from app.core.audit.record import record_workspace_audit
 from app.core.auth.deps import WorkspaceAccess
+from app.core.controls.service import Feature, ensure_feature_on
 from app.core.errors import AppError, ConflictError, NotFoundError
 from app.modules.assistant import schemas
 from app.modules.assistant.models import Policy, Run, RunOutcome
@@ -149,6 +150,7 @@ class AssistantService:
     # --- runs ------------------------------------------------------------------------------
 
     async def run(self, conversation_id: uuid.UUID, gateway: AIGateway) -> schemas.RunOut:
+        await ensure_feature_on(self.db, self.tenant.organization_id, Feature.ASSISTANT)
         thread = await inbox.get_thread(self.db, self.tenant, conversation_id)
         if thread is None:
             raise NotFoundError("Conversation not found.")

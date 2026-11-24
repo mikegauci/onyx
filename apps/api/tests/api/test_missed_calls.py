@@ -565,3 +565,18 @@ def test_the_routing_lookup_is_worker_only_and_returns_ids(owner_engine: Engine,
         as_role(owner_engine, "onyx_app", email=OLIVIA, organization_id=LUMEN_ID) as conn,
     ):
         conn.execute(text("SELECT * FROM inbox_phone_line_for_number('fake', '+1')"))
+
+
+def test_text_back_is_paused_by_the_pilot_controls_but_the_call_is_still_logged(
+    api: TestClient, as_: As, line: str, owner_engine: Engine, wa: FakeWhatsApp
+) -> None:
+    _enable(api, as_, line)
+    paused = api.patch(
+        f"/v1/w/{LUMEN}/controls", json={"manual_mode": True}, headers=as_.seeded(OLIVIA)
+    )
+    assert paused.status_code == 200, paused.text
+    assert _call(api).status_code == 200
+    (call,) = _calls(owner_engine)
+    assert (call.outcome, call.skip_reason) == ("skipped", "paused")
+    assert len(_tasks(owner_engine)) == 1
+    assert wa.sent == []

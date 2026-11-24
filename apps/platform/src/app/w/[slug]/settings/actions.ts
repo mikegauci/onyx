@@ -77,3 +77,64 @@ export async function createInvitation(
     inviteLink: link.toString(),
   };
 }
+
+function wholeNumber(formData: FormData, name: string): number | null | "invalid" {
+  const raw = String(formData.get(name) ?? "").trim();
+  if (raw === "") return null;
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= 0 ? value : "invalid";
+}
+
+/** Manual mode on or off (PR-018). Turning it off clears the reason. */
+export async function setManualMode(
+  slug: string,
+  on: boolean,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const reason = String(formData.get("reason") ?? "").trim();
+  const outcome = await mutateApi((api) =>
+    api.PATCH("/v1/w/{slug}/controls", {
+      params: { path: { slug } },
+      body: on ? { manual_mode: true, manual_mode_reason: reason || null } : { manual_mode: false },
+    }),
+  );
+  if (!outcome.ok) return failure(outcome);
+  revalidatePath(`/w/${slug}`, "layout");
+  return {
+    status: "ok",
+    message: on
+      ? "Manual mode is on. Nothing is drafted or sent automatically."
+      : "Manual mode is off. The feature switches below apply again.",
+  };
+}
+
+/** The feature switches and the "before Onyx" baseline (PR-018). */
+export async function updateControls(
+  slug: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const firstReply = wholeNumber(formData, "baseline_first_reply_minutes");
+  const perWeek = wholeNumber(formData, "baseline_enquiries_per_week");
+  const fieldErrors: Record<string, string> = {};
+  if (firstReply === "invalid") fieldErrors.baseline_first_reply_minutes = "Enter whole minutes.";
+  if (perWeek === "invalid") fieldErrors.baseline_enquiries_per_week = "Enter a whole number.";
+  if (firstReply === "invalid" || perWeek === "invalid") {
+    return { status: "error", message: "Check the highlighted fields.", fieldErrors };
+  }
+  const outcome = await mutateApi((api) =>
+    api.PATCH("/v1/w/{slug}/controls", {
+      params: { path: { slug } },
+      body: {
+        assistant_enabled: formData.get("assistant_enabled") === "on",
+        text_back_enabled: formData.get("text_back_enabled") === "on",
+        baseline_first_reply_minutes: firstReply,
+        baseline_enquiries_per_week: perWeek,
+      },
+    }),
+  );
+  if (!outcome.ok) return failure(outcome);
+  revalidatePath(`/w/${slug}`, "layout");
+  return { status: "ok", message: "Pilot controls saved." };
+}

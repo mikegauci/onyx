@@ -42,6 +42,16 @@ export function topicLabel(topic: string): string {
 }
 
 /** Why the button cannot be used right now, or null when it can. */
+type Controls = components["schemas"]["ControlsOut"];
+
+/** Why the pilot controls stop the assistant, or null when it may run. The API decides too. */
+export function assistantPaused(controls: Controls | null): string | null {
+  if (!controls) return null;
+  if (controls.manual_mode) return "Manual mode is on, so the assistant is paused.";
+  if (!controls.assistant_enabled) return "The assistant is paused in Pilot controls.";
+  return null;
+}
+
 export function runBlockedReason(status: components["schemas"]["ConversationStatus"]) {
   return status === "closed" ? "Reopen the conversation to ask the assistant." : null;
 }

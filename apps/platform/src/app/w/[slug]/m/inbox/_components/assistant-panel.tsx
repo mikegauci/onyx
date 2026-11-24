@@ -80,18 +80,21 @@ export function AssistantPanel({
   status,
   runs,
   timezone,
+  paused = null,
 }: {
   slug: string;
   conversationId: string;
   status: ConversationStatus;
   runs: AssistantRun[];
   timezone: string;
+  /** Why the pilot controls stop the assistant (manual mode or its switch), or null. */
+  paused?: string | null;
 }) {
   const [state, action, pending] = useActionState(
     runAssistant.bind(null, slug, conversationId),
     IDLE,
   );
-  const blocked = runBlockedReason(status);
+  const blocked = paused ?? runBlockedReason(status);
   return (
     <section
       className="bg-card flex flex-col gap-4 rounded-2xl border p-5"

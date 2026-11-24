@@ -117,6 +117,13 @@ marks sold or reserved; the owner's go-ahead for the first live import.
 VA-001 part 2, the Vehicles and import screens, is in review (no migration). Next: VA-002, the
 auto-send policy for low-risk replies.
 
+VA-004 (missed-call text-back) merged ([#64](https://github.com/mikegauci/onyx/pull/64)), migration `0026`;
+`onyx-preview` is at `0026`. Going live needs the owner to buy a +356 number, confirm call forwarding
+and get a utility template approved. Plan: `docs/plans/va-004-missed-call-text-back.md`.
+
+PR-018 (pilot tools) is in progress: plan `docs/plans/pr-018-pilot-tools.md`. Part 1 (backend and
+dashboard: pilot controls, manual mode, Insights) adds migration `0027`. Part 2 is the guides.
+
 **First client: Ventur Auto Import** (19 November 2026), a car dealer, replaces the lighting
 retailer. The owner's decisions:
 

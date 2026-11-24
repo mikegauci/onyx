@@ -9,8 +9,10 @@ export default async function NewContactPage({ params }: { params: Promise<{ slu
   const customers = await customerOptions(slug);
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-medium">New contact</h2>
-      <ContactForm slug={slug} customers={customers} />
+      <h2 className="text-lg font-light tracking-tight">New contact</h2>
+      <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+        <ContactForm slug={slug} customers={customers} />
+      </div>
     </section>
   );
 }

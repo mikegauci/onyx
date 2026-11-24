@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 
 import { withApi } from "@/lib/api-client";
 import { requireOk } from "@/lib/guards";
@@ -25,14 +25,14 @@ export default async function NewQuotePage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={quotationsPath(slug, "quotes")}>
-        Back to quotes
-      </Link>
-      <h2 className="text-xl font-medium">New quote</h2>
+      <BackLink href={quotationsPath(slug, "quotes")}>Back to quotes</BackLink>
+      <h2 className="text-2xl font-light tracking-[-0.02em] text-balance">New quote</h2>
       {contacts.length === 0 ? (
         <p className="text-muted-foreground text-sm">Add a CRM contact before drafting a quote.</p>
       ) : (
-        <NewQuoteForm slug={slug} contacts={contacts} leads={leadOptions} />
+        <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+          <NewQuoteForm slug={slug} contacts={contacts} leads={leadOptions} />
+        </div>
       )}
     </div>
   );

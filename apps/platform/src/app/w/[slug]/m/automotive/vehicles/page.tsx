@@ -2,6 +2,8 @@ import { Badge } from "@onyx/ui/components/badge";
 import { EmptyState } from "@onyx/ui/components/states";
 import { Car } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@onyx/ui/components/button";
+import { selectClass } from "@onyx/ui/lib/form-classes";
 
 import { withApi } from "@/lib/api-client";
 import {
@@ -58,23 +60,19 @@ export default async function VehiclesPage({
       <h2 id="vehicles-heading" className="sr-only">
         Vehicles
       </h2>
-      <form action={path} className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
+      <form action={path} className="flex flex-wrap items-end gap-2">
+        <label className="text-muted-foreground flex w-full flex-col gap-1 text-xs sm:w-72">
           Search
           <input
             name="q"
             defaultValue={q ?? ""}
             placeholder="Make, model or stock number"
-            className="border-input bg-background h-9 w-64 rounded-md border px-3 text-sm"
+            className={selectClass}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="text-muted-foreground flex flex-col gap-1 text-xs">
           Status
-          <select
-            name="status"
-            defaultValue={status ?? "all"}
-            className="border-input bg-background h-9 rounded-md border px-3 text-sm"
-          >
+          <select name="status" defaultValue={status ?? "all"} className={`${selectClass} w-44`}>
             <option value="all">All</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -83,10 +81,12 @@ export default async function VehiclesPage({
             ))}
           </select>
         </label>
-        <button type="submit" className="h-9 rounded-md border px-3 text-sm">
+        <Button type="submit" variant="outline">
           Show
-        </button>
-        <span className="text-muted-foreground text-sm">{page.total} vehicles</span>
+        </Button>
+        <span className="text-muted-foreground ml-auto font-mono text-[11px] tracking-[0.15em] uppercase">
+          {page.total} vehicles
+        </span>
       </form>
 
       {page.items.length === 0 ? (
@@ -102,7 +102,10 @@ export default async function VehiclesPage({
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Vehicles">
           {page.items.map((v) => (
-            <li key={v.id} className="flex flex-col overflow-hidden rounded-md border">
+            <li
+              key={v.id}
+              className="group bg-card hover:border-foreground/20 relative flex flex-col overflow-hidden rounded-2xl border transition-colors"
+            >
               {v.photos[0] ? (
                 // Photos are on the dealer's own site; shown as they are, not proxied.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -110,21 +113,21 @@ export default async function VehiclesPage({
                   src={v.photos[0]}
                   alt=""
                   loading="lazy"
-                  className="bg-muted aspect-[4/3] w-full object-cover"
+                  className="bg-muted aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               ) : (
                 <div className="bg-muted aspect-[4/3] w-full" />
               )}
-              <div className="flex flex-col gap-1 p-3">
+              <div className="flex flex-col gap-1.5 p-4">
                 <Link
-                  className="font-medium underline-offset-4 hover:underline"
+                  className="focus-visible:ring-ring font-medium after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2"
                   href={automotivePath(slug, "vehicles", v.id)}
                 >
                   {v.title}
                 </Link>
                 <span className="text-muted-foreground text-sm">{vehicleSummary(v)}</span>
-                <span className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-medium tabular-nums">{euros(v.price_cents)}</span>
+                <span className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-base font-light tabular-nums">{euros(v.price_cents)}</span>
                   <Badge variant={VEHICLE_STATUS_VARIANT[v.status]}>
                     {VEHICLE_STATUS_LABEL[v.status]}
                   </Badge>
@@ -139,12 +142,18 @@ export default async function VehiclesPage({
       )}
       <nav className="flex gap-3 text-sm" aria-label="Pages">
         {offset > 0 ? (
-          <Link className="underline" href={query({ offset: String(Math.max(0, offset - PAGE)) })}>
+          <Link
+            className="text-brand underline-offset-4 hover:underline"
+            href={query({ offset: String(Math.max(0, offset - PAGE)) })}
+          >
             Previous
           </Link>
         ) : null}
         {offset + PAGE < page.total ? (
-          <Link className="underline" href={query({ offset: String(offset + PAGE) })}>
+          <Link
+            className="text-brand underline-offset-4 hover:underline"
+            href={query({ offset: String(offset + PAGE) })}
+          >
             Next
           </Link>
         ) : null}

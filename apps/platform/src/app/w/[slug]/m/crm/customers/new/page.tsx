@@ -9,8 +9,10 @@ export default async function NewCustomerPage({ params }: { params: Promise<{ sl
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-medium">New customer</h2>
-      <CustomerForm slug={slug} />
+      <h2 className="text-lg font-light tracking-tight">New customer</h2>
+      <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+        <CustomerForm slug={slug} />
+      </div>
     </section>
   );
 }

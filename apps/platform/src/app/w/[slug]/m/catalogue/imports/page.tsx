@@ -49,7 +49,7 @@ export default async function ImportHistoryPage({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="imports-heading">
-      <h2 id="imports-heading" className="text-lg font-medium">
+      <h2 id="imports-heading" className="text-lg font-light tracking-tight">
         Import history
       </h2>
       {page.items.length === 0 ? (

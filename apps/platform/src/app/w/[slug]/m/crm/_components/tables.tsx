@@ -14,7 +14,7 @@ import {
   formatInZone,
 } from "@/lib/crm";
 
-const LINK = "font-medium underline-offset-4 hover:underline";
+const LINK = "hover:text-brand font-medium underline-offset-4 transition-colors hover:underline";
 
 export function LeadsTable({
   slug,

@@ -1,5 +1,9 @@
+import { Badge } from "@onyx/ui/components/badge";
+import { Button } from "@onyx/ui/components/button";
+import { Panel } from "@onyx/ui/components/page";
 import Link from "next/link";
 
+import { RecordHeader, RecordLayout } from "@/components/record";
 import { withApi } from "@/lib/api-client";
 import { crmPath } from "@/lib/crm";
 import { requireOk } from "@/lib/guards";
@@ -30,37 +34,52 @@ export default async function CustomerPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link className="text-sm underline" href={crmPath(slug, "customers")}>
-        Back to customers
-      </Link>
-      <h2 className="text-xl font-medium">{record.name}</h2>
-      {record.archived_at ? (
-        <p className="text-muted-foreground text-sm">Archived customer</p>
-      ) : null}
-      <div className="flex flex-col items-start gap-2">
-        <p>
-          {record.kind === "business" ? "Business" : "Individual"} ·{" "}
-          {record.vat_number ?? "No VAT number"}
-        </p>
-      </div>
-      {canWrite ? (
-        <CustomerForm slug={slug} customer={record} />
-      ) : (
-        <p className="whitespace-pre-wrap">{record.notes}</p>
-      )}
-      {workspace.permissions.includes("crm.archive") ? (
-        <ArchiveButton slug={slug} kind="customer" id={id} archived={!!record.archived_at} />
-      ) : null}
-      <Link className="text-sm underline" href={`${crmPath(slug, "leads")}?customer_id=${id}`}>
-        View related leads
-      </Link>
-      <ActivitySection
-        slug={slug}
-        subjectType="customer"
-        id={id}
-        timezone={workspace.timezone}
-        canWrite={canWrite}
-        cursor={param((await searchParams).cursor)}
+      <RecordHeader
+        back={{ href: crmPath(slug, "customers"), label: "Back to customers" }}
+        title={record.name}
+        badges={record.archived_at ? <Badge variant="secondary">Archived customer</Badge> : null}
+        meta={
+          <>
+            <span>{record.kind === "business" ? "Business" : "Individual"}</span>
+            <span>{record.vat_number ?? "No VAT number"}</span>
+          </>
+        }
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href={`${crmPath(slug, "leads")}?customer_id=${id}`}>View related leads</Link>
+          </Button>
+        }
+      />
+      <RecordLayout
+        main={
+          <Panel title="Customer details" divided={false}>
+            {canWrite ? (
+              <CustomerForm slug={slug} customer={record} />
+            ) : (
+              <p className="text-sm whitespace-pre-wrap">{record.notes || "No notes."}</p>
+            )}
+            {workspace.permissions.includes("crm.archive") ? (
+              <div className="mt-5 border-t pt-4">
+                <ArchiveButton
+                  slug={slug}
+                  kind="customer"
+                  id={id}
+                  archived={!!record.archived_at}
+                />
+              </div>
+            ) : null}
+          </Panel>
+        }
+        aside={
+          <ActivitySection
+            slug={slug}
+            subjectType="customer"
+            id={id}
+            timezone={workspace.timezone}
+            canWrite={canWrite}
+            cursor={param((await searchParams).cursor)}
+          />
+        }
       />
     </div>
   );

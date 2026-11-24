@@ -20,7 +20,7 @@ export default async function ImportPage({ params }: { params: Promise<{ slug: s
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="source-heading" className="flex flex-col gap-3">
-        <h2 id="source-heading" className="text-lg font-medium">
+        <h2 id="source-heading" className="text-lg font-light tracking-tight">
           Website
         </h2>
         <p className="text-muted-foreground max-w-2xl text-sm">
@@ -28,15 +28,17 @@ export default async function ImportPage({ params }: { params: Promise<{ slug: s
           Each import shows what would change first; cars taken off the website are marked &quot;no
           longer listed&quot;, never deleted.
         </p>
-        <SourceForm
-          slug={slug}
-          baseUrl={source?.base_url ?? ""}
-          fieldMap={source ? JSON.stringify(source.field_map, null, 2) : ""}
-        />
+        <div className="bg-card rounded-2xl border p-5 sm:p-6">
+          <SourceForm
+            slug={slug}
+            baseUrl={source?.base_url ?? ""}
+            fieldMap={source ? JSON.stringify(source.field_map, null, 2) : ""}
+          />
+        </div>
       </section>
       {source ? (
         <section aria-labelledby="import-heading" className="flex flex-col gap-3">
-          <h2 id="import-heading" className="text-lg font-medium">
+          <h2 id="import-heading" className="text-lg font-light tracking-tight">
             Import
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -52,7 +54,9 @@ export default async function ImportPage({ params }: { params: Promise<{ slug: s
               "Not imported yet."
             )}
           </p>
-          <ImportControls slug={slug} />
+          <div className="bg-card rounded-2xl border p-5 sm:p-6">
+            <ImportControls slug={slug} />
+          </div>
         </section>
       ) : null}
     </div>

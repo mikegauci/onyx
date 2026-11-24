@@ -41,7 +41,7 @@ export default async function LeadsPage({
   );
   return (
     <section className="flex flex-col gap-4" aria-labelledby="leads-heading">
-      <h2 id="leads-heading" className="text-lg font-medium">
+      <h2 id="leads-heading" className="text-lg font-light tracking-tight">
         Leads
       </h2>
       <ListToolbar

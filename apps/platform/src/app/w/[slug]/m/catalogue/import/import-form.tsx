@@ -104,7 +104,7 @@ export function CatalogueImportForm({
           ) : null}
           {result.errors.length > 0 ? (
             <div>
-              <h3 className="font-medium">Rows with errors (skipped)</h3>
+              <h3 className="text-sm font-medium">Rows with errors (skipped)</h3>
               <ul className="list-inside list-disc text-sm">
                 {result.errors.map((error, i) => (
                   <li key={i}>

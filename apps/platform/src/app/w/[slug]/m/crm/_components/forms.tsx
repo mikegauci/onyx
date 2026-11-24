@@ -320,7 +320,7 @@ export function NoteForm({
           className={TEXTAREA_CLASS}
         />
       </FormField>
-      <Button type="submit" variant="outline" disabled={pending} className="self-start">
+      <Button type="submit" variant="outline" size="sm" disabled={pending} className="self-end">
         {pending ? "Saving…" : "Add note"}
       </Button>
     </form>
@@ -348,7 +348,7 @@ export function ArchiveButton({
   return (
     <form action={formAction} className="flex flex-col gap-2">
       <FormStatus state={state} />
-      <Button type="submit" variant="outline" disabled={pending} className="self-start">
+      <Button type="submit" variant="ghost" size="sm" disabled={pending} className="self-start">
         {archived ? `Restore ${kind}` : `Archive ${kind}`}
       </Button>
     </form>

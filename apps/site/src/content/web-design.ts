@@ -56,18 +56,36 @@ export const webDesignProjects = [
   {
     name: "Pantrila",
     type: "AI web app",
+    screenshot: {
+      src: "/portfolio/pantrila.webp",
+      height: 800,
+      alt: "Pantrila homepage introducing the cooking assistant alongside a preview of the app.",
+    },
+    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "FastAPI", "LangGraph", "Supabase"],
     description:
       "A cooking app that suggests meals from what you have, saves recipes from links or photos, and turns a weekly meal plan into a shopping list.",
   },
   {
     name: "QTM Detailing",
     type: "Service website",
+    screenshot: {
+      src: "/portfolio/qtm-detailing.webp",
+      height: 800,
+      alt: "QTM Detailing homepage with a dark car photograph and a prominent quote button.",
+    },
+    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Motion", "Supabase"],
     description:
       "A website for a Maltese car detailing studio with before-and-after photography, clear service packages and a route to request a quote.",
   },
   {
     name: "MaltaGuns",
     type: "Community platform",
+    screenshot: {
+      src: "/portfolio/maltaguns.webp",
+      height: 761,
+      alt: "MaltaGuns homepage with navigation, a headline and a photograph of Malta’s harbour.",
+    },
+    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Supabase", "Tiptap"],
     description:
       "A custom community platform for Malta with member accounts, event pages, a directory and an editorial section for guides and news.",
   },

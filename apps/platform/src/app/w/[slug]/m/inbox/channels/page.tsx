@@ -21,6 +21,7 @@ import {
 import { workspaceWith } from "@/lib/settings-guard";
 
 import { ChannelForm, ChannelToggle, CopyAddress, EmailSettingsForm } from "../_components/forms";
+import { TextBackForm } from "../_components/text-back";
 import { SyncTemplatesButton } from "../_components/whatsapp";
 
 export default async function ChannelsPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -52,6 +53,13 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
       ).items,
     })),
   );
+
+  const lines = requireOk(
+    await withApi((api) =>
+      api.GET("/v1/w/{slug}/inbox/phone-lines", { params: { path: { slug } } }),
+    ),
+    path,
+  ).items;
 
   return (
     <div className="flex flex-col gap-8">
@@ -147,6 +155,37 @@ export default async function ChannelsPage({ params }: { params: Promise<{ slug:
               </h3>
               <TemplateTable items={items} name={channel.name} zone={workspace.timezone} />
               <SyncTemplatesButton slug={slug} channelId={channel.id} channelName={channel.name} />
+            </div>
+          ))}
+        </section>
+      ) : null}
+      {lines.length > 0 ? (
+        <section className="flex flex-col gap-4" aria-labelledby="text-back-heading">
+          <h2 id="text-back-heading" className="text-lg font-light tracking-tight">
+            Missed-call text-back
+          </h2>
+          <p className="text-muted-foreground max-w-2xl text-sm">
+            When a call goes unanswered, Onyx records it in the caller&apos;s WhatsApp thread, opens
+            an urgent call-back task, and can message the caller straight away.
+          </p>
+          {lines.map((line) => (
+            <div key={line.id} className="bg-card flex flex-col gap-4 rounded-2xl border p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-sm font-medium">
+                  {line.number} · {line.whatsapp_channel.name}
+                </h3>
+                <p className="text-muted-foreground text-xs">
+                  Last 30 days: {line.missed_calls_30d} missed, {line.text_backs_30d} messaged
+                </p>
+              </div>
+              <TextBackForm
+                slug={slug}
+                line={line}
+                templates={
+                  templates.find(({ channel }) => channel.id === line.whatsapp_channel.id)?.items ??
+                  []
+                }
+              />
             </div>
           ))}
         </section>

@@ -24,6 +24,13 @@ live Stripe.
   number is attached to the `onyx-studio` workspace. Each WhatsApp Business account must be
   subscribed to the app (`POST /{waba-id}/subscribed_apps`), or Meta never delivers its
   messages.
+- **Missed-call text-back (VA-004):** off in production until a cloud number is bought. To
+  switch it on:
+  1. Set `ONYX_API_TELEPHONY_WEBHOOK_URL=https://api.onyx.mt/v1/webhooks/telephony`,
+     `ONYX_API_TWILIO_ACCOUNT_SID` and `ONYX_API_TWILIO_AUTH_TOKEN`.
+  2. Point the Twilio number's "A call comes in" webhook (HTTP POST) at that URL.
+  3. A platform admin connects the number with `POST /v1/admin/organizations/{slug}/phone-lines`.
+  4. The business sets the template and SMS text under Inbox → Channels.
 
 ## API settings (Render `onyx-api` → Environment)
 

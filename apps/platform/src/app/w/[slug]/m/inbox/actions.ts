@@ -268,3 +268,33 @@ export async function releaseSuppression(
   if (!outcome.ok) return failureState(outcome);
   return done(slug, "Address released. Onyx can send to it again.");
 }
+
+// --- missed-call text-back (VA-004) ----------------------------------------------------------
+
+/** Save a phone line's text-back settings. Empty SMS fields clear the SMS fallback. */
+export async function updatePhoneLine(
+  slug: string,
+  lineId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const templateId = optionalText(formData, "template_id");
+  const smsText = optionalText(formData, "sms_text");
+  const smsSender = optionalText(formData, "sms_sender");
+  const cooldown = Number(text(formData, "cooldown_hours"));
+  const outcome = await mutateApi((api) =>
+    api.PATCH("/v1/w/{slug}/inbox/phone-lines/{line_id}", {
+      params: { path: { slug, line_id: lineId } },
+      body: {
+        text_back_enabled: formData.get("text_back_enabled") === "on",
+        template_id: templateId,
+        template_params: formData.getAll("template_params").map((v) => String(v)),
+        sms_text: smsText,
+        sms_sender: smsSender,
+        cooldown_hours: Number.isFinite(cooldown) ? cooldown : 24,
+      },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  return done(slug, "Text-back settings saved.");
+}

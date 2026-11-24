@@ -58,6 +58,7 @@ export function messageHeading(message: Message): string {
       "Customer";
     return `${who} (customer)`;
   }
+  if (message.author_kind === "system") return "Automatic message (missed-call text-back)";
   const by =
     message.author?.display_name ?? (message.author_kind === "assistant" ? "Assistant" : "Staff");
   return message.delivery_status === "logged" ? `Reply logged by ${by}` : `Reply by ${by}`;

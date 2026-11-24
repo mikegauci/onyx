@@ -62,3 +62,10 @@ services:
         sync: false
       - key: ONYX_API_WHATSAPP_ACCESS_TOKEN
         sync: false
+      # Missed-call text-back (VA-004): off until the owner buys the cloud number.
+      - key: ONYX_API_TELEPHONY_WEBHOOK_URL
+        sync: false
+      - key: ONYX_API_TWILIO_ACCOUNT_SID
+        sync: false
+      - key: ONYX_API_TWILIO_AUTH_TOKEN
+        sync: false

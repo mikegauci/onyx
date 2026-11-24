@@ -352,3 +352,42 @@ class WhatsAppTemplateOut(BaseModel):
 
 class WhatsAppTemplateList(BaseModel):
     items: list[WhatsAppTemplateOut]
+
+
+# --- missed-call text-back (VA-004) -----------------------------------------------------------
+
+SmsSender = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^[A-Za-z0-9][A-Za-z0-9 ]{0,10}$")
+]
+SmsText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=320)]
+TemplateValue = Annotated[str, StringConstraints(max_length=200)]
+
+
+class PhoneLineOut(BaseModel):
+    id: uuid.UUID
+    number: str = Field(description="The cloud number the business forwards unanswered calls to")
+    provider: str
+    whatsapp_channel: ChannelRef
+    text_back_enabled: bool
+    template_id: uuid.UUID | None
+    template_params: list[str]
+    sms_text: str | None
+    sms_sender: str | None
+    cooldown_hours: int
+    missed_calls_30d: int = Field(description="Missed calls recorded in the last 30 days")
+    text_backs_30d: int = Field(description="Text-backs sent (WhatsApp or SMS) in 30 days")
+
+
+class PhoneLineList(BaseModel):
+    items: list[PhoneLineOut]
+
+
+class PhoneLineUpdate(_Input):
+    """Text-back settings. Omitted fields are unchanged; ``null`` clears an optional field."""
+
+    text_back_enabled: bool | None = None
+    template_id: uuid.UUID | None = None
+    template_params: list[TemplateValue] | None = Field(default=None, max_length=20)
+    sms_text: SmsText | None = None
+    sms_sender: SmsSender | None = None
+    cooldown_hours: int | None = Field(default=None, ge=1, le=168)

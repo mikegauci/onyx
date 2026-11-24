@@ -566,3 +566,108 @@ class WhatsAppSend(Base):
     )
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class MissedCallOutcome(enum.StrEnum):
+    PENDING = "pending"  # recorded; the WhatsApp text-back is being sent or awaits its status
+    WHATSAPP_SENT = "whatsapp_sent"
+    SENDING_SMS = "sending_sms"  # claimed for the SMS fallback; never sent twice
+    SMS_SENT = "sms_sent"
+    SKIPPED = "skipped"  # see ``skip_reason``
+    FAILED = "failed"
+
+
+class PhoneLine(Base):
+    """A cloud number a business forwards unanswered calls to (VA-004).
+
+    Connected by a platform admin (the number routes a verified webhook to the tenant);
+    owners and admins edit the text-back settings. Missed calls are threaded into the linked
+    WhatsApp channel's conversation with the caller, and the text-back is sent from it.
+    """
+
+    __tablename__ = "inbox_phone_lines"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("provider", "number"),
+        _same_tenant(
+            "whatsapp_channel_id", "inbox_channels", "fk_inbox_phone_lines_channel_same_tenant"
+        ),
+        _same_tenant(
+            "template_id", "inbox_whatsapp_templates", "fk_inbox_phone_lines_template_same_tenant"
+        ),
+        CheckConstraint("number ~ '^\\+[1-9][0-9]{6,14}$'", name="number_e164"),
+        CheckConstraint(
+            "sms_sender IS NULL OR sms_sender ~ '^[A-Za-z0-9][A-Za-z0-9 ]{0,10}$'",
+            name="sms_sender_format",
+        ),
+        CheckConstraint("cooldown_hours BETWEEN 1 AND 168", name="cooldown_hours_range"),
+        CheckConstraint("jsonb_typeof(template_params) = 'array'", name="template_params_array"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    whatsapp_channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    number: Mapped[str] = mapped_column(String(32), nullable=False)
+    text_back_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    template_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    sms_text: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    sms_sender: Mapped[str | None] = mapped_column(String(11), nullable=True)
+    cooldown_hours: Mapped[int] = mapped_column(Integer, nullable=False, server_default="24")
+    created_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class MissedCall(Base):
+    """One forwarded call, recorded once per provider call id, and its text-back outcome."""
+
+    __tablename__ = "inbox_missed_calls"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("provider", "provider_call_id"),
+        _same_tenant("line_id", "inbox_phone_lines", "fk_inbox_missed_calls_line_same_tenant"),
+        _same_tenant(
+            "conversation_id",
+            "inbox_conversations",
+            "fk_inbox_missed_calls_conversation_same_tenant",
+        ),
+        _same_tenant(
+            "call_message_id", "inbox_messages", "fk_inbox_missed_calls_call_message_same_tenant"
+        ),
+        _same_tenant(
+            "reply_message_id", "inbox_messages", "fk_inbox_missed_calls_reply_message_same_tenant"
+        ),
+        _same_tenant(
+            "whatsapp_send_id",
+            "inbox_whatsapp_sends",
+            "fk_inbox_missed_calls_whatsapp_send_same_tenant",
+        ),
+        Index("ix_inbox_missed_calls_caller_recent", "organization_id", "caller", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    line_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider_call_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    caller: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    call_message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    reply_message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    outcome: Mapped[MissedCallOutcome] = mapped_column(
+        str_enum(MissedCallOutcome, "inbox_missed_call_outcome"), nullable=False
+    )
+    skip_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    whatsapp_send_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    sms_provider_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()

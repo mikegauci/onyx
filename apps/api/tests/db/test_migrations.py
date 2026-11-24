@@ -54,6 +54,8 @@ EXPECTED_TABLES = {
     "knowledge_chunks",
     "inbox_whatsapp_templates",
     "inbox_whatsapp_sends",
+    "inbox_phone_lines",
+    "inbox_missed_calls",
     "workflow_effects",
     "tasks",
     "billing_customers",

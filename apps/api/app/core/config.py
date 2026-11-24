@@ -115,6 +115,24 @@ class Settings(BaseSettings):
         description="'fake' records sends in memory for local and e2e runs; never deployed.",
     )
 
+    # Telephony (VA-004 missed-call text-back). Twilio needs the account SID, auth token and
+    # the public webhook URL it calls (it signs that exact URL).
+    telephony_provider: Literal["twilio", "fake"] = Field(
+        default="twilio",
+        description="'fake' accepts locally signed test webhooks; never deployed.",
+    )
+    telephony_webhook_url: str | None = Field(
+        default=None,
+        pattern=r"^https?://[^\s]+/v1/webhooks/telephony$",
+        description="The public URL of POST /v1/webhooks/telephony, as the provider calls it.",
+    )
+    twilio_account_sid: str | None = Field(default=None, pattern=r"^AC[0-9a-f]{32}$")
+    twilio_auth_token: SecretStr | None = Field(default=None, description="Twilio auth token")
+    telephony_fake_secret: SecretStr | None = Field(
+        default=None, description="Signs fake telephony webhooks (local and e2e only)."
+    )
+    telephony_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+
     # Billing (PR-026). Off until the owner creates the Stripe account and plans; test-mode
     # keys first. Price ids map Onyx plans to Stripe prices.
     stripe_api_key: SecretStr | None = Field(default=None, description="Stripe secret key")
@@ -157,6 +175,10 @@ class Settings(BaseSettings):
         "whatsapp_app_secret",
         "whatsapp_verify_token",
         "whatsapp_access_token",
+        "twilio_auth_token",
+        "telephony_fake_secret",
+        "telephony_webhook_url",
+        "twilio_account_sid",
         "sentry_dsn",
         "stripe_api_key",
         "stripe_webhook_secret",
@@ -201,6 +223,14 @@ class Settings(BaseSettings):
             self.whatsapp_verify_token,
             self.whatsapp_access_token,
         )
+
+    @property
+    def telephony_configured(self) -> bool:
+        if self.telephony_webhook_url is None:
+            return False
+        if self.telephony_provider == "fake":
+            return self.telephony_fake_secret is not None
+        return None not in (self.twilio_account_sid, self.twilio_auth_token)
 
     @field_validator("ai_default_model", mode="before")
     @classmethod
@@ -299,6 +329,10 @@ class Settings(BaseSettings):
             raise ValueError("The fake WhatsApp provider is not allowed in a deployed environment.")
         if self.automotive_site == "fake" and self.is_deployed:
             raise ValueError("The fake vehicle site is not allowed in a deployed environment.")
+        if self.telephony_provider == "fake" and self.is_deployed:
+            raise ValueError(
+                "The fake telephony provider is not allowed in a deployed environment."
+            )
         if self.billing_provider == "fake" and self.is_deployed:
             raise ValueError("The fake billing provider is not allowed in a deployed environment.")
         return self

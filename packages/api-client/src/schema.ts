@@ -187,6 +187,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/manual-mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Manual Mode
+         * @description Onyx support's kill switch: turn manual mode on or off for any workspace (audited).
+         */
+        put: operations["set_manual_mode"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/organizations/{slug}/modules/{key}": {
         parameters: {
             query?: never;
@@ -777,6 +797,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Controls */
+        get: operations["read_controls"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Controls */
+        patch: operations["update_controls"];
+        trace?: never;
+    };
     "/v1/w/{slug}/crm/activities": {
         parameters: {
             query?: never;
@@ -1281,6 +1319,23 @@ export interface paths {
          * @description Email the address again (for example after the customer fixed their mailbox).
          */
         post: operations["release_suppression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Insights */
+        get: operations["read_insights"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2149,6 +2204,13 @@ export interface components {
          * @enum {string}
          */
         AuthorKind: "customer" | "staff" | "assistant" | "system";
+        /** BaselineOut */
+        BaselineOut: {
+            /** Enquiries Per Week */
+            enquiries_per_week: number | null;
+            /** First Reply Minutes */
+            first_reply_minutes: number | null;
+        };
         /** BillingOut */
         BillingOut: {
             /** Cancel At Period End */
@@ -2500,6 +2562,45 @@ export interface components {
             /** Phone */
             phone?: string | null;
         };
+        /** ControlsOut */
+        ControlsOut: {
+            /** Assistant Active */
+            assistant_active: boolean;
+            /** Assistant Enabled */
+            assistant_enabled: boolean;
+            /** Baseline Enquiries Per Week */
+            baseline_enquiries_per_week: number | null;
+            /** Baseline First Reply Minutes */
+            baseline_first_reply_minutes: number | null;
+            /** Manual Mode */
+            manual_mode: boolean;
+            /** Manual Mode Reason */
+            manual_mode_reason: string | null;
+            /** Text Back Active */
+            text_back_active: boolean;
+            /** Text Back Enabled */
+            text_back_enabled: boolean;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /**
+         * ControlsUpdate
+         * @description Fields to change; omitted fields stay as they are. ``null`` clears a baseline or reason.
+         */
+        ControlsUpdate: {
+            /** Assistant Enabled */
+            assistant_enabled?: boolean | null;
+            /** Baseline Enquiries Per Week */
+            baseline_enquiries_per_week?: number | null;
+            /** Baseline First Reply Minutes */
+            baseline_first_reply_minutes?: number | null;
+            /** Manual Mode */
+            manual_mode?: boolean | null;
+            /** Manual Mode Reason */
+            manual_mode_reason?: string | null;
+            /** Text Back Enabled */
+            text_back_enabled?: boolean | null;
+        };
         /**
          * ConversationCreate
          * @description Record a new conversation, starting with the customer's message (e.g. a phone call).
@@ -2638,6 +2739,13 @@ export interface components {
             lead_id?: string | null;
             /** Subject */
             subject?: string | null;
+        };
+        /** Count */
+        Count: {
+            /** Count */
+            count: number;
+            /** Key */
+            key: string;
         };
         /** CustomLineCreate */
         CustomLineCreate: {
@@ -3061,6 +3169,25 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** DraftsOut */
+        DraftsOut: {
+            /** Expired */
+            expired: number;
+            /** Median Approval Seconds */
+            median_approval_seconds: number | null;
+            /** Rejected */
+            rejected: number;
+            /** Sent After Edit */
+            sent_after_edit: number;
+            /** Sent As Written */
+            sent_as_written: number;
+            /** Superseded */
+            superseded: number;
+            /** Total */
+            total: number;
+            /** Waiting */
+            waiting: number;
+        };
         /** EmailDeliveryOut */
         EmailDeliveryOut: {
             /**
@@ -3083,11 +3210,18 @@ export interface components {
          * @enum {string}
          */
         EmailDeliveryStatus: "sent" | "delivered" | "delayed" | "bounced" | "complained" | "failed" | "suppressed";
+        /** EnquiriesOut */
+        EnquiriesOut: {
+            /** By Channel */
+            by_channel: components["schemas"]["Count"][];
+            /** Total */
+            total: number;
+        };
         /**
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable" | "budget_exceeded" | "workspace_suspended";
+        ErrorCode: "bad_request" | "unauthenticated" | "permission_denied" | "module_disabled" | "not_found" | "method_not_allowed" | "conflict" | "gone" | "validation_failed" | "internal_error" | "unavailable" | "budget_exceeded" | "workspace_suspended" | "feature_paused";
         /** ErrorDetail */
         ErrorDetail: {
             /** Loc */
@@ -3338,6 +3472,23 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** InsightsOut */
+        InsightsOut: {
+            baseline: components["schemas"]["BaselineOut"];
+            /** Days */
+            days: number;
+            drafts: components["schemas"]["DraftsOut"] | null;
+            enquiries: components["schemas"]["EnquiriesOut"] | null;
+            missed_calls: components["schemas"]["MissedCallsOut"] | null;
+            quotes: components["schemas"]["QuotesOut"] | null;
+            response_time: components["schemas"]["ResponseTimeOut"] | null;
+            runs: components["schemas"]["RunsOut"] | null;
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+        };
         /** IntegrationStatus */
         IntegrationStatus: {
             ai_budget: components["schemas"]["AIBudgetStatus"] | null;
@@ -3574,6 +3725,13 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** ManualModeSet */
+        ManualModeSet: {
+            /** Manual Mode */
+            manual_mode: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
         /** MeResponse */
         MeResponse: {
             /** Is Platform Admin */
@@ -3663,6 +3821,21 @@ export interface components {
             items: components["schemas"]["MessageOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** MissedCallsOut */
+        MissedCallsOut: {
+            /** Failed */
+            failed: number;
+            /** Skip Reasons */
+            skip_reasons: components["schemas"]["Count"][];
+            /** Skipped */
+            skipped: number;
+            /** Sms Sent */
+            sms_sent: number;
+            /** Total */
+            total: number;
+            /** Whatsapp Sent */
+            whatsapp_sent: number;
         };
         /**
          * ModuleKey
@@ -4333,6 +4506,17 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** QuotesOut */
+        QuotesOut: {
+            /** Accepted */
+            accepted: number;
+            /** Approved */
+            approved: number;
+            /** Created */
+            created: number;
+            /** Sent */
+            sent: number;
+        };
         /**
          * Reason
          * @enum {string}
@@ -4361,6 +4545,19 @@ export interface components {
         RejectRequest: {
             /** Reason */
             reason: string;
+        };
+        /** ResponseTimeOut */
+        ResponseTimeOut: {
+            /** Answered */
+            answered: number;
+            /** Automatic Replies */
+            automatic_replies: number;
+            /** Median Seconds */
+            median_seconds: number | null;
+            /** P90 Seconds */
+            p90_seconds: number | null;
+            /** Unanswered */
+            unanswered: number;
         };
         /** RevisionCreate */
         RevisionCreate: {
@@ -4433,6 +4630,17 @@ export interface components {
          * @enum {string}
          */
         RunOutcome: "drafted" | "escalated";
+        /** RunsOut */
+        RunsOut: {
+            /** Drafted */
+            drafted: number;
+            /** Escalated */
+            escalated: number;
+            /** Top Reasons */
+            top_reasons: components["schemas"]["Count"][];
+            /** Total */
+            total: number;
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -6018,6 +6226,66 @@ export interface operations {
             };
         };
     };
+    set_manual_mode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualModeSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     set_organization_module: {
         parameters: {
             query?: never;
@@ -6760,7 +7028,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Conversation closed, or no customer message yet */
+            /** @description Conversation closed, no customer message yet, or the assistant is paused */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -8837,6 +9105,144 @@ export interface operations {
                 };
             };
             /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_controls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ControlsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_controls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ControlsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ControlsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11861,6 +12267,76 @@ export interface operations {
                 };
             };
             /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_insights: {
+        parameters: {
+            query?: {
+                /** @description 7, 30 or 90 */
+                days?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;

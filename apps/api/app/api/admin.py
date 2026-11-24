@@ -274,3 +274,31 @@ async def connect_phone_line(
             ) from exc
         raise
     return PhoneLineConnected(phone_line_id=uuid.UUID(str(line_id)))
+
+
+class ManualModeSet(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    manual_mode: bool
+    reason: str | None = Field(default=None, max_length=200)
+
+
+@router.put(
+    "/organizations/{slug}/manual-mode",
+    status_code=204,
+    responses=ADMIN_ERRORS,
+)
+async def set_manual_mode(
+    slug: str, body: ManualModeSet, _admin: PlatformAdminDep, db: DbDep
+) -> None:
+    """Onyx support's kill switch: turn manual mode on or off for any workspace (audited)."""
+    await _detail(db, slug)  # 404 for an unknown organisation
+    await db.execute(
+        text("SELECT app_admin_set_manual_mode(:slug, :on, :reason, :rid)"),
+        {
+            "slug": slug,
+            "on": body.manual_mode,
+            "reason": body.reason if body.manual_mode else None,
+            "rid": request_id_var.get(),
+        },
+    )

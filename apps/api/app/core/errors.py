@@ -34,6 +34,7 @@ class ErrorCode(enum.StrEnum):
     UNAVAILABLE = "unavailable"
     BUDGET_EXCEEDED = "budget_exceeded"
     WORKSPACE_SUSPENDED = "workspace_suspended"
+    FEATURE_PAUSED = "feature_paused"  # a pilot control or manual mode stops this (PR-018)
 
 
 _CODE_FOR_STATUS = {

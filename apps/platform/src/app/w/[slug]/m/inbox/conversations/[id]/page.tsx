@@ -15,9 +15,9 @@ import {
 import Link from "next/link";
 
 import { withApi } from "@/lib/api-client";
-import type { AssistantRun } from "@/lib/assistant";
+import { type AssistantRun, assistantPaused } from "@/lib/assistant";
 import { crmPath, formatInZone } from "@/lib/crm";
-import { getMe } from "@/lib/data";
+import { getControls, getMe } from "@/lib/data";
 import { requireOk } from "@/lib/guards";
 import {
   DELIVERY_LABEL,
@@ -97,6 +97,7 @@ export default async function ConversationPage({
   const canRunAssistant =
     workspace.modules.includes("assistant") && workspace.permissions.includes("assistant.run");
   let runs: AssistantRun[] = [];
+  const controls = await getControls(slug);
   if (canRunAssistant) {
     const result = await withApi((api) =>
       api.GET("/v1/w/{slug}/assistant/conversations/{conversation_id}/runs", { params: ids }),
@@ -247,6 +248,7 @@ export default async function ConversationPage({
               status={record.status}
               runs={runs}
               timezone={zone}
+              paused={assistantPaused(controls.ok ? controls.data : null)}
             />
           ) : null}
           <Panel title="Details" as="h3" divided={false}>

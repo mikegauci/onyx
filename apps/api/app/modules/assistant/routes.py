@@ -27,7 +27,10 @@ Topic = Annotated[str, Path(pattern=TOPIC_PATTERN)]
 
 _ERROR = {"model": ErrorResponse}
 RUN_ERRORS: dict[int | str, dict[str, Any]] = {
-    409: {**_ERROR, "description": "Conversation closed, or no customer message yet"},
+    409: {
+        **_ERROR,
+        "description": "Conversation closed, no customer message yet, or the assistant is paused",
+    },
 }
 
 

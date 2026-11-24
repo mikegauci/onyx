@@ -34,6 +34,7 @@ from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.controls.service import Feature, feature_on
 from app.core.db.context import TenantContext, worker_transaction
 from app.core.db.rls import WORKER_ROLE
 from app.core.tasks.models import TaskAudience, TaskPriority
@@ -79,6 +80,7 @@ class SkipReason(enum.StrEnum):
     BLOCKED = "blocked"  # the number opted out or was blocked
     RECENT = "recent"  # the caller had a text-back within the cooldown
     FIXED_LINE = "fixed_line"  # a landline can't receive WhatsApp or SMS
+    PAUSED = "paused"  # text-back or every automatic feature is paused (pilot controls)
 
 
 class Outcome(enum.StrEnum):
@@ -268,6 +270,8 @@ class MissedCallConnector:
     ) -> SkipReason | None:
         if not line.text_back_enabled:
             return SkipReason.OFF
+        if not await feature_on(db, org, Feature.TEXT_BACK):
+            return SkipReason.PAUSED
         if missed.caller is None:
             return SkipReason.WITHHELD
         if missed.caller.startswith(MALTA_FIXED_LINE):

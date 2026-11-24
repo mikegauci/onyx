@@ -4,6 +4,7 @@ from app.ai import models as ai_models
 from app.core.admin import models as admin_models
 from app.core.audit import models as audit_models
 from app.core.billing import models as billing_models
+from app.core.controls import models as control_models
 from app.core.db.base import Base
 from app.core.modules import models as module_models
 from app.core.outbox import models as outbox_models
@@ -29,6 +30,7 @@ __all__ = [
     "automotive_models",
     "billing_models",
     "catalogue_models",
+    "control_models",
     "crm_models",
     "inbox_models",
     "knowledge_models",

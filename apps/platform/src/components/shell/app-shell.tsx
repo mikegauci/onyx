@@ -29,6 +29,7 @@ import {
 import { ThemeToggle } from "@onyx/ui/components/theme-toggle";
 import { cn } from "@onyx/ui/lib/utils";
 import {
+  BarChart3,
   Bot,
   Building2,
   Car,
@@ -71,6 +72,7 @@ const ICONS = {
   tasks: ListTodo,
   automotive: Car,
   knowledge: Library,
+  insights: BarChart3,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

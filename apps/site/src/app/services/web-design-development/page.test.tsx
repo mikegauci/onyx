@@ -19,7 +19,7 @@ describe("web design service page", () => {
     for (const [name, technology, screenshot] of [
       ["Pantrila", "LangGraph", "/portfolio/pantrila.webp"],
       ["QTM Detailing", "Motion", "/portfolio/qtm-detailing.webp"],
-      ["MaltaGuns", "Tiptap", "/portfolio/maltaguns.webp"],
+      ["MaltaGuns", "Tiptap", "/portfolio/maltaguns-homepage.webp"],
       ["Rotta", "Supabase", "/portfolio/rotta.webp"],
       ["Malta Detailing Academy", "Next.js", "/portfolio/mda.webp"],
       ["Jam Weddings", "Mailjet", "/portfolio/jam.webp"],

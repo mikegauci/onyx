@@ -81,7 +81,7 @@ export const webDesignProjects = [
     name: "MaltaGuns",
     type: "Community platform",
     screenshot: {
-      src: "/portfolio/maltaguns.webp",
+      src: "/portfolio/maltaguns-homepage.webp",
       height: 761,
       alt: "MaltaGuns homepage with navigation, a headline and a photograph of Malta’s harbour.",
     },

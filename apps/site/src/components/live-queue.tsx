@@ -59,7 +59,8 @@ export function LiveQueue() {
 
   return (
     <div ref={host}>
-      <ul className="divide-y divide-white/10" aria-hidden>
+      {/* Fixed height: rows swap every few seconds and the hero text next to it must not move. */}
+      <ul className="h-[194px] divide-y divide-white/10 overflow-hidden" aria-hidden>
         <AnimatePresence initial={false} mode="popLayout">
           {rows.map((row) => {
             const q = liveQueue[row.item]!;
@@ -72,7 +73,7 @@ export function LiveQueue() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, transition: { duration: 0.2 } }}
                 transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-                className="flex items-center justify-between gap-3 px-4 py-3.5"
+                className="flex h-16 items-center justify-between gap-3 px-4"
               >
                 <span className="min-w-0">
                   <span className="text-muted-foreground block text-[11px]">{q.channel}</span>

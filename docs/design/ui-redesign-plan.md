@@ -43,7 +43,7 @@ Conversations list: queue pills, a compact search and filter bar, and rows that 
 
 Also: channels, blocked addresses, new conversation form, outbound replies list and draft page.
 
-### 3. Sales records: in review
+### 3. Sales records: merged (#59)
 
 CRM (leads, contacts, customers, import), catalogue (products, imports, settings), vehicles (list, detail, import) and quotations (list, detail, new, settings):
 
@@ -51,7 +51,7 @@ CRM (leads, contacts, customers, import), catalogue (products, imports, settings
 - Detail pages: a header with key facts, `DetailList` panels and an activity timeline.
 - Forms: grouped in panels, with labels and help text aligned and one primary action.
 
-### 4. Assistant and knowledge
+### 4. Assistant and knowledge: in review
 
 Sales assistant policies, knowledge documents and search, in the same patterns as part 3.
 

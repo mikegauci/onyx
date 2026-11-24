@@ -22,7 +22,11 @@ export function KnowledgeSearch({ slug }: { slug: string }) {
   const result = state.result;
   return (
     <div className="flex flex-col gap-4">
-      <form action={action} role="search" className="flex max-w-xl flex-col gap-3">
+      <form
+        action={action}
+        role="search"
+        className="bg-card flex max-w-2xl flex-col gap-3 rounded-2xl border p-5"
+      >
         <FormField
           id="knowledge-query"
           label="Question"
@@ -49,7 +53,7 @@ export function KnowledgeSearch({ slug }: { slug: string }) {
           aria-live="polite"
           className="flex flex-col gap-3"
         >
-          <h3 id="results-heading" className="text-base font-medium">
+          <h3 id="results-heading" className="text-lg font-light tracking-tight">
             Results
           </h3>
           {result.mode === "keyword" ? (
@@ -58,17 +62,17 @@ export function KnowledgeSearch({ slug }: { slug: string }) {
             </p>
           ) : null}
           {result.abstained ? (
-            <p className="text-sm">
+            <p className="text-muted-foreground rounded-2xl border border-dashed px-5 py-4 text-sm">
               No passage answers this well enough. The assistant would say a colleague will confirm
               rather than guess.
             </p>
           ) : (
             <ol className="flex flex-col gap-3" aria-label="Matching passages">
               {result.hits.map((hit) => (
-                <li key={hit.chunk_id} className="rounded-md border p-3">
+                <li key={hit.chunk_id} className="bg-card rounded-2xl border p-5">
                   <p className="text-sm font-medium">
                     <Link
-                      className="underline-offset-4 hover:underline"
+                      className="text-brand underline-offset-4 hover:underline"
                       href={knowledgePath(slug, "documents", hit.document_id)}
                     >
                       {hit.document_title}

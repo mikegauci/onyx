@@ -33,7 +33,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ slug
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4" aria-labelledby="documents-heading">
-        <h2 id="documents-heading" className="text-lg font-medium">
+        <h2 id="documents-heading" className="text-lg font-light tracking-tight">
           Documents
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -41,11 +41,11 @@ export default async function DocumentsPage({ params }: { params: Promise<{ slug
           search. Only the text is kept, not the original file.
         </p>
         {documents.length === 0 ? (
-          <p className="text-sm">
+          <p className="text-muted-foreground rounded-2xl border border-dashed px-5 py-4 text-sm">
             No documents yet.{canManage ? " Upload one below." : " An admin can upload them."}
           </p>
         ) : (
-          <Table>
+          <Table stack>
             <TableCaption className="sr-only">Documents</TableCaption>
             <TableHeader>
               <TableRow>
@@ -58,23 +58,25 @@ export default async function DocumentsPage({ params }: { params: Promise<{ slug
             <TableBody>
               {documents.map((d) => (
                 <TableRow key={d.id}>
-                  <TableCell className="font-medium">
+                  <TableCell data-label="Title" className="font-medium">
                     <Link
-                      className="underline-offset-4 hover:underline"
+                      className="hover:text-brand underline-offset-4 transition-colors hover:underline"
                       href={knowledgePath(slug, "documents", d.id)}
                     >
                       {d.title}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell data-label="File" className="text-sm">
                     <span className="break-all">{d.filename}</span>
                     <span className="text-muted-foreground block text-xs">
                       {FORMAT_LABEL[d.format]} · {formatSize(d.size_bytes)}
                       {d.page_count != null ? ` · ${d.page_count} pages` : ""} · version {d.version}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{d.chunk_count}</TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell data-label="Passages" className="text-right tabular-nums">
+                    {d.chunk_count}
+                  </TableCell>
+                  <TableCell data-label="Updated" className="text-sm">
                     {d.updated_by?.display_name ?? (d.updated_by ? "A member" : "Former member")}
                     {" · "}
                     <time dateTime={d.updated_at}>
@@ -89,14 +91,16 @@ export default async function DocumentsPage({ params }: { params: Promise<{ slug
       </section>
       {canManage ? (
         <section className="flex flex-col gap-4" aria-labelledby="upload-heading">
-          <h2 id="upload-heading" className="text-lg font-medium">
+          <h2 id="upload-heading" className="text-lg font-light tracking-tight">
             Upload a document
           </h2>
           <p className="text-muted-foreground text-sm">
             Indexing reads the text and prepares it for search, which uses a little of the
             workspace&apos;s AI budget.
           </p>
-          <UploadDocumentForm slug={slug} />
+          <div className="bg-card max-w-2xl rounded-2xl border p-5 sm:p-6">
+            <UploadDocumentForm slug={slug} />
+          </div>
         </section>
       ) : null}
     </div>

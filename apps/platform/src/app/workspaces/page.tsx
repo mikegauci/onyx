@@ -1,6 +1,7 @@
 import { Badge } from "@onyx/ui/components/badge";
 import { Eyebrow } from "@onyx/ui/components/page";
 import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -10,6 +11,7 @@ import { withApi } from "@/lib/api-client";
 import { SignOutButton } from "../sign-out-button";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Workspaces" };
 
 export default async function WorkspacesPage() {
   const me = await withApi((api) => api.GET("/v1/me"));
@@ -19,7 +21,7 @@ export default async function WorkspacesPage() {
     <AuthFrame width="xl">
       <header className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-3">
-          <Eyebrow>Onyx Platform</Eyebrow>
+          <Eyebrow>{me.ok ? me.data.user.email : "Workspaces"}</Eyebrow>
           <h1 className="text-[clamp(1.6rem,3vw,2.1rem)] leading-tight font-light tracking-[-0.03em] text-balance">
             Your workspaces
           </h1>

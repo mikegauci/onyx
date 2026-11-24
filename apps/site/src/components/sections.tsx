@@ -1,4 +1,6 @@
 import { Button } from "@onyx/ui/components/button";
+import { LinesField } from "@onyx/ui/components/lines-field";
+import { OnyxLogo } from "@onyx/ui/components/onyx-logo";
 
 import {
   faq,
@@ -16,7 +18,6 @@ import {
 } from "@/content/site";
 
 import { HandoffMark } from "./handoff-mark";
-import { HeroCanvas } from "./hero-canvas";
 import { IndustriesSlider } from "./industries-slider";
 import { LiveQueue } from "./live-queue";
 import { ProcessTimeline } from "./process-timeline";
@@ -30,12 +31,7 @@ const container = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const focusRing = "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
 
 function StudioLogo() {
-  return (
-    <span className="inline-flex shrink-0 items-center gap-2.5 font-bold tracking-tight whitespace-nowrap text-[#f4eee6]">
-      <HandoffMark className="size-5 shrink-0" />
-      {site.name}
-    </span>
-  );
+  return <OnyxLogo product="Studio" className="text-[#f4eee6]" />;
 }
 
 function Eyebrow({ children, center = false }: { children: React.ReactNode; center?: boolean }) {
@@ -147,7 +143,7 @@ export function Hero() {
   return (
     <section id="top" className="relative flex min-h-[100svh] flex-col overflow-hidden">
       <div aria-hidden className="hero-fallback absolute inset-0" />
-      <HeroCanvas />
+      <LinesField />
       <div
         aria-hidden
         className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--background)]"

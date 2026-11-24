@@ -10,8 +10,8 @@ import { TooltipProvider } from "@onyx/ui/components/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Onyx Platform",
-  description: "Onyx Platform workspace.",
+  title: { default: "Onyx Platform", template: "%s · Onyx Platform" },
+  description: "Workspaces for teams running on Onyx.",
   robots: { index: false, follow: false },
 };
 

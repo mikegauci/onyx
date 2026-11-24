@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { systemScenarios } from "@/content/demos";
 import { system } from "@/content/site";
 
+import { HandoffMark } from "./handoff-mark";
+
 const W = 1000;
 const H = 520;
 const CX = W / 2;
@@ -252,15 +254,7 @@ export function SystemDiagram() {
         <circle cx={CX} cy={CY} r={62} className="core" />
         <circle cx={CX} cy={CY} r={62} className="core-think" pathLength={1} />
         <g aria-hidden>
-          <rect
-            x={CX - 11}
-            y={CY - 30}
-            width={22}
-            height={22}
-            rx={4}
-            transform={`rotate(45 ${CX} ${CY - 19})`}
-            className="core-mark"
-          />
+          <HandoffMark x={CX - 16} y={CY - 35} width={32} height={32} />
           <text x={CX} y={CY + 24} textAnchor="middle" className="core-label">
             {core.toLowerCase()}
           </text>
@@ -294,7 +288,7 @@ export function SystemDiagram() {
               phase === "think" ? "shadow-[0_0_40px_var(--brand)]" : ""
             }`}
           >
-            <span className="bg-brand size-3.5 rotate-45 rounded-[3px]" />
+            <HandoffMark className="size-6" />
             <span className="text-base">{core.toLowerCase()}</span>
           </span>
           <span className="h-8 w-px bg-gradient-to-b from-[var(--brand)] to-transparent" />

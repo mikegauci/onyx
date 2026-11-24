@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { HandoffMark } from "@/components/handoff-mark";
 import { site } from "@/content/site";
 
 export const alt = `${site.name}: ${site.tagline}`;
@@ -24,15 +25,7 @@ export default function OpengraphImage() {
       <div
         style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 36, fontWeight: 600 }}
       >
-        <div
-          style={{
-            width: 26,
-            height: 26,
-            background: "#f08a3c",
-            borderRadius: 5,
-            transform: "rotate(45deg)",
-          }}
-        />
+        <HandoffMark width={36} height={36} />
         {site.name}
       </div>
       <div style={{ fontSize: 68, fontWeight: 600, lineHeight: 1.1, maxWidth: 980 }}>

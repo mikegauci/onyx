@@ -6,6 +6,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | -------- | ---------- | --------------------------------------------- | ----------------------------- | ---------- | -------------------------------------------------------------------------------------- |
 | DF-001   | Foundation | Design foundation: research, tokens, base UI  | PR-001                        | 6–10h      | Merged [mikegauci/onyx#2](https://github.com/mikegauci/onyx/pull/2)                    |
 | SITE-001 | Marketing  | Build the Onyx Studio landing page (onyx.mt)  | DF-001 (and PR-002 to deploy) | 20–32h     | Landing page live on onyx.mt 2026-11-23; copy awaits owner review                      |
+| SITE-002 | Marketing  | Onyx Studio web design service page           | SITE-001                      | 8–14h      | Approved 2026-11-24                                                                    |
 | VA-001   | Ventur     | Vehicle stock extension and WordPress import  | PR-010                        | 16–28h     | Merged (#42, #43, #44); live import awaits Ventur sold-field mapping                   |
 | VA-002   | Ventur     | Auto-send policy for low-risk AI replies      | PR-015, PR-016                | 12–20h     | Paused by the owner 2026-11-23; partial work reverted                                  |
 | VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                                       |
@@ -51,6 +52,19 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
   - `make check`, `make test`, `pnpm build` pass.
 - **Non-goals:** CMS, blog, multi-language, contact form that stores data (needs a GDPR/privacy decision first), analytics/cookies (needs a consent decision), live DNS changes.
 - **PR checklist:** tests; accessibility evidence; screenshots (desktop and mobile, with motion and with reduced motion); documentation; human review.
+
+### SITE-002 — Publish the web design and development service page
+
+- **Approved:** 2026-11-24. A Malta-focused public site page with four VAT-inclusive build
+  packages, annual website care, optional AI and integrations, and selected work.
+- **Acceptance:** The homepage service and footer link to the new route, the route has metadata
+  and a sitemap entry, and the pricing and project summaries are readable on mobile. Visitors can
+  use the enquiry form, email, direct dial, SMS or WhatsApp.
+- **Enquiries:** Valid submissions go through a dedicated sending-only Resend credential to the
+  studio inbox. Use the existing verified sending domain and email recipient. The site records
+  no enquiries in a database and has no access to platform tenant data.
+- **Retention:** The studio deletes enquiries that do not become projects within 90 days of
+  receipt. The public privacy notice describes how enquiries are processed.
 
 ## Order changes to the numbered roadmap
 

@@ -61,6 +61,23 @@ if a required URL is missing or unsafe.
   variables / env groups, `sync: false` in `render.yaml`). GitHub Actions needs no secrets today.
 - Separate values per environment; never reuse a production secret in preview.
 
+### Onyx Studio enquiry delivery
+
+- On the `onyx-site` Vercel project, configure `ONYX_SITE_RESEND_API_KEY` as a server-only
+  secret. Use a dedicated Resend sending-only key restricted to the verified `reply.onyx.mt`
+  domain. Keep preview and production credentials separate.
+- The web design form sends plain-text mail from `website@reply.onyx.mt` to `info@onyx.mt`.
+  The visitor's address is used only as Reply-To. The public site does not write to Onyx
+  Platform, and the application does not log form fields.
+- Verify delivery to the studio inbox with a fictional enquiry in an approved environment.
+  Without the key, the form returns an error and the same page still offers the direct
+  contact links.
+- Apply an inbox label or rule for the subject `New Onyx Studio web project enquiry`. As part of
+  the studio's mailbox review, delete enquiries that have not converted to projects before they
+  reach 90 days. The site does not automate mailbox deletion.
+- To disable form delivery, remove the site credential and redeploy to the affected environment.
+  To remove the route and links, revert SITE-002. There is no schema change.
+
 ## Public site vs authenticated app
 
 - `onyx.mt` (site) is public and has no auth routes; its sign-in link goes to

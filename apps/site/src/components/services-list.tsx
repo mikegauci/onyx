@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { servicePreviews } from "@/content/demos";
@@ -151,6 +152,14 @@ export function ServicesList({ services }: { services: readonly Service[] }) {
                   </li>
                 ))}
               </ul>
+              {"href" in s && (
+                <Link
+                  href={s.href}
+                  className="text-brand mt-4 inline-block text-sm underline-offset-4 hover:underline focus-visible:underline"
+                >
+                  Explore web design and development <span aria-hidden>↗</span>
+                </Link>
+              )}
             </div>
           </li>
         ))}

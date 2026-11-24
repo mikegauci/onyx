@@ -121,8 +121,10 @@ VA-004 (missed-call text-back) merged ([#64](https://github.com/mikegauci/onyx/p
 `onyx-preview` is at `0026`. Going live needs the owner to buy a +356 number, confirm call forwarding
 and get a utility template approved. Plan: `docs/plans/va-004-missed-call-text-back.md`.
 
-PR-018 (pilot tools) is in progress: plan `docs/plans/pr-018-pilot-tools.md`. Part 1 (backend and
-dashboard: pilot controls, manual mode, Insights) adds migration `0027`. Part 2 is the guides.
+PR-018 (pilot tools): part 1 merged ([#66](https://github.com/mikegauci/onyx/pull/66)) with pilot
+controls, manual mode and Insights; migration `0027`; `onyx-preview` is at `0027`. Part 2 adds the
+guides (in-app Help and PDFs) and `docs/operations/pilot-runbook.md`. Plan:
+`docs/plans/pr-018-pilot-tools.md`. Production is at `0025`; `0026` and `0027` need the owner's approval.
 
 **First client: Ventur Auto Import** (19 November 2026), a car dealer, replaces the lighting
 retailer. The owner's decisions:

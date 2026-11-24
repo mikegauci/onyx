@@ -62,9 +62,11 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       })),
     });
   }
+  const footer: NavGroup = { items: [{ href: `${base}/help`, label: "Help", icon: "help" }] };
   if (settings.length > 0) {
-    nav.push({ items: [{ href: `${base}/settings`, label: "Settings", icon: "settings" }] });
+    footer.items.unshift({ href: `${base}/settings`, label: "Settings", icon: "settings" });
   }
+  nav.push(footer);
 
   const crumbLabels: Record<string, string> = {
     [base]: workspace.display_name ?? workspace.name,
@@ -72,6 +74,8 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     [`${base}/tasks`]: "Tasks",
     [`${base}/insights`]: "Insights",
     [`${base}/help`]: "Help",
+    [`${base}/help/onboarding`]: "Getting started",
+    [`${base}/help/operator`]: "Operator quick reference",
   };
   for (const key of workspace.modules) crumbLabels[`${base}/m/${key}`] = moduleLabel(key);
   for (const s of SETTINGS_SECTIONS) crumbLabels[`${base}/settings/${s.slug}`] = s.label;

@@ -2,6 +2,7 @@ import { Button } from "@onyx/ui/components/button";
 import { Input } from "@onyx/ui/components/input";
 import { Label } from "@onyx/ui/components/label";
 import { Eyebrow } from "@onyx/ui/components/page";
+import type { Metadata } from "next";
 
 import { AuthFrame } from "@/components/auth-frame";
 import { supabaseEnv } from "@/lib/supabase/env";
@@ -15,6 +16,8 @@ const ERRORS: Record<string, string> = {
   unconfigured: "Sign-in is not configured for this environment.",
 };
 
+export const metadata: Metadata = { title: "Sign in" };
+
 type Props = { searchParams: Promise<{ next?: string; error?: string; sent?: string }> };
 
 export default async function LoginPage({ searchParams }: Props) {
@@ -25,9 +28,9 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <AuthFrame>
       <div className="flex flex-col gap-3">
-        <Eyebrow>Onyx Platform</Eyebrow>
+        <Eyebrow>Sign in</Eyebrow>
         <h1 className="text-[clamp(2rem,6vw,2.8rem)] leading-[1.05] font-light tracking-[-0.04em]">
-          Sign in to Onyx
+          Welcome back
         </h1>
         <p className="text-muted-foreground text-sm">
           We will email you a one-time sign-in link. Open it in this browser.

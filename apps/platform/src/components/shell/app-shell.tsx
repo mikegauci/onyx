@@ -8,6 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@onyx/ui/components/breadcrumb";
+import { OnyxLogo } from "@onyx/ui/components/onyx-logo";
 import { Separator } from "@onyx/ui/components/separator";
 import {
   Sidebar,
@@ -128,10 +129,14 @@ export function AppShell({
           <Link
             href="/workspaces"
             aria-label="Onyx Platform, all workspaces"
-            className="focus-visible:ring-ring flex items-center gap-2 rounded-md px-2 pt-2 text-[15px] font-light tracking-[-0.02em] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:ring-2 focus-visible:outline-none"
+            className="focus-visible:ring-ring flex items-center gap-2 rounded-md px-2 pt-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:ring-2 focus-visible:outline-none"
           >
-            <span aria-hidden className="bg-brand size-2 shrink-0 rounded-full" />
-            <span className="group-data-[collapsible=icon]:hidden">onyx</span>
+            <OnyxLogo
+              product="Platform"
+              className="text-foreground text-[15px]"
+              markClassName="size-[18px]"
+              labelClassName="group-data-[collapsible=icon]:hidden"
+            />
           </Link>
           {header}
         </SidebarHeader>

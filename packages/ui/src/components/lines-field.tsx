@@ -2,15 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { cn } from "../lib/utils";
+
 /**
- * Flowing field of orange threads behind the hero, drawn with Three.js.
+ * Flowing field of orange threads, drawn with Three.js. Used behind the onyx.mt hero and the
+ * app.onyx.mt sign-in pages.
  *
  * Three.js is imported as soon as the page hydrates, and only when the visitor allows motion
- * and the device can run WebGL. Everyone else sees the static gradient underneath, which is
- * also what renders without JavaScript. Rendering pauses when the hero is off-screen or the tab
- * is hidden.
+ * and the device can run WebGL. Everyone else sees the static background underneath, which is
+ * also what renders without JavaScript. Rendering pauses when the field is off-screen (or not
+ * displayed) or the tab is hidden.
  */
-export function HeroCanvas() {
+export function LinesField({ className }: { className?: string }) {
   const host = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -219,7 +222,11 @@ export function HeroCanvas() {
     <div
       ref={host}
       aria-hidden
-      className={`absolute inset-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
+      className={cn(
+        "absolute inset-0 transition-opacity duration-500",
+        ready ? "opacity-100" : "opacity-0",
+        className,
+      )}
     />
   );
 }

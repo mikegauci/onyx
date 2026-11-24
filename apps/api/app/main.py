@@ -29,13 +29,16 @@ from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 from app.core.observability import init_sentry
-from app.integrations import email, whatsapp
+from app.integrations import email, telephony, whatsapp
 from app.integrations.billing import BillingConfig, BillingProvider
 from app.integrations.billing.fake import FakeBillingProvider
 from app.integrations.billing.stripe import StripeProvider
 from app.integrations.email import EmailConfig, EmailProvider
 from app.integrations.email.fake import FakeEmailProvider
 from app.integrations.email.resend import ResendProvider
+from app.integrations.telephony import TelephonyConfig, TelephonyProvider
+from app.integrations.telephony.fake import FakeTelephonyProvider
+from app.integrations.telephony.twilio import TwilioProvider
 from app.integrations.whatsapp import WhatsAppConfig, WhatsAppProvider
 from app.integrations.whatsapp.fake import FakeWhatsAppProvider
 from app.integrations.whatsapp.meta import MetaProvider
@@ -46,6 +49,7 @@ from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
 from app.modules.inbox import whatsapp_send
 from app.modules.inbox.email_connector import EmailConnector
+from app.modules.inbox.missed_calls import MissedCallConnector
 from app.modules.inbox.routes import router as inbox_router
 from app.modules.inbox.whatsapp_connector import WhatsAppConnector
 from app.modules.knowledge.routes import router as knowledge_router
@@ -115,6 +119,30 @@ def _whatsapp_config(
     return config, owned
 
 
+def _telephony_config(
+    settings: Settings, provider: TelephonyProvider | None
+) -> tuple[TelephonyConfig | None, TwilioProvider | None]:
+    """The telephony provider when fully configured; otherwise missed calls are off (503)."""
+    if not settings.telephony_configured:
+        return None, None
+    assert settings.telephony_webhook_url is not None  # noqa: S101 - telephony_configured
+    owned = None
+    if provider is None and settings.telephony_provider == "fake":
+        assert settings.telephony_fake_secret is not None  # noqa: S101
+        # Local and e2e only; refused in deployed settings.
+        provider = FakeTelephonyProvider(settings.telephony_fake_secret.get_secret_value())
+    if provider is None:
+        assert settings.twilio_account_sid is not None  # noqa: S101
+        assert settings.twilio_auth_token is not None  # noqa: S101
+        owned = TwilioProvider(
+            settings.twilio_account_sid,
+            settings.twilio_auth_token.get_secret_value(),
+            timeout=settings.telephony_timeout_seconds,
+        )
+        provider = owned
+    return TelephonyConfig(provider=provider, webhook_url=settings.telephony_webhook_url), owned
+
+
 def _billing_config(settings: Settings, provider: BillingProvider | None) -> BillingConfig | None:
     """Stripe Billing when configured; otherwise billing is unavailable (503)."""
     if not settings.billing_configured:
@@ -160,6 +188,7 @@ def create_app(
     email_provider: EmailProvider | None = None,
     whatsapp_provider: WhatsAppProvider | None = None,
     billing_provider: BillingProvider | None = None,
+    telephony_provider: TelephonyProvider | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -194,8 +223,21 @@ def create_app(
         whatsapp_config, owned_whatsapp = _whatsapp_config(settings, whatsapp_provider)
         whatsapp.configure(whatsapp_config)
         whatsapp_send.configure(app.state.session_factory)
+        telephony_config, owned_telephony = _telephony_config(settings, telephony_provider)
+        telephony.configure(telephony_config)
+        app.state.missed_calls = (
+            MissedCallConnector(app.state.session_factory, telephony_config)
+            if telephony_config is not None and app.state.session_factory is not None
+            else None
+        )
         app.state.whatsapp_connector = (
-            WhatsAppConnector(app.state.session_factory, whatsapp_config)
+            WhatsAppConnector(
+                app.state.session_factory,
+                whatsapp_config,
+                on_status=app.state.missed_calls.on_whatsapp_status
+                if app.state.missed_calls is not None
+                else None,
+            )
             if whatsapp_config is not None and app.state.session_factory is not None
             else None
         )
@@ -215,6 +257,9 @@ def create_app(
             email.configure(None)
             whatsapp.configure(None)
             whatsapp_send.configure(None)
+            telephony.configure(None)
+            if owned_telephony is not None:
+                await owned_telephony.aclose()
             if owned is not None:
                 await owned.aclose()
             if owned_whatsapp is not None:

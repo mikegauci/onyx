@@ -17,6 +17,9 @@ export const E2E = {
 export const STRIPE_E2E_SECRET = "whsec_e2e_billing_secret";
 export const STRIPE_E2E_PRICES = { starter: "price_e2estarter", growth: "price_e2egrowth" };
 
+/** Signs the e2e telephony (missed-call) webhooks. A test value for the fake provider only. */
+export const TELEPHONY_E2E_SECRET = "telephony-e2e-secret";
+
 /** Signs the e2e WhatsApp webhooks. A test value for the fake provider only. */
 export const WHATSAPP_E2E_SECRET = "whatsapp-e2e-app-secret";
 
@@ -77,6 +80,10 @@ export default defineConfig({
         ONYX_API_WHATSAPP_APP_SECRET: WHATSAPP_E2E_SECRET,
         ONYX_API_WHATSAPP_VERIFY_TOKEN: "e2e-verify-token",
         ONYX_API_WHATSAPP_ACCESS_TOKEN: "e2e-unused-token",
+        // Missed calls arrive as locally signed test webhooks; no telephony provider is called.
+        ONYX_API_TELEPHONY_PROVIDER: "fake",
+        ONYX_API_TELEPHONY_WEBHOOK_URL: `${E2E.apiUrl}/v1/webhooks/telephony`,
+        ONYX_API_TELEPHONY_FAKE_SECRET: TELEPHONY_E2E_SECRET,
         // Vehicle imports read a built-in demo site; nothing is fetched from the internet.
         ONYX_API_AUTOMOTIVE_SITE: "fake",
         // Billing on the in-memory fake provider: checkout links point back to the dashboard.

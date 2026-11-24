@@ -7,12 +7,12 @@ deployment, a paid plan or a DNS change; each needs explicit owner approval.
 
 ## Environments
 
-| Environment  | Site (`apps/site`)                                             | Platform (`apps/platform`) | API (`apps/api`)                 | Data                                      |
-| ------------ | -------------------------------------------------------------- | -------------------------- | -------------------------------- | ----------------------------------------- |
-| `local`      | `localhost:3000`                                               | `localhost:3001`           | `localhost:8000`                 | Docker Compose Postgres                   |
-| `test`       | Vitest                                                         | Vitest                     | pytest (`environment="test"`)    | none / fixtures                           |
-| `preview`    | Vercel Preview deployments                                     | Vercel Preview deployments | Render `onyx-api-preview` (free) | Supabase `onyx-preview` (free, fake data) |
-| `production` | `onyx-site` → https://onyx.mt (live 2026-11-23; www redirects) | not deployed (app.onyx.mt) | not created (api.onyx.mt)        | Supabase `onyx`                           |
+| Environment  | Site (`apps/site`)                                             | Platform (`apps/platform`)                              | API (`apps/api`)                               | Data                                      |
+| ------------ | -------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------- |
+| `local`      | `localhost:3000`                                               | `localhost:3001`                                        | `localhost:8000`                               | Docker Compose Postgres                   |
+| `test`       | Vitest                                                         | Vitest                                                  | pytest (`environment="test"`)                  | none / fixtures                           |
+| `preview`    | Vercel Preview deployments                                     | Vercel Preview deployments                              | Render `onyx-api-preview` (free)               | Supabase `onyx-preview` (free, fake data) |
+| `production` | `onyx-site` → https://onyx.mt (live 2026-11-23; www redirects) | `onyx-platform` → https://app.onyx.mt (live 2026-11-23) | Render `onyx-api` (free) → https://api.onyx.mt | Supabase `onyx` (free; migrated to head)  |
 
 - Vercel production builds are skipped by `scripts/vercel-ignore-build.sh` unless the project
   has `ONYX_ALLOW_PRODUCTION=1` (production target). The owner approved production on free plans
@@ -35,19 +35,19 @@ Rules: secrets never get defaults and are never committed (only `.env.example` p
 non-secret values. Every deployed URL must be an https origin on a non-local host; the build or
 the API refuses to start otherwise.
 
-| Variable                          | Service  | Secret | local                   | preview                                    | production (planned)  |
-| --------------------------------- | -------- | ------ | ----------------------- | ------------------------------------------ | --------------------- |
-| `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_SITE_URL`            | site     | no     | `http://localhost:3000` | falls back to the production domain        | `https://onyx.mt`     |
-| `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                           | `https://onyx.mt`     |
-| `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt` |
-| `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com`    | `https://api.onyx.mt` |
-| `ONYX_API_ENVIRONMENT`            | api      | no     | `local`                 | `preview`                                  | `production`          |
-| `ONYX_API_LOG_LEVEL`              | api      | no     | `INFO`                  | `INFO`                                     | `INFO`                |
-| `ONYX_API_CORS_ORIGINS`           | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit       | `https://app.onyx.mt` |
-| `ONYX_API_SUPABASE_URL`           | api      | no     | blank (auth off)        | `https://xnmrrdgdfzjkvjunevmi.supabase.co` | not set yet           |
-| `ONYX_API_DATABASE_URL`           | api      | yes    | compose Postgres        | `onyx-preview` pooler, `onyx_api_login`    | not set yet           |
-| `ONYX_API_MIGRATION_DATABASE_URL` | api      | yes    | falls back to above     | not set yet                                | not set yet           |
+| Variable                          | Service  | Secret | local                   | preview                                    | production                                                                   |
+| --------------------------------- | -------- | ------ | ----------------------- | ------------------------------------------ | ---------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_PLATFORM_URL`        | site     | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt`                                                        |
+| `NEXT_PUBLIC_SITE_URL`            | site     | no     | `http://localhost:3000` | falls back to the production domain        | `https://onyx.mt`                                                            |
+| `NEXT_PUBLIC_SITE_URL`            | platform | no     | `http://localhost:3000` | site preview URL                           | `https://onyx.mt`                                                            |
+| `NEXT_PUBLIC_APP_URL`             | platform | no     | `http://localhost:3001` | platform preview URL                       | `https://app.onyx.mt`                                                        |
+| `NEXT_PUBLIC_API_URL`             | platform | no     | `http://localhost:8000` | `https://onyx-api-preview.onrender.com`    | `https://api.onyx.mt`                                                        |
+| `ONYX_API_ENVIRONMENT`            | api      | no     | `local`                 | `preview`                                  | `production`                                                                 |
+| `ONYX_API_LOG_LEVEL`              | api      | no     | `INFO`                  | `INFO`                                     | `INFO`                                                                       |
+| `ONYX_API_CORS_ORIGINS`           | api      | no     | `http://localhost:3001` | platform preview origin(s), explicit       | `https://app.onyx.mt`                                                        |
+| `ONYX_API_SUPABASE_URL`           | api      | no     | blank (auth off)        | `https://xnmrrdgdfzjkvjunevmi.supabase.co` | same project                                                                 |
+| `ONYX_API_DATABASE_URL`           | api      | yes    | compose Postgres        | `onyx-preview` pooler, `onyx_api_login`    | `onyx` pooler (aws-1-eu-central-1), `onyx_api_login`                         |
+| `ONYX_API_MIGRATION_DATABASE_URL` | api      | yes    | falls back to above     | not set yet                                | not on Render; the owner keeps `ONYX_PROD_MIGRATION_URL` in the local `.env` |
 
 `VERCEL_ENV` (set by Vercel) selects build-time validation: `preview`/`production` builds fail
 if a required URL is missing or unsafe.
@@ -79,8 +79,10 @@ if a required URL is missing or unsafe.
 | Site URL      | platform preview origin                   | `https://app.onyx.mt`               |
 | Redirect URLs | `<platform preview origin>/auth/callback` | `https://app.onyx.mt/auth/callback` |
 
-One Supabase project (`onyx`) issues logins for local and preview, so its Redirect URLs list
-also holds `http://localhost:3001/auth/callback`. Set these in the Supabase dashboard
+One Supabase project (`onyx`) issues logins for local, preview and production, so its Redirect
+URLs list also holds `http://localhost:3001/auth/callback`. The exact production entry accepts
+the `?next=` query (verified 2026-11-23). Supabase Auth sends its emails through Resend SMTP
+(`noreply@reply.onyx.mt`, 30 an hour) since 2026-11-23; the built-in mailer allowed 2 an hour. Set these in the Supabase dashboard
 (Authentication → URL Configuration); the Supabase MCP cannot change auth settings.
 
 Required project settings: **Confirm email** on and **anonymous sign-ins** off. The API also

@@ -5654,6 +5654,241 @@
         "title": "Permission",
         "type": "string"
       },
+      "PhoneLineConnect": {
+        "additionalProperties": false,
+        "description": "Connect a cloud number for missed-call text-back (VA-004).\n\nOnly a platform admin, who has checked the number belongs to this customer, may connect\nit: the number routes the provider's webhook to the tenant. Missed calls are threaded into\nthe tenant's WhatsApp channel with ``whatsapp_channel_name``.",
+        "properties": {
+          "number": {
+            "description": "The cloud number, E.164, e.g. +35627000000",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "title": "Number",
+            "type": "string"
+          },
+          "whatsapp_channel_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Whatsapp Channel Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "whatsapp_channel_name"
+        ],
+        "title": "PhoneLineConnect",
+        "type": "object"
+      },
+      "PhoneLineConnected": {
+        "properties": {
+          "phone_line_id": {
+            "format": "uuid",
+            "title": "Phone Line Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone_line_id"
+        ],
+        "title": "PhoneLineConnected",
+        "type": "object"
+      },
+      "PhoneLineList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PhoneLineOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "PhoneLineList",
+        "type": "object"
+      },
+      "PhoneLineOut": {
+        "properties": {
+          "cooldown_hours": {
+            "title": "Cooldown Hours",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "missed_calls_30d": {
+            "description": "Missed calls recorded in the last 30 days",
+            "title": "Missed Calls 30D",
+            "type": "integer"
+          },
+          "number": {
+            "description": "The cloud number the business forwards unanswered calls to",
+            "title": "Number",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "sms_sender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms Sender"
+          },
+          "sms_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms Text"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template_params": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Template Params",
+            "type": "array"
+          },
+          "text_back_enabled": {
+            "title": "Text Back Enabled",
+            "type": "boolean"
+          },
+          "text_backs_30d": {
+            "description": "Text-backs sent (WhatsApp or SMS) in 30 days",
+            "title": "Text Backs 30D",
+            "type": "integer"
+          },
+          "whatsapp_channel": {
+            "$ref": "#/components/schemas/ChannelRef"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "provider",
+          "whatsapp_channel",
+          "text_back_enabled",
+          "template_id",
+          "template_params",
+          "sms_text",
+          "sms_sender",
+          "cooldown_hours",
+          "missed_calls_30d",
+          "text_backs_30d"
+        ],
+        "title": "PhoneLineOut",
+        "type": "object"
+      },
+      "PhoneLineUpdate": {
+        "additionalProperties": false,
+        "description": "Text-back settings. Omitted fields are unchanged; ``null`` clears an optional field.",
+        "properties": {
+          "cooldown_hours": {
+            "anyOf": [
+              {
+                "maximum": 168.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cooldown Hours"
+          },
+          "sms_sender": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9 ]{0,10}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms Sender"
+          },
+          "sms_text": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms Text"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template_params": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Params"
+          },
+          "text_back_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Back Enabled"
+          }
+        },
+        "title": "PhoneLineUpdate",
+        "type": "object"
+      },
       "Plan": {
         "enum": [
           "starter",
@@ -10133,6 +10368,103 @@
           }
         ],
         "summary": "Set Organization Module",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/organizations/{slug}/phone-lines": {
+      "post": {
+        "operationId": "connect_phone_line",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneLineConnect"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneLineConnected"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not a platform admin, or no such resource"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Number in use, or no such WhatsApp channel"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Connect Phone Line",
         "tags": [
           "admin"
         ]
@@ -18121,6 +18453,200 @@
           }
         ],
         "summary": "Change Status",
+        "tags": [
+          "inbox"
+        ]
+      }
+    },
+    "/v1/w/{slug}/inbox/phone-lines": {
+      "get": {
+        "operationId": "list_phone_lines",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneLineList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Phone Lines",
+        "tags": [
+          "inbox"
+        ]
+      }
+    },
+    "/v1/w/{slug}/inbox/phone-lines/{line_id}": {
+      "patch": {
+        "operationId": "update_phone_line",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Line Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneLineUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneLineOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Phone Line",
         "tags": [
           "inbox"
         ]

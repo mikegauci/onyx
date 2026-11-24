@@ -204,6 +204,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/phone-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Connect Phone Line */
+        post: operations["connect_phone_line"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/organizations/{slug}/status": {
         parameters: {
             query?: never;
@@ -1193,6 +1210,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/inbox/phone-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Phone Lines */
+        get: operations["list_phone_lines"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/inbox/phone-lines/{line_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Phone Line */
+        patch: operations["update_phone_line"];
         trace?: never;
     };
     "/v1/w/{slug}/inbox/suppressions": {
@@ -3827,6 +3878,92 @@ export interface components {
          */
         Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read" | "tasks.read" | "tasks.manage" | "billing.read" | "billing.manage";
         /**
+         * PhoneLineConnect
+         * @description Connect a cloud number for missed-call text-back (VA-004).
+         *
+         *     Only a platform admin, who has checked the number belongs to this customer, may connect
+         *     it: the number routes the provider's webhook to the tenant. Missed calls are threaded into
+         *     the tenant's WhatsApp channel with ``whatsapp_channel_name``.
+         */
+        PhoneLineConnect: {
+            /**
+             * Number
+             * @description The cloud number, E.164, e.g. +35627000000
+             */
+            number: string;
+            /** Whatsapp Channel Name */
+            whatsapp_channel_name: string;
+        };
+        /** PhoneLineConnected */
+        PhoneLineConnected: {
+            /**
+             * Phone Line Id
+             * Format: uuid
+             */
+            phone_line_id: string;
+        };
+        /** PhoneLineList */
+        PhoneLineList: {
+            /** Items */
+            items: components["schemas"]["PhoneLineOut"][];
+        };
+        /** PhoneLineOut */
+        PhoneLineOut: {
+            /** Cooldown Hours */
+            cooldown_hours: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Missed Calls 30D
+             * @description Missed calls recorded in the last 30 days
+             */
+            missed_calls_30d: number;
+            /**
+             * Number
+             * @description The cloud number the business forwards unanswered calls to
+             */
+            number: string;
+            /** Provider */
+            provider: string;
+            /** Sms Sender */
+            sms_sender: string | null;
+            /** Sms Text */
+            sms_text: string | null;
+            /** Template Id */
+            template_id: string | null;
+            /** Template Params */
+            template_params: string[];
+            /** Text Back Enabled */
+            text_back_enabled: boolean;
+            /**
+             * Text Backs 30D
+             * @description Text-backs sent (WhatsApp or SMS) in 30 days
+             */
+            text_backs_30d: number;
+            whatsapp_channel: components["schemas"]["ChannelRef"];
+        };
+        /**
+         * PhoneLineUpdate
+         * @description Text-back settings. Omitted fields are unchanged; ``null`` clears an optional field.
+         */
+        PhoneLineUpdate: {
+            /** Cooldown Hours */
+            cooldown_hours?: number | null;
+            /** Sms Sender */
+            sms_sender?: string | null;
+            /** Sms Text */
+            sms_text?: string | null;
+            /** Template Id */
+            template_id?: string | null;
+            /** Template Params */
+            template_params?: string[] | null;
+            /** Text Back Enabled */
+            text_back_enabled?: boolean | null;
+        };
+        /**
          * Plan
          * @enum {string}
          */
@@ -5925,6 +6062,77 @@ export interface operations {
                 };
             };
             /** @description Module dependency not satisfied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    connect_phone_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneLineConnect"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhoneLineConnected"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Number in use, or no such WhatsApp channel */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11311,6 +11519,145 @@ export interface operations {
             };
             /** @description Not allowed in the current state, or duplicate */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_phone_lines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhoneLineList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_phone_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                line_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneLineUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhoneLineOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

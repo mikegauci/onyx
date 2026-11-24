@@ -4,13 +4,14 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from app.api.modules import ModuleOut
 from app.core.auth.deps import DbDep, PlatformAdminDep
+from app.core.config import Settings, get_settings
 from app.core.errors import AUTH_ERRORS, ConflictError, ErrorResponse, NotFoundError
 from app.core.logging import request_id_var
 from app.core.modules.access import parse_module_key
@@ -209,3 +210,67 @@ async def connect_whatsapp_channel(
             ) from exc
         raise
     return WhatsAppChannelConnected(channel_id=uuid.UUID(str(channel_id)))
+
+
+E164 = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\+[1-9][0-9]{6,14}$")]
+
+
+class PhoneLineConnect(BaseModel):
+    """Connect a cloud number for missed-call text-back (VA-004).
+
+    Only a platform admin, who has checked the number belongs to this customer, may connect
+    it: the number routes the provider's webhook to the tenant. Missed calls are threaded into
+    the tenant's WhatsApp channel with ``whatsapp_channel_name``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    number: E164 = Field(description="The cloud number, E.164, e.g. +35627000000")
+    whatsapp_channel_name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)
+    ]
+
+
+class PhoneLineConnected(BaseModel):
+    phone_line_id: uuid.UUID
+
+
+@router.post(
+    "/organizations/{slug}/phone-lines",
+    response_model=PhoneLineConnected,
+    responses={
+        **ADMIN_ERRORS,
+        409: {"model": ErrorResponse, "description": "Number in use, or no such WhatsApp channel"},
+    },
+)
+async def connect_phone_line(
+    slug: str,
+    body: PhoneLineConnect,
+    _admin: PlatformAdminDep,
+    db: DbDep,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> PhoneLineConnected:
+    await _detail(db, slug)  # 404 for an unknown organisation
+    try:
+        async with db.begin_nested():
+            line_id = await db.scalar(
+                text(
+                    "SELECT app_admin_connect_phone_line(:slug, :provider, :number, :channel, :rid)"
+                ),
+                {
+                    "slug": slug,
+                    "provider": settings.telephony_provider,
+                    "number": body.number,
+                    "channel": body.whatsapp_channel_name,
+                    "rid": request_id_var.get(),
+                },
+            )
+    except IntegrityError as exc:
+        raise ConflictError("This number is already connected.") from exc
+    except DBAPIError as exc:
+        if getattr(getattr(exc.orig, "diag", None), "sqlstate", None) == "P0001":
+            raise ConflictError(
+                "This organisation has no WhatsApp channel with that name."
+            ) from exc
+        raise
+    return PhoneLineConnected(phone_line_id=uuid.UUID(str(line_id)))

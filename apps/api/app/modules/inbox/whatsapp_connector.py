@@ -20,7 +20,7 @@ numbers exist). Logs carry ids and outcomes, never bodies or phone numbers.
 import enum
 import logging
 import uuid
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -86,11 +86,31 @@ def _uuid(value: str | None) -> uuid.UUID | None:
         return None
 
 
+@dataclass(frozen=True)
+class SendStatusChange:
+    """A committed status change of one send, for hooks that run after the transaction."""
+
+    attempt_id: uuid.UUID
+    idempotency_key: str
+    status: WhatsAppSendStatus
+
+
+StatusHook = Callable[[uuid.UUID, SendStatusChange], Awaitable[None]]
+
+
 class WhatsAppConnector:
-    def __init__(self, sessions: async_sessionmaker[AsyncSession], config: WhatsAppConfig) -> None:
+    def __init__(
+        self,
+        sessions: async_sessionmaker[AsyncSession],
+        config: WhatsAppConfig,
+        *,
+        on_status: StatusHook | None = None,
+    ) -> None:
         self.sessions = sessions
         self.config = config
         self.provider = config.provider.name
+        # Called after a status change commits, e.g. the missed-call SMS fallback (VA-004).
+        self.on_status = on_status
 
     async def handle(self, payload: Mapping[str, Any]) -> Summary:
         inbound, statuses, skipped = parse_webhook(
@@ -233,5 +253,12 @@ class WhatsAppConnector:
                 outcome = Outcome.UPDATED
             await db.flush()
             ids = {"attempt_id": str(send.id)}
+            changed = (
+                SendStatusChange(send.id, send.idempotency_key, send.status)
+                if outcome is Outcome.UPDATED
+                else None
+            )
         _log("status", outcome, organization_id=str(org_id), **ids)
+        if changed is not None and self.on_status is not None:
+            await self.on_status(org_id, changed)
         return outcome

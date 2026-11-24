@@ -16,21 +16,29 @@ WhatsApp is not configured, the ``X-Hub-Signature-256`` HMAC over the raw body (
 missing), then ``WhatsAppConnector``, which resolves the tenant from the business number. 200
 for every verified payload, including items we drop.
 
+``POST /v1/webhooks/telephony`` (VA-004): 503 when telephony is not configured; the provider's
+signature is checked over the configured public URL and the raw body (401 when bad or missing);
+then ``MissedCallConnector`` records the call once and sends the text-back. The answer ends the
+forwarded call without picking it up (Twilio: TwiML ``<Reject/>``), also for calls we drop.
+
 The routes are left out of the OpenAPI contract: they are for providers, not the dashboard.
 """
 
 import json
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request, Response, status
 
 from app.core.billing.service import BillingWebhooks
-from app.integrations import whatsapp
+from app.integrations import telephony, whatsapp
 from app.integrations.billing.signing import WebhookSignatureError as BillingSignatureError
 from app.integrations.email import current
 from app.integrations.email.signing import WebhookSignatureError, verify
+from app.integrations.telephony import TelephonySignatureError
 from app.integrations.whatsapp import signing as whatsapp_signing
 from app.modules.inbox.email_connector import EmailConnector, RetryLaterError
+from app.modules.inbox.missed_calls import MissedCallConnector
 from app.modules.inbox.whatsapp_connector import WhatsAppConnector
 
 logger = logging.getLogger(__name__)
@@ -125,6 +133,27 @@ async def whatsapp_webhook(request: Request) -> Response:
 
     await connector.handle(payload)
     return _plain(status.HTTP_200_OK)
+
+
+@router.post("/telephony")
+async def telephony_webhook(request: Request) -> Response:
+    config = telephony.current()
+    connector: MissedCallConnector | None = getattr(request.app.state, "missed_calls", None)
+    if config is None or connector is None:
+        return _plain(status.HTTP_503_SERVICE_UNAVAILABLE)
+    body = await _read_body(request)
+    if body is None:
+        return _plain(PAYLOAD_TOO_LARGE)
+    headers = {key.lower(): value for key, value in request.headers.items()}
+    try:
+        call = config.provider.parse_call(config.webhook_url, headers, body, now=datetime.now(UTC))
+    except TelephonySignatureError as exc:
+        logger.warning("telephony webhook rejected", extra={"fields": {"reason": str(exc)}})
+        return _plain(status.HTTP_401_UNAUTHORIZED)
+    if call is not None:
+        await connector.handle(call)
+    answer = config.provider.answer()
+    return Response(content=answer.body, media_type=answer.media_type)
 
 
 @router.post("/stripe")

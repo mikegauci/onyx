@@ -17,6 +17,7 @@ from app.core.modules.access import module_router
 from app.core.modules.registry import ModuleKey
 from app.modules.inbox import schemas
 from app.modules.inbox.models import ConversationStatus
+from app.modules.inbox.phone_lines import PhoneLineService
 from app.modules.inbox.service import InboxService, channel_out
 
 router = module_router(ModuleKey.INBOX)
@@ -89,6 +90,25 @@ async def sync_whatsapp_templates(
 ) -> schemas.WhatsAppTemplateList:
     items = await InboxService(db, workspace).sync_templates(channel_id)
     return schemas.WhatsAppTemplateList(items=items)
+
+
+# --- missed-call text-back (VA-004) -------------------------------------------------------------
+
+
+@router.get("/phone-lines", response_model=schemas.PhoneLineList)
+async def list_phone_lines(workspace: Reader, db: DbDep) -> schemas.PhoneLineList:
+    return schemas.PhoneLineList(items=await PhoneLineService(db, workspace).list())
+
+
+@router.patch(
+    "/phone-lines/{line_id}",
+    response_model=schemas.PhoneLineOut,
+    responses={404: {**_ERROR, "description": "Not found"}},
+)
+async def update_phone_line(
+    line_id: uuid.UUID, body: schemas.PhoneLineUpdate, workspace: Manager, db: DbDep
+) -> schemas.PhoneLineOut:
+    return await PhoneLineService(db, workspace).update(line_id, body)
 
 
 @router.get("/assignees", response_model=schemas.AssigneeList)

@@ -29,7 +29,7 @@ live Stripe.
   1. Set `ONYX_API_TELEPHONY_WEBHOOK_URL=https://api.onyx.mt/v1/webhooks/telephony`,
      `ONYX_API_TWILIO_ACCOUNT_SID` and `ONYX_API_TWILIO_AUTH_TOKEN`.
   2. Point the Twilio number's "A call comes in" webhook (HTTP POST) at that URL.
-  3. A platform admin connects the number with `POST /v1/admin/organizations/{slug}/phone-lines`.
+  3. A platform admin connects the number under Admin → the organisation → Connect a phone line.
   4. The business sets the template and SMS text under Inbox → Channels.
 
 ## API settings (Render `onyx-api` → Environment)

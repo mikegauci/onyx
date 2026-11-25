@@ -16,6 +16,10 @@ export function IntegrationList({ status }: { status: IntegrationStatus }) {
           WhatsApp Business:{" "}
           {status.whatsapp_configured ? "set up by Onyx" : "not set up on this server yet"}
         </li>
+        <li>
+          Missed-call phone lines:{" "}
+          {status.telephony_configured ? "set up by Onyx" : "not set up on this server yet"}
+        </li>
       </ul>
       {status.channels.length === 0 ? (
         <p className="text-sm">No channels yet. Add them under Inbox → Channels.</p>
@@ -42,6 +46,26 @@ export function IntegrationList({ status }: { status: IntegrationStatus }) {
           ))}
         </ul>
       )}
+      {(status.phone_lines ?? []).length > 0 ? (
+        <ul className="flex flex-col gap-2" aria-label="Phone lines">
+          {(status.phone_lines ?? []).map((line) => (
+            <li
+              key={line.id}
+              className="bg-background/40 flex flex-wrap items-center gap-2 rounded-xl border p-3 text-sm"
+            >
+              <span className="font-medium">{line.number}</span>
+              <span className="text-muted-foreground">
+                Missed calls → {line.whatsapp_channel_name}
+              </span>
+              <span className="ml-auto">
+                <Badge variant={line.text_back_enabled ? "success" : "outline"}>
+                  {line.text_back_enabled ? "Text-back on" : "Text-back off"}
+                </Badge>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

@@ -3496,6 +3496,16 @@ export interface components {
             channels: components["schemas"]["ChannelStatus"][];
             /** Email Configured */
             email_configured: boolean;
+            /**
+             * Phone Lines
+             * @default []
+             */
+            phone_lines: components["schemas"]["PhoneLineStatus"][];
+            /**
+             * Telephony Configured
+             * @default false
+             */
+            telephony_configured: boolean;
             /** Whatsapp Configured */
             whatsapp_configured: boolean;
         };
@@ -4117,6 +4127,25 @@ export interface components {
              */
             text_backs_30d: number;
             whatsapp_channel: components["schemas"]["ChannelRef"];
+        };
+        /**
+         * PhoneLineStatus
+         * @description A missed-call line (VA-004): the cloud number and the WhatsApp channel it texts from.
+         */
+        PhoneLineStatus: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /** Provider */
+            provider: string;
+            /** Text Back Enabled */
+            text_back_enabled: boolean;
+            /** Whatsapp Channel Name */
+            whatsapp_channel_name: string;
         };
         /**
          * PhoneLineUpdate

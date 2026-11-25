@@ -4518,6 +4518,19 @@
             "title": "Email Configured",
             "type": "boolean"
           },
+          "phone_lines": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PhoneLineStatus"
+            },
+            "title": "Phone Lines",
+            "type": "array"
+          },
+          "telephony_configured": {
+            "default": false,
+            "title": "Telephony Configured",
+            "type": "boolean"
+          },
           "whatsapp_configured": {
             "title": "Whatsapp Configured",
             "type": "boolean"
@@ -6245,6 +6258,41 @@
           "text_backs_30d"
         ],
         "title": "PhoneLineOut",
+        "type": "object"
+      },
+      "PhoneLineStatus": {
+        "description": "A missed-call line (VA-004): the cloud number and the WhatsApp channel it texts from.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "text_back_enabled": {
+            "title": "Text Back Enabled",
+            "type": "boolean"
+          },
+          "whatsapp_channel_name": {
+            "title": "Whatsapp Channel Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "provider",
+          "whatsapp_channel_name",
+          "text_back_enabled"
+        ],
+        "title": "PhoneLineStatus",
         "type": "object"
       },
       "PhoneLineUpdate": {

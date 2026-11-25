@@ -116,7 +116,10 @@ class Contact(Base):
             name="fk_crm_contacts_customer_same_tenant",
             ondelete="RESTRICT",
         ),
-        CheckConstraint("email IS NOT NULL OR phone IS NOT NULL", name="has_identity"),
+        CheckConstraint(
+            "email IS NOT NULL OR phone IS NOT NULL OR erased_at IS NOT NULL",
+            name="has_identity",
+        ),
         Index(
             "uq_crm_contacts_organization_id_email",
             "organization_id",
@@ -144,6 +147,8 @@ class Contact(Base):
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Data protection: when the person was erased (their details are redacted everywhere).
+    erased_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class Lead(Base):

@@ -122,6 +122,7 @@ class ContactOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     archived_at: datetime | None
+    erased_at: datetime | None = None
 
 
 class ContactPage(BaseModel):

@@ -774,6 +774,7 @@ def _contact_out(contact: Contact, customer: Customer | None) -> schemas.Contact
         created_at=contact.created_at,
         updated_at=contact.updated_at,
         archived_at=contact.archived_at,
+        erased_at=contact.erased_at,
     )
 
 

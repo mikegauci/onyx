@@ -41,9 +41,12 @@ Each needs a data processing agreement and a listing as a sub-processor for clie
 2. **Retention:** nothing is deleted automatically yet. Agree periods per client (for example
    conversations 24 months after last activity) and build deletion jobs on the workflow
    runtime.
-3. **Data subject requests:** no export or erase tooling yet. Until it exists, requests are
-   handled by hand by the owner (contacts and conversations can be archived; full erasure
-   needs a script). Build a contact export and erase action.
+3. **Data subject requests:** done (2026-11-25). On a contact's page, owners can **download
+   their data** as one JSON file (audited), and **erase the person**. Erasing redacts the name,
+   contact details, messages, notes, reply texts and quote titles, and deletes deal document
+   files. It keeps amounts, dates, quote numbers and opt-outs, and records one audit entry with
+   ids only. See `docs/plans/privacy-tools.md`. Erased data still ages out of backups on their
+   normal rotation, and the privacy notice should say so.
 4. **AI providers:** confirm zero data retention / EU processing before turning on live AI.
 5. **Backups:** production backups and a restore drill against them (`restore-drill.md`).
 6. **Privacy notice:** clients must tell their customers that messages are processed by

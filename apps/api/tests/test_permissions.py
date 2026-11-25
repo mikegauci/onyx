@@ -40,6 +40,7 @@ EXPECTED: dict[Permission, set[MembershipRole]] = {
     Permission.TASKS_MANAGE: {OWNER, ADMIN},
     Permission.BILLING_READ: {OWNER, ADMIN},
     Permission.BILLING_MANAGE: {OWNER},
+    Permission.PRIVACY_MANAGE: {OWNER},
     Permission.DEALS_READ: {OWNER, ADMIN, MEMBER},
     Permission.DEALS_WRITE: {OWNER, ADMIN, MEMBER},
     Permission.DEALS_DOCUMENTS: {OWNER, ADMIN},

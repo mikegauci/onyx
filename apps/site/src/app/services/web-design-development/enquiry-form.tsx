@@ -60,6 +60,20 @@ export function EnquiryForm() {
               </label>
               <label className="grid gap-2 text-sm">
                 <span>
+                  Phone number <span className="text-muted-foreground">(optional)</span>
+                </span>
+                <input
+                  className={fieldClass}
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  maxLength={enquiryFields.phone}
+                  value={values.phone}
+                  onChange={(event) => update("phone", event.target.value)}
+                />
+              </label>
+              <label className="grid gap-2 text-sm">
+                <span>
                   Business <span className="text-muted-foreground">(optional)</span>
                 </span>
                 <input

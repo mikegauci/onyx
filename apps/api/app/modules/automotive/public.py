@@ -1,6 +1,9 @@
 """The automotive module's public interface for other modules (the sales assistant)."""
 
+import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,3 +78,106 @@ async def search_available(
         )
         for v in rows
     ]
+
+
+# --- deals (VA-007) ------------------------------------------------------------------------
+
+
+class VehicleUnavailableError(Exception):
+    """The vehicle is not available to reserve (sold, withdrawn, or held by another deal)."""
+
+
+@dataclass(frozen=True)
+class HeldVehicle:
+    id: uuid.UUID
+    title: str
+    price_cents: int | None
+
+
+async def hold_vehicle(
+    db: AsyncSession, tenant: TenantContext, vehicle_id: uuid.UUID, deal_id: uuid.UUID
+) -> HeldVehicle | None:
+    """Reserve the car for ``deal_id``. None if it is not in this tenant."""
+    vehicle = await db.scalar(
+        select(Vehicle)
+        .where(Vehicle.organization_id == tenant.organization_id, Vehicle.id == vehicle_id)
+        .with_for_update()
+    )
+    if vehicle is None:
+        return None
+    if vehicle.held_by_deal_id is not None or vehicle.status != VehicleStatus.AVAILABLE.value:
+        raise VehicleUnavailableError
+    _set_status(vehicle, VehicleStatus.RESERVED, f"deal:{deal_id}")
+    vehicle.held_by_deal_id = deal_id
+    return HeldVehicle(vehicle.id, vehicle.title, vehicle.price_cents)
+
+
+async def set_held_status(
+    db: AsyncSession,
+    tenant: TenantContext,
+    vehicle_id: uuid.UUID,
+    deal_id: uuid.UUID,
+    *,
+    sold: bool,
+) -> None:
+    """Mark the held car sold (or reserved again). Only the holding deal may do this."""
+    vehicle = await _held(db, tenant, vehicle_id, deal_id)
+    if vehicle is not None:
+        _set_status(
+            vehicle, VehicleStatus.SOLD if sold else VehicleStatus.RESERVED, f"deal:{deal_id}"
+        )
+
+
+async def release_vehicle(
+    db: AsyncSession,
+    tenant: TenantContext,
+    vehicle_id: uuid.UUID,
+    deal_id: uuid.UUID,
+    *,
+    sold: bool,
+) -> None:
+    """End the hold: available again if the deal was cancelled, sold if it was collected.
+
+    The next website import then applies the site's status as usual.
+    """
+    vehicle = await _held(db, tenant, vehicle_id, deal_id)
+    if vehicle is None:
+        return
+    vehicle.held_by_deal_id = None
+    _set_status(vehicle, VehicleStatus.SOLD if sold else VehicleStatus.AVAILABLE, f"deal:{deal_id}")
+
+
+async def vehicle_titles(
+    db: AsyncSession, tenant: TenantContext, ids: Iterable[uuid.UUID]
+) -> dict[uuid.UUID, str]:
+    wanted = set(ids)
+    if not wanted:
+        return {}
+    rows = await db.execute(
+        select(Vehicle.id, Vehicle.title).where(
+            Vehicle.organization_id == tenant.organization_id, Vehicle.id.in_(wanted)
+        )
+    )
+    return {row.id: row.title for row in rows}
+
+
+async def _held(
+    db: AsyncSession, tenant: TenantContext, vehicle_id: uuid.UUID, deal_id: uuid.UUID
+) -> Vehicle | None:
+    return await db.scalar(
+        select(Vehicle)
+        .where(
+            Vehicle.organization_id == tenant.organization_id,
+            Vehicle.id == vehicle_id,
+            Vehicle.held_by_deal_id == deal_id,
+        )
+        .with_for_update()
+    )
+
+
+def _set_status(vehicle: Vehicle, status: VehicleStatus, source: str) -> None:
+    vehicle.status = status.value
+    vehicle.field_sources = {
+        **vehicle.field_sources,
+        "status": {"source": source, "at": datetime.now(UTC).isoformat()},
+    }

@@ -255,3 +255,42 @@ def test_a_field_map_must_name_known_fields(api: TestClient, as_: As, site: Fake
     saved = api.put(f"{BASE}/source", json=sold, headers=as_.seeded(ADAM))
     assert saved.status_code == 200, saved.text
     assert json.dumps(saved.json()["field_map"]["sold"]) == json.dumps(sold["field_map"]["sold"])
+
+
+@pytest.mark.usefixtures("enabled")
+def test_a_car_held_by_a_deal_keeps_its_status_through_imports(
+    api: TestClient, as_: As, site: FakeSite, owner_engine: Engine
+) -> None:
+    """VA-007: the website still lists a reserved car as available, or drops a sold one."""
+    _connect(api, as_)
+    adam = as_.seeded(ADAM)
+    api.post(f"{BASE}/import/apply", headers=adam)
+    on = api.put(
+        f"/v1/admin/organizations/{LUMEN}/modules/deals",
+        json={"enabled": True},
+        headers=as_.seeded(PAT),
+    )
+    assert on.status_code == 200, on.text
+    cars = {v["stock_number"]: v for v in _vehicles(api, as_)}
+    with owner_engine.connect() as conn:
+        clara = conn.scalar(
+            text(
+                "SELECT id FROM crm_contacts WHERE organization_id = :org "
+                "AND full_name = 'Clara Borg'"
+            ),
+            {"org": LUMEN_ID},
+        )
+    for stock in ("S-1", "S-3"):
+        deal = api.post(
+            f"/v1/w/{LUMEN}/deals",
+            json={"contact_id": str(clara), "vehicle_id": cars[stock]["id"]},
+            headers=as_.seeded(MIA),
+        )
+        assert deal.status_code == 201, deal.text
+    site.cars[0]["vehica_6656"] = {"vehica_currency_6656_2316": "16950"}
+    site.cars.pop()  # car 3 is taken off the site while its deal is open
+    api.post(f"{BASE}/import/apply", headers=adam)
+    cars = {v["stock_number"]: v for v in _vehicles(api, as_)}
+    assert (cars["S-1"]["status"], cars["S-1"]["price_cents"]) == ("reserved", 1_695_000)
+    assert cars["S-3"]["status"] == "reserved"  # not withdrawn while held
+    assert "S-1" not in [v["stock_number"] for v in _vehicles(api, as_, status="available")]

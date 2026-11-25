@@ -62,6 +62,10 @@ services:
         sync: false
       - key: ONYX_API_WHATSAPP_ACCESS_TOKEN
         sync: false
+      # Deal documents (VA-007): Supabase Storage, private bucket "tenant-files". Unset = uploads
+      # return 503 (fail closed).
+      - key: ONYX_API_SUPABASE_SERVICE_KEY
+        sync: false
       # Missed-call text-back (VA-004): off until the owner buys the cloud number.
       - key: ONYX_API_TELEPHONY_WEBHOOK_URL
         sync: false

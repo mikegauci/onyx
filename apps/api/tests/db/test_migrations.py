@@ -57,6 +57,10 @@ EXPECTED_TABLES = {
     "inbox_phone_lines",
     "inbox_missed_calls",
     "workspace_controls",
+    "deals",
+    "deal_events",
+    "deal_documents",
+    "deal_settings",
     "workflow_effects",
     "tasks",
     "billing_customers",
@@ -200,6 +204,7 @@ def test_module_catalogue_is_reference_data(migrated_engine: Engine) -> None:
     assert keys == {
         "crm",
         "catalogue",
+        "deals",
         "inbox",
         "quotations",
         "orders",

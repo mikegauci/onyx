@@ -9,6 +9,7 @@ import {
   CircleCheck,
   Contact,
   FileText,
+  Handshake,
   Inbox,
   type LucideIcon,
   Library,
@@ -37,6 +38,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   outbound: Send,
   knowledge: Library,
   automotive: Car,
+  deals: Handshake,
 };
 
 const FOCUS = "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";

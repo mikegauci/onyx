@@ -58,6 +58,7 @@ def test_catalogue_lists_every_module_with_this_tenants_flags(api: TestClient, a
     assert {m["key"]: m["enabled"] for m in modules} == {
         "assistant": False,
         "catalogue": True,
+        "deals": False,
         "crm": True,
         "inbox": True,
         "knowledge": False,

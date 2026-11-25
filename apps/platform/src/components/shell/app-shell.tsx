@@ -37,6 +37,7 @@ import {
   Contact,
   FileText,
   Gauge,
+  Handshake,
   Inbox,
   LayoutDashboard,
   Library,
@@ -75,6 +76,7 @@ const ICONS = {
   knowledge: Library,
   insights: BarChart3,
   help: CircleHelp,
+  deals: Handshake,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

@@ -10,6 +10,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     SmallInteger,
@@ -56,6 +57,14 @@ class Vehicle(Base):
     __tablename__ = "automotive_vehicles"
     __table_args__ = (
         UniqueConstraint("organization_id", "source_ref", name="uq_automotive_vehicles_source_ref"),
+        UniqueConstraint("organization_id", "id"),  # same-tenant references (VA-007)
+        ForeignKeyConstraint(
+            ["organization_id", "held_by_deal_id"],
+            ["deals.organization_id", "deals.id"],
+            name="fk_automotive_vehicles_held_by_deal_same_tenant",
+            ondelete="RESTRICT",
+            use_alter=True,
+        ),
         CheckConstraint("status IN ('available', 'reserved', 'sold', 'withdrawn')", name="status"),
         CheckConstraint("price_cents IS NULL OR price_cents >= 0", name="price"),
         CheckConstraint("year IS NULL OR year BETWEEN 1900 AND 2100", name="year"),
@@ -95,6 +104,8 @@ class Vehicle(Base):
     video_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     listing_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False)
+    # An open deal holding the car (VA-007): the website import never changes its status.
+    held_by_deal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     field_sources: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=sql_text("'{}'::jsonb")
     )

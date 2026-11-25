@@ -25,6 +25,11 @@ export const MODULES: Record<string, { label: string; arrives: string; blurb: st
     arrives: "VA-001 part 2",
     blurb: "Stock imported from your site.",
   },
+  deals: {
+    label: "Deals",
+    arrives: "VA-007",
+    blurb: "Sales from reservation to collection, with documents.",
+  },
 };
 
 export function moduleLabel(key: string): string {

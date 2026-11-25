@@ -1,3 +1,4 @@
+import { servicePath } from "./service-links";
 import { webDesignPath } from "./web-design";
 
 /**
@@ -9,7 +10,7 @@ export const site = {
   name: "Onyx Studio",
   tagline: "AI that answers, books and follows up. People who stay in charge.",
   description:
-    "Onyx Studio is a Malta studio building AI automation, websites and integrations for growing businesses, on top of our own platform, Onyx Platform.",
+    "Onyx Studio builds websites, apps, brands and AI automation for businesses in Malta and Gozo, and helps them get found through SEO.",
   contactEmail: "info@onyx.mt",
   location: "Malta",
   /** The registered business details, as on official documents (Meta business verification). */
@@ -88,24 +89,52 @@ export const system = {
 export const services = [
   {
     title: "AI assistants",
-    body: "Assistants that reply on WhatsApp, email and web chat in your tone, from your data, around the clock.",
+    body: "Assistants that handle routine WhatsApp, email and web chat enquiries using your approved information.",
     tags: ["Enquiry replies", "Lead qualification", "Booking"],
+    href: `${servicePath("ai-automation")}#ai-assistants`,
+    linkLabel: "Explore AI assistants",
   },
   {
     title: "Workflow automation",
-    body: "Follow-ups, reminders, document chasing and hand-offs that run on schedule instead of on memory.",
+    body: "Give follow-ups, reminders, document requests and hand-offs a clear next step.",
     tags: ["Reminders", "Follow-ups", "Hand-offs"],
+    href: `${servicePath("ai-automation")}#workflow-automation`,
+    linkLabel: "Explore workflow automation",
   },
   {
     title: "Websites that sell",
-    body: "Business websites, online shops and custom web apps, with optional connections to your stock, bookings and inbox.",
-    tags: ["Web design", "Development", "SEO"],
+    body: "Business websites and online shops, with options for bookings, stock and a tailored CMS.",
+    tags: ["Web design", "Development", "Tailored CMS"],
     href: webDesignPath,
+    linkLabel: "Explore web design and development",
   },
   {
     title: "Integrations",
-    body: "Your existing tools (website, payments, calendars, spreadsheets) joined up so data is typed once.",
-    tags: ["WhatsApp Business", "Stripe", "WordPress"],
+    body: "Connect payments, calendars, stock and inboxes as part of your build or automation.",
+    tags: ["WhatsApp Business", "Stripe", "Booking tools"],
+    href: `${servicePath("ai-automation")}#integrations`,
+    linkLabel: "See integrations in an automation project",
+  },
+  {
+    title: "App development",
+    body: "iOS and Android apps, web apps and portals built around what customers and teams need to do.",
+    tags: ["iOS and Android", "Web apps", "Portals"],
+    href: servicePath("app-development"),
+    linkLabel: "Explore app development",
+  },
+  {
+    title: "Branding and graphic design",
+    body: "Brand identity, logos and graphics for the places people meet your business online and in print.",
+    tags: ["Brand identity", "Social graphics", "Print design"],
+    href: servicePath("branding-graphic-design"),
+    linkLabel: "Explore branding and graphic design",
+  },
+  {
+    title: "SEO",
+    body: "Local SEO for Malta and Gozo, technical audits and ongoing work to improve search visibility.",
+    tags: ["Local SEO", "Technical audits", "Ongoing SEO"],
+    href: servicePath("seo"),
+    linkLabel: "Explore SEO",
   },
 ] as const;
 

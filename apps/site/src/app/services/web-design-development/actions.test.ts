@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { sendWebEnquiry } from "./actions";
+import type { ServiceSlug } from "@/content/service-links";
+
+import { sendServiceEnquiry, sendWebEnquiry } from "./actions";
 
 const initialState = { status: "idle", message: "" } as const;
 
@@ -137,5 +139,40 @@ describe("website enquiries", () => {
     const rejected = await sendWebEnquiry(initialState, validEnquiry());
     expect(rejected).toMatchObject({ status: "error" });
     expect(await sendWebEnquiry(initialState, validEnquiry())).toEqual(rejected);
+  });
+});
+
+describe("service enquiries", () => {
+  it("uses the allowlisted service and preserves the visitor reply address", async () => {
+    vi.stubEnv("ONYX_SITE_RESEND_API_KEY", "fake-key");
+    const send = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", send);
+
+    const form = validEnquiry();
+    form.set("package", "unrecognised");
+    form.set("campaign", "website_design_300");
+    form.set("service", "SEO");
+    expect(await sendServiceEnquiry("app-development", initialState, form)).toMatchObject({
+      status: "sent",
+    });
+    expect(await sendServiceEnquiry("seo", initialState, form)).toMatchObject({ status: "sent" });
+    expect(await sendServiceEnquiry("unknown" as ServiceSlug, initialState, form)).toMatchObject({
+      status: "error",
+    });
+    expect(send).toHaveBeenCalledTimes(2);
+
+    const appRequest = send.mock.calls[0]![1];
+    const seoRequest = send.mock.calls[1]![1];
+    const appMail = JSON.parse(appRequest?.body as string);
+    expect(appMail).toMatchObject({
+      to: ["info@onyx.mt"],
+      reply_to: "visitor@example.com",
+      subject: "New Onyx Studio enquiry — App Development",
+      text: expect.stringContaining("Service: App Development"),
+    });
+    expect(appMail.text).not.toMatch(/Package:|Campaign:/);
+    expect(new Headers(appRequest?.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(seoRequest?.headers).get("Idempotency-Key"),
+    );
   });
 });

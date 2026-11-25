@@ -44,7 +44,9 @@ function TaggedContactLinks() {
   return <ContactLinks whatsAppHref={href} />;
 }
 
-export function EnquiryContacts() {
+export function EnquiryContacts({ campaignAware = true }: { campaignAware?: boolean }) {
+  if (!campaignAware) return <ContactLinks whatsAppHref={whatsApp} />;
+
   return (
     <Suspense fallback={<ContactLinks whatsAppHref={whatsApp} />}>
       <TaggedContactLinks />

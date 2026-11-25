@@ -12,11 +12,19 @@ import { emptyEnquiry, enquiryFields, type EnquiryState, type EnquiryValues } fr
 const fieldClass =
   "focus-visible:ring-ring/60 w-full rounded-lg border border-white/20 bg-background px-3 py-2.5 text-base focus-visible:ring-2 focus-visible:outline-none";
 
-export function EnquiryForm() {
-  const [state, submit, pending] = useActionState<EnquiryState, FormData>(sendWebEnquiry, {
-    status: "idle",
-    message: "",
-  });
+type ServiceEnquiry = {
+  label: string;
+  action: (previous: EnquiryState, data: FormData) => Promise<EnquiryState>;
+};
+
+export function EnquiryForm({ service }: { service?: ServiceEnquiry }) {
+  const [state, submit, pending] = useActionState<EnquiryState, FormData>(
+    service?.action ?? sendWebEnquiry,
+    {
+      status: "idle",
+      message: "",
+    },
+  );
   const [values, setValues] = useState(emptyEnquiry);
 
   function update(field: keyof EnquiryValues, value: string) {
@@ -29,8 +37,12 @@ export function EnquiryForm() {
         {state.status === "sent" && state.message}
       </p>
       {state.status !== "sent" && (
-        <form action={submit} className="grid gap-5" aria-label="Web project enquiry">
-          <EnquiryCampaignField />
+        <form
+          action={submit}
+          className="grid gap-5"
+          aria-label={service?.label ?? "Web project enquiry"}
+        >
+          {!service && <EnquiryCampaignField />}
           <fieldset disabled={pending} className="grid min-w-0 gap-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm">
@@ -85,24 +97,26 @@ export function EnquiryForm() {
                   onChange={(event) => update("business", event.target.value)}
                 />
               </label>
-              <label className="grid gap-2 text-sm">
-                <span>
-                  Package <span className="text-muted-foreground">(optional)</span>
-                </span>
-                <select
-                  className={fieldClass}
-                  name="package"
-                  value={values.package}
-                  onChange={(event) => update("package", event.target.value)}
-                >
-                  <option value="">Help me choose</option>
-                  {webDesignPackages.map(({ name }) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {!service && (
+                <label className="grid gap-2 text-sm">
+                  <span>
+                    Package <span className="text-muted-foreground">(optional)</span>
+                  </span>
+                  <select
+                    className={fieldClass}
+                    name="package"
+                    value={values.package}
+                    onChange={(event) => update("package", event.target.value)}
+                  >
+                    <option value="">Help me choose</option>
+                    {webDesignPackages.map(({ name }) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
             <label className="grid gap-2 text-sm">
               Project brief

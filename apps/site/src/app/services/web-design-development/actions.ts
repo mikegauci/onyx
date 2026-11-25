@@ -2,6 +2,7 @@
 
 import { createHmac } from "node:crypto";
 
+import { getServiceLink, type ServiceSlug } from "@/content/service-links";
 import { site } from "@/content/site";
 import { webDesignPackages } from "@/content/web-design";
 
@@ -17,6 +18,22 @@ export async function sendWebEnquiry(
   _previous: EnquiryState,
   formData: FormData,
 ): Promise<EnquiryState> {
+  return sendEnquiry(formData);
+}
+
+export async function sendServiceEnquiry(
+  slug: ServiceSlug,
+  _previous: EnquiryState,
+  formData: FormData,
+): Promise<EnquiryState> {
+  const service = getServiceLink(slug);
+  return service ? sendEnquiry(formData, service) : unavailable;
+}
+
+async function sendEnquiry(
+  formData: FormData,
+  service?: NonNullable<ReturnType<typeof getServiceLink>>,
+): Promise<EnquiryState> {
   const sent: EnquiryState = { status: "sent", message: "Thanks. Your enquiry has been sent." };
 
   // A field hidden from visitors catches bots that fill every input.
@@ -24,6 +41,7 @@ export async function sendWebEnquiry(
 
   const values = { ...emptyEnquiry };
   for (const field of Object.keys(enquiryFields) as (keyof EnquiryValues)[]) {
+    if (service && field === "package") continue;
     const value = formData.get(field);
     if (value !== null && (typeof value !== "string" || value.length > enquiryFields[field])) {
       return { status: "error", message: "Please check the length of your enquiry and try again." };
@@ -55,11 +73,14 @@ export async function sendWebEnquiry(
   if (!apiKey) return unavailable;
 
   const campaign =
-    formData.get("campaign") === websiteDesignCampaign.code ? websiteDesignCampaign : null;
+    !service && formData.get("campaign") === websiteDesignCampaign.code
+      ? websiteDesignCampaign
+      : null;
   const content = {
     ...details,
     ...(phone ? { phone } : {}),
     ...(campaign ? { campaign: campaign.code } : {}),
+    ...(service ? { service: service.slug } : {}),
   };
   // Resend deduplicates identical enquiries for 24 hours, including retries after a timeout.
   const digest = createHmac("sha256", apiKey).update(JSON.stringify(content)).digest("hex");
@@ -76,13 +97,15 @@ export async function sendWebEnquiry(
         from: "Onyx Studio Website <website@reply.onyx.mt>",
         to: [site.contactEmail],
         reply_to: values.email,
-        subject: "New Onyx Studio web project enquiry",
+        subject: service
+          ? `New Onyx Studio enquiry — ${service.title}`
+          : "New Onyx Studio web project enquiry",
         text: [
           `Name: ${values.name}`,
           `Email: ${values.email}`,
           ...(phone ? [`Phone: ${phone}`] : []),
           `Business: ${values.business || "Not supplied"}`,
-          `Package: ${values.package || "Not selected"}`,
+          service ? `Service: ${service.title}` : `Package: ${values.package || "Not selected"}`,
           ...(campaign ? [`Campaign: ${campaign.label} (${campaign.code})`] : []),
           "",
           values.brief,

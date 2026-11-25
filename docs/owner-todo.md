@@ -98,4 +98,4 @@ them into chat.
 
 - [x] Meta business verification (approved 2026-11-24).
 - [x] Privacy policy page live at https://onyx.mt/privacy (2026-11-24).
-- [x] Production database migrated to 0030 (2026-11-25).
+- [x] Production database migrated to 0033 (2026-11-25).

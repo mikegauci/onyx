@@ -50,6 +50,7 @@ from app.modules.automotive import fake_site
 from app.modules.automotive.routes import router as automotive_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
+from app.modules.deals.public_routes import router as public_uploads_router
 from app.modules.deals.routes import router as deals_router
 from app.modules.inbox import whatsapp_send
 from app.modules.inbox.email_connector import EmailConnector
@@ -317,6 +318,7 @@ def create_app(
     v1.include_router(outbound_router)
     v1.include_router(knowledge_router)
     v1.include_router(deals_router)
+    v1.include_router(public_uploads_router)
     v1.include_router(webhooks_router)
     app.include_router(v1)
     return app

@@ -166,3 +166,25 @@ class DealSettings(Base):
     )
     updated_by_user_id: Mapped[uuid.UUID | None] = _user()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class DealUploadLink(Base):
+    """A customer upload link (part 2). Only the token's SHA-256 is stored."""
+
+    __tablename__ = "deal_upload_links"
+    __table_args__ = (
+        _same_tenant("deal_upload_links", "deal_id", "deals"),
+        Index("ix_deal_upload_links_deal", "organization_id", "deal_id"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    deal_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    upload_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    max_uploads: Mapped[int] = mapped_column(Integer, nullable=False, server_default="30")
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_by_user_id: Mapped[uuid.UUID | None] = _user()
+    created_at: Mapped[datetime] = created_at_column()

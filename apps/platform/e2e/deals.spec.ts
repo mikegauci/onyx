@@ -89,3 +89,45 @@ test("a deal reserves a car, collects documents, and is sold and collected", asy
   await owner.close();
   await member.close();
 });
+
+test("a customer uploads a document with the link, without signing in", async ({ browser }) => {
+  const owner = await browser.newContext();
+  await signInAs(owner, USERS.olivia);
+  const page = await owner.newPage();
+  await page.goto(`${LUMEN}/m/deals/new`);
+  await page.getByLabel("Customer").selectOption({ label: "Clara Borg" });
+  await page.getByRole("button", { name: "Create deal" }).click();
+  await expect(page.getByRole("heading", { name: /Clara Borg/ })).toBeVisible();
+  const dealUrl = page.url();
+
+  const request = page.getByRole("form", { name: "Request documents" });
+  await request.getByRole("button", { name: "Request documents" }).click();
+  const link = await request.getByLabel("Upload link (shown once)").inputValue();
+  expect(link).toMatch(/\/u\/[A-Za-z0-9_-]{20,}$/);
+
+  // The customer: a fresh browser with no Onyx session.
+  const customer = await browser.newContext();
+  const c = await customer.newPage();
+  await c.goto(link);
+  await expect(c.getByRole("heading", { name: "Upload your documents" })).toBeVisible();
+  await expect(c.getByText("Clara")).toHaveCount(0);
+  const needed = c.getByRole("list", { name: "Documents needed" });
+  await expect(needed.getByRole("listitem")).toHaveCount(3);
+  await c.getByLabel("Choose a file for ID card or passport").setInputFiles({
+    name: "id.jpg",
+    mimeType: "image/jpeg",
+    buffer: JPEG,
+  });
+  await expect(c.getByRole("status")).toContainText("ID card or passport received");
+  await expect(needed.getByRole("listitem")).toHaveCount(2);
+
+  await page.goto(dealUrl);
+  await expect(page.getByRole("list", { name: "Checklist" })).toContainText("Received, to check");
+  await expect(page.getByText(/A link is active until/)).toBeVisible();
+  await page.getByRole("button", { name: "Stop this link" }).click();
+  await c.reload();
+  await expect(c.getByRole("heading", { name: "This link is not valid" })).toBeVisible();
+
+  await owner.close();
+  await customer.close();
+});

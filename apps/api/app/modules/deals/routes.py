@@ -175,3 +175,26 @@ async def reject_deal_document(
     db: DbDep,
 ) -> schemas.DealDetail:
     return await DealService(db, workspace).reject(deal_id, document_id, body)
+
+
+# --- customer upload links (part 2) -------------------------------------------------------------
+
+
+@router.post(
+    "/{deal_id}/upload-link",
+    response_model=schemas.UploadLinkCreated,
+    status_code=status.HTTP_201_CREATED,
+    responses=WRITE_ERRORS,
+)
+async def create_deal_upload_link(
+    deal_id: uuid.UUID, workspace: Writer, db: DbDep
+) -> schemas.UploadLinkCreated:
+    """A new 7-day link for the customer; any earlier link of the deal stops working."""
+    return await DealService(db, workspace).create_upload_link(deal_id)
+
+
+@router.delete("/{deal_id}/upload-link", response_model=schemas.DealDetail, responses=WRITE_ERRORS)
+async def revoke_deal_upload_link(
+    deal_id: uuid.UUID, workspace: Writer, db: DbDep
+) -> schemas.DealDetail:
+    return await DealService(db, workspace).revoke_upload_links(deal_id)

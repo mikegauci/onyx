@@ -33,7 +33,7 @@ from app.core.storage.store import ObjectStore
 from app.core.tenancy.models import MembershipRole
 from app.modules.automotive import public as automotive
 from app.modules.crm import public as crm
-from app.modules.deals import schemas
+from app.modules.deals import schemas, uploads
 from app.modules.deals.lifecycle import (
     ACTIVE_STAGES,
     FINAL_STAGES,
@@ -48,7 +48,7 @@ from app.modules.deals.lifecycle import (
     check_move,
     sniff,
 )
-from app.modules.deals.models import Deal, DealDocument, DealEvent, DealSettings
+from app.modules.deals.models import Deal, DealDocument, DealEvent, DealSettings, DealUploadLink
 from app.modules.quotations import public as quotations
 
 MAX_LISTED = 200
@@ -528,6 +528,49 @@ class DealService:
         )
         return await self.detail(deal.id)
 
+    # --- customer upload links (part 2) -----------------------------------------------------
+
+    async def create_upload_link(self, deal_id: uuid.UUID) -> schemas.UploadLinkCreated:
+        """A new link for the customer; any earlier link of the deal stops working."""
+        deal = await self._deal(deal_id, lock=True)
+        if deal.stage in FINAL_STAGES or deal.stage is DealStage.SOLD:
+            raise ConflictError("Documents can only be requested before the deal is sold.")
+        await uploads.revoke_links(self.db, self.org, deal.id)
+        token, token_hash = uploads.new_token()
+        link = DealUploadLink(
+            organization_id=self.org,
+            deal_id=deal.id,
+            token_hash=token_hash,
+            expires_at=_now() + uploads.LINK_LIFETIME,
+            created_by_user_id=self.workspace.user.id,
+        )
+        self.db.add(link)
+        await self._event(deal, "upload_link_created")
+        await self.db.flush()
+        await record_workspace_audit(
+            self.db,
+            self.workspace,
+            action="deals.upload_link_created",
+            target_type="deal",
+            target_id=deal.id,
+            details={"link_id": str(link.id)},
+        )
+        return schemas.UploadLinkCreated(token=token, expires_at=link.expires_at)
+
+    async def revoke_upload_links(self, deal_id: uuid.UUID) -> schemas.DealDetail:
+        deal = await self._deal(deal_id, lock=True)
+        if await uploads.revoke_links(self.db, self.org, deal.id):
+            await self._event(deal, "upload_link_revoked")
+            await record_workspace_audit(
+                self.db,
+                self.workspace,
+                action="deals.upload_link_revoked",
+                target_type="deal",
+                target_id=deal.id,
+            )
+        await self.db.flush()
+        return await self.detail(deal.id)
+
     # --- reading ----------------------------------------------------------------------------
 
     async def list_deals(
@@ -638,8 +681,17 @@ class DealService:
             if deal.quote_id
             else None
         )
+        link = await uploads.active_link(self.db, self.org, deal.id)
         return schemas.DealDetail(
             **summary.model_dump(),
+            upload_link=schemas.UploadLinkOut(
+                expires_at=link.expires_at,
+                upload_count=link.upload_count,
+                max_uploads=link.max_uploads,
+                created_at=link.created_at,
+            )
+            if link is not None and link.upload_count < link.max_uploads
+            else None,
             lead_id=deal.lead_id,
             quote=schemas.DealRef(id=deal.quote_id, label=quote_label or "Quote")
             if deal.quote_id

@@ -30,6 +30,7 @@ import {
   StageForm,
   UploadDocument,
 } from "../_components/deal-forms";
+import { RequestDocuments } from "../_components/request-documents";
 
 type Props = { params: Promise<{ slug: string; id: string }> };
 
@@ -245,6 +246,25 @@ export default async function DealPage({ params }: Props) {
               ]}
             />
           </Panel>
+          {canWrite && open ? (
+            <Panel title="Customer upload link" as="h3" divided={false}>
+              <RequestDocuments
+                slug={slug}
+                dealId={id}
+                conversationId={deal.conversation_id}
+                canPrepareReply={
+                  deal.conversation_id !== null &&
+                  workspace.modules.includes("outbound") &&
+                  can("outbound.write")
+                }
+                firstName={deal.contact.label.split(" ")[0] ?? ""}
+                active={deal.upload_link ?? null}
+                expiresLabel={
+                  deal.upload_link ? formatInZone(deal.upload_link.expires_at, zone) : null
+                }
+              />
+            </Panel>
+          ) : null}
           {canWrite && open && deal.deposit_cents === null ? (
             <Panel title="Deposit" as="h3" divided={false}>
               <DepositForm slug={slug} dealId={id} />

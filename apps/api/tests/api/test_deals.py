@@ -344,3 +344,116 @@ def test_another_workspace_cannot_see_or_touch_a_deal(api: TestClient, as_: As, 
     # A Harbour deal cannot point at Lumen's contact.
     foreign = api.post(harbour, json={"contact_id": clara}, headers=hugo)
     assert foreign.status_code == 422
+
+
+# --- customer upload links (part 2) -----------------------------------------------------------
+
+PUBLIC = "/v1/public/uploads"
+
+
+def _link(api: TestClient, as_: As, deal: str, who: str = MIA) -> str:
+    response = api.post(f"{BASE}/{deal}/upload-link", headers=as_.seeded(who))
+    assert response.status_code == 201, response.text
+    token: str = response.json()["token"]
+    return token
+
+
+def _customer_upload(api: TestClient, token: str, doc: str, data: bytes = JPEG) -> Any:
+    return api.put(
+        f"{PUBLIC}/{token}/documents/{doc}",
+        json={"filename": "photo.jpg", "content_base64": base64.b64encode(data).decode()},
+    )
+
+
+def test_a_customer_uploads_with_the_link_and_sees_only_what_is_needed(
+    api: TestClient, as_: As, clara: str, owner_engine: Engine
+) -> None:
+    deal = _create(api, as_, contact_id=clara)
+    did = deal["id"]
+    token = _link(api, as_, did)
+    assert (
+        api.get(f"{BASE}/{did}", headers=as_.seeded(MIA)).json()["upload_link"]["upload_count"] == 0
+    )
+
+    page = api.get(f"{PUBLIC}/{token}")  # no sign-in
+    assert page.status_code == 200, page.text
+    body = page.json()
+    assert body["business_name"] == "Lumen Lighting (test)"
+    assert [i["label"] for i in body["needed"]] == [
+        "ID card or passport",
+        "Driving licence",
+        "Proof of address",
+    ]
+    assert "Clara" not in page.text  # no personal data on the public page
+
+    doc = body["needed"][0]["id"]
+    assert _customer_upload(api, token, doc, b"not a file").status_code == 422
+    uploaded = _customer_upload(api, token, doc)
+    assert uploaded.status_code == 200, uploaded.text
+    assert (len(uploaded.json()["needed"]), uploaded.json()["received"]) == (2, 1)
+    item = _doc(api.get(f"{BASE}/{did}", headers=as_.seeded(ADAM)).json(), "id_document")
+    assert (item["state"], item["received_from"]) == ("received", "customer")
+    tasks = _sql(
+        owner_engine, "SELECT title, audience FROM tasks WHERE kind = 'deal_document'"
+    ).all()
+    assert [(t.title, t.audience) for t in tasks] == [
+        ("Check id card or passport for Clara Borg", "admin")
+    ]
+    # A received document cannot be uploaded again through the link.
+    assert _customer_upload(api, token, doc).status_code == 404
+    # A rejected one can.
+    api.post(
+        f"{BASE}/{did}/documents/{doc}/reject", json={"reason": "Blurred"}, headers=as_.seeded(ADAM)
+    )
+    again = api.get(f"{PUBLIC}/{token}").json()
+    assert again["needed"][0]["rejected_reason"] == "Blurred"
+    assert _customer_upload(api, token, doc).status_code == 200
+
+
+def test_links_stop_working_when_revoked_replaced_expired_used_up_or_sold(
+    api: TestClient, as_: As, clara: str, owner_engine: Engine
+) -> None:
+    deal = _create(api, as_, contact_id=clara)
+    did = deal["id"]
+    other = _create(api, as_, contact_id=clara)
+    first = _link(api, as_, did)
+    second = _link(api, as_, did)  # replaces the first
+    assert api.get(f"{PUBLIC}/{first}").status_code == 404
+    assert api.get(f"{PUBLIC}/{second}").status_code == 200
+    # Another deal's document cannot be reached with this link.
+    foreign = other["documents"][0]["id"]
+    assert _customer_upload(api, second, foreign).status_code == 404
+    assert api.get(f"{PUBLIC}/{'x' * 43}").status_code == 404
+
+    revoked = api.delete(f"{BASE}/{did}/upload-link", headers=as_.seeded(MIA))
+    assert revoked.status_code == 200
+    assert revoked.json()["upload_link"] is None
+    assert api.get(f"{PUBLIC}/{second}").status_code == 404
+
+    expiring = _link(api, as_, did)
+    _sql(owner_engine, "UPDATE deal_upload_links SET expires_at = now() - interval '1 minute'")
+    assert api.get(f"{PUBLIC}/{expiring}").status_code == 404
+
+    limited = _link(api, as_, did)
+    _sql(
+        owner_engine,
+        "UPDATE deal_upload_links SET max_uploads = 1 WHERE revoked_at IS NULL "
+        "AND expires_at > now()",
+    )
+    docs = api.get(f"{PUBLIC}/{limited}").json()["needed"]
+    assert _customer_upload(api, limited, docs[0]["id"]).status_code == 200
+    assert _customer_upload(api, limited, docs[1]["id"]).status_code == 404
+
+    fresh = _link(api, as_, did)
+    _stage(api, as_, did, OLIVIA, stage="sold", override=True, reason="On paper")
+    assert api.get(f"{PUBLIC}/{fresh}").status_code == 404
+    assert api.post(f"{BASE}/{did}/upload-link", headers=as_.seeded(MIA)).status_code == 409
+
+
+def test_another_workspace_cannot_make_links_for_a_deal(
+    api: TestClient, as_: As, clara: str
+) -> None:
+    deal = _create(api, as_, contact_id=clara)
+    harbour = f"/v1/w/{HARBOUR}/deals"
+    response = api.post(f"{harbour}/{deal['id']}/upload-link", headers=as_.seeded(HUGO))
+    assert response.status_code == 404

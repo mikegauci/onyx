@@ -166,6 +166,7 @@ class DealDetail(DealSummary):
     created_at: datetime
     documents: list[DealDocumentOut]
     events: list[DealEventOut]
+    upload_link: "UploadLinkOut | None" = None
 
 
 class DealList(BaseModel):
@@ -186,3 +187,39 @@ class DealSettingsOut(BaseModel):
     retention_days: int
     customer_reminders: bool
     uses_standard_checklist: bool
+
+
+class UploadLinkOut(BaseModel):
+    """The deal's active customer upload link. The token itself is shown only once, when made."""
+
+    expires_at: datetime
+    upload_count: int
+    max_uploads: int
+    created_at: datetime
+
+
+class UploadLinkCreated(BaseModel):
+    token: str = Field(description="Shown once; build the link as <app>/u/<token>")
+    expires_at: datetime
+
+
+class PublicUploadItem(BaseModel):
+    id: uuid.UUID
+    label: str
+    note: str | None
+    rejected_reason: str | None
+
+
+class PublicUploadPage(BaseModel):
+    business_name: str
+    expires_at: datetime
+    needed: list[PublicUploadItem]
+    received: int
+
+
+class PublicUpload(_Input):
+    filename: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+    content_base64: Annotated[str, StringConstraints(min_length=1, max_length=BASE64_MAX_LENGTH)]
+
+
+DealDetail.model_rebuild()

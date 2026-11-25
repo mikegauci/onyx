@@ -145,3 +145,53 @@ def _mileage(maximum: int | None, actual: int | None, reasons: list[str]) -> boo
         return False
     reasons.append(f"mileage {_km(actual)} ≤ {_km(maximum)}")
     return True
+
+
+# --- similar cars (sold-car follow-up, part 2) -----------------------------------------------
+
+PRICE_BAND_PERCENT = 20
+YEAR_BAND = 2
+MAX_SIMILAR = 3
+
+
+class Listed(Car, Protocol):
+    @property
+    def id(self) -> object: ...
+    @property
+    def body_type(self) -> str | None: ...
+    @property
+    def title(self) -> str: ...
+
+
+def is_similar(sold: Listed, car: Listed) -> bool:
+    """Same make and body, price within ±20% and year within ±2 of the sold car.
+
+    Every one of those values must be known on both cars; missing data never counts.
+    """
+    if car.status != "available" or car.held_by_deal_id is not None or car.id == sold.id:
+        return False
+    sold_price, sold_year, price, year = sold.price_cents, sold.year, car.price_cents, car.year
+    if sold_price is None or sold_year is None or price is None or year is None:
+        return False
+    make, body = normalise(sold.make), normalise(sold.body_type)
+    if make is None or body is None:
+        return False
+    if normalise(car.make) != make or normalise(car.body_type) != body:
+        return False
+    # Compared in hundredths, so there is no rounding.
+    within_price = abs(price - sold_price) * 100 <= sold_price * PRICE_BAND_PERCENT
+    return within_price and abs(year - sold_year) <= YEAR_BAND
+
+
+def similar[T: Listed](sold: Listed, cars: list[T], limit: int = MAX_SIMILAR) -> list[T]:
+    """Up to ``limit`` similar cars: closest price first, then the newest, then by title."""
+    found = [c for c in cars if is_similar(sold, c)]
+    found.sort(
+        key=lambda c: (
+            abs((c.price_cents or 0) - (sold.price_cents or 0)),
+            -(c.year or 0),
+            c.title,
+            str(c.id),
+        )
+    )
+    return found[:limit]

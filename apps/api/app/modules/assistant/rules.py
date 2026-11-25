@@ -8,6 +8,7 @@ catalogue as it is now.
 
 import enum
 import re
+import uuid
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
@@ -90,6 +91,8 @@ class Trace:
     found_topics: set[str] = field(default_factory=set)
     found_sources: set[str] = field(default_factory=set)  # knowledge chunk ids returned
     seen_vehicles: set[str] = field(default_factory=set)  # listing links of available cars
+    seen_vehicle_ids: set[uuid.UUID] = field(default_factory=set)  # cars the customer asked about
+    wanted_suggestion: dict[str, object] | None = None  # suggest_wanted's criteria (VA-005)
     # Amounts the finance estimate tool returned (cents), the only ones a finance reply may say.
     estimate_amounts: set[int] = field(default_factory=set)
     estimates: list[dict[str, object]] = field(default_factory=list)

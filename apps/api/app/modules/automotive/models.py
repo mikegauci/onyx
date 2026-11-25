@@ -273,3 +273,79 @@ class AlertSettings(Base):
     )
     updated_by_user_id: Mapped[uuid.UUID | None] = _user()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class InterestSource(enum.StrEnum):
+    ASSISTANT = "assistant"  # the assistant found the car for the contact's conversation
+    STAFF = "staff"  # staff linked the car to a lead
+
+
+class Interest(Base):
+    """A car a contact asked about (VA-005 part 2). One per contact and car."""
+
+    __tablename__ = "automotive_interests"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "contact_id",
+            "vehicle_id",
+            name="uq_automotive_interests_contact_car",
+        ),
+        _same_tenant("automotive_interests", "contact_id", "crm_contacts"),
+        _same_tenant("automotive_interests", "vehicle_id", "automotive_vehicles"),
+        _same_tenant("automotive_interests", "conversation_id", "inbox_conversations"),
+        CheckConstraint("source IN ('assistant', 'staff')", name="source"),
+        Index("ix_automotive_interests_vehicle", "organization_id", "vehicle_id", "last_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    vehicle_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    last_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = created_at_column()
+
+
+class Followup(Base):
+    """A sold car's recent enquirer, offered similar cars by staff. One per contact and car."""
+
+    __tablename__ = "automotive_followups"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "contact_id",
+            "sold_vehicle_id",
+            name="uq_automotive_followups_contact_car",
+        ),
+        _same_tenant("automotive_followups", "contact_id", "crm_contacts"),
+        _same_tenant("automotive_followups", "sold_vehicle_id", "automotive_vehicles"),
+        _same_tenant("automotive_followups", "conversation_id", "inbox_conversations"),
+        CheckConstraint("status IN ('pending', 'sent', 'dismissed', 'skipped')", name="status"),
+        CheckConstraint(
+            "(status = 'skipped') = (skip_reason IS NOT NULL) AND "
+            "(status = 'sent') = (message_id IS NOT NULL)",
+            name="outcome",
+        ),
+        CheckConstraint("jsonb_typeof(suggestions) = 'array'", name="suggestions"),
+        Index("ix_automotive_followups_status", "organization_id", "status", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    sold_vehicle_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    suggestions: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=sql_text("'[]'::jsonb")
+    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    skip_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    decided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()

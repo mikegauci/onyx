@@ -27,6 +27,8 @@ EXPECTED_TABLES = {
     "automotive_wanted",
     "automotive_matches",
     "automotive_alert_settings",
+    "automotive_interests",
+    "automotive_followups",
     "catalogue_vat_rates",
     "catalogue_price_lists",
     "catalogue_import_runs",

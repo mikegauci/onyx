@@ -9,7 +9,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 import { ArchiveButton, LeadEditForm, LeadStatusForm } from "../../_components/forms";
 import { ActivitySection } from "../../_components/activity-section";
 import { recordId, param, type SearchParams } from "../../data";
-import { WantedPanel } from "../../../automotive/_components/alerts";
+import { InterestForm, WantedPanel } from "../../../automotive/_components/alerts";
 export default async function LeadPage({
   params,
   searchParams,
@@ -34,6 +34,22 @@ export default async function LeadPage({
       params: { path: { slug, lead_id: id } },
     }),
   );
+  const stock =
+    wanted.ok && canWrite
+      ? await withApi((api) =>
+          api.GET("/v1/w/{slug}/automotive/vehicles", {
+            params: { path: { slug }, query: { limit: 100 } },
+          }),
+        )
+      : null;
+  const cars = stock?.ok
+    ? stock.data.items
+        .filter((v) => v.status === "available" || v.status === "reserved")
+        .map((v) => ({
+          id: v.id,
+          label: v.stock_number ? `${v.title} (#${v.stock_number})` : v.title,
+        }))
+    : [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -106,6 +122,11 @@ export default async function LeadPage({
                   items={wanted.data.items}
                   canWrite={canWrite && !record.archived_at}
                 />
+                {canWrite && cars.length > 0 ? (
+                  <div className="mt-5 border-t pt-4">
+                    <InterestForm slug={slug} leadId={id} cars={cars} />
+                  </div>
+                ) : null}
               </Panel>
             ) : null}
           </>

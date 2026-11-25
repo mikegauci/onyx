@@ -28,6 +28,14 @@ from app.modules.automotive.alerts import (
     WantedOut,
     WantedUpdate,
 )
+from app.modules.automotive.followups import (
+    FollowupList,
+    FollowupOut,
+    FollowupSendRequest,
+    FollowupSendResult,
+    FollowupService,
+    InterestIn,
+)
 from app.modules.automotive.models import MatchStatus
 
 router = module_router(ModuleKey.AUTOMOTIVE)
@@ -114,3 +122,37 @@ async def update_alert_settings(
     body: AlertSettingsIn, workspace: Manager, db: DbDep
 ) -> AlertSettingsOut:
     return await AlertService(db, workspace).update_settings(body)
+
+
+# --- sold-car follow-up (part 2) -------------------------------------------------------------
+
+
+@router.post("/leads/{lead_id}/interests", status_code=status.HTTP_204_NO_CONTENT, responses=ERRORS)
+async def link_interest(lead_id: uuid.UUID, body: InterestIn, workspace: Writer, db: DbDep) -> None:
+    """Note that the lead's contact asked about this car (for the sold-car follow-up)."""
+    await FollowupService(db, workspace).link(lead_id, body)
+
+
+@router.get("/followups", response_model=FollowupList)
+async def list_followups(
+    workspace: Reader,
+    db: DbDep,
+    status: MatchStatus | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> FollowupList:
+    return await FollowupService(db, workspace).list(status, limit, offset)
+
+
+@router.post("/followups/{followup_id}/dismiss", response_model=FollowupOut, responses=ERRORS)
+async def dismiss_followup(followup_id: uuid.UUID, workspace: Writer, db: DbDep) -> FollowupOut:
+    return await FollowupService(db, workspace).dismiss(followup_id)
+
+
+@router.post("/followups/send", response_model=FollowupSendResult, responses=ERRORS)
+async def send_followups(
+    body: FollowupSendRequest, workspace: Sender, db: DbDep
+) -> FollowupSendResult:
+    """Offer each enquirer the similar cars, once: free-form text inside WhatsApp's 24-hour
+    window, otherwise the car-alert template, which needs their consent."""
+    return await FollowupService(db, workspace).send(body)

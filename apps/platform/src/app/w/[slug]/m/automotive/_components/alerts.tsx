@@ -11,6 +11,7 @@ import {
   type AlertSettings,
   type CarMatch,
   type Consent,
+  type Followup,
   CONSENT_METHOD_LABEL,
   type ConsentMethod,
   MATCH_STATUS_LABEL,
@@ -27,7 +28,10 @@ import { IDLE } from "@/lib/form-state";
 import { FormStatus, SELECT_CLASS } from "../../../settings/form-status";
 import {
   confirmWanted,
+  dismissFollowup,
   dismissMatch,
+  linkInterest,
+  sendFollowups,
   grantConsent,
   saveAlertSettings,
   saveWanted,
@@ -412,5 +416,125 @@ export function AlertSettingsForm({
         {pending ? "Saving…" : "Save"}
       </Button>
     </form>
+  );
+}
+
+// --- sold-car follow-up ----------------------------------------------------------------------
+
+export function InterestForm({
+  slug,
+  leadId,
+  cars,
+}: {
+  slug: string;
+  leadId: string;
+  cars: { id: string; label: string }[];
+}) {
+  const [state, action, pending] = useActionState(linkInterest.bind(null, slug, leadId), IDLE);
+  return (
+    <form action={action} className="flex flex-col gap-3" aria-label="Car they asked about">
+      <FormStatus state={state} />
+      <FormField
+        id="interest-car"
+        label="A car they asked about"
+        hint="If it is sold, Onyx offers them similar cars for you to send."
+      >
+        <select id="interest-car" name="vehicle_id" className={SELECT_CLASS} defaultValue="">
+          <option value="">Choose a car</option>
+          {cars.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <Button type="submit" size="sm" variant="outline" disabled={pending} className="self-start">
+        {pending ? "Saving…" : "Note it"}
+      </Button>
+    </form>
+  );
+}
+
+function DismissFollowup({ slug, id }: { slug: string; id: string }) {
+  const [, action, pending] = useActionState(dismissFollowup.bind(null, slug, id), IDLE);
+  return (
+    <form action={action}>
+      <Button type="submit" variant="ghost" size="sm" disabled={pending}>
+        Dismiss
+      </Button>
+    </form>
+  );
+}
+
+export function FollowupList({
+  slug,
+  items,
+  canSend,
+  canWrite,
+}: {
+  slug: string;
+  items: Followup[];
+  canSend: boolean;
+  canWrite: boolean;
+}) {
+  const [state, action, pending] = useActionState(sendFollowups.bind(null, slug), IDLE);
+  const sendable = (f: Followup) => f.status === "pending" || f.status === "skipped";
+  const formId = "send-followups";
+  return (
+    <div className="flex flex-col gap-3">
+      <FormStatus state={state} />
+      <form id={formId} action={action} className="contents" />
+      <ul className="divide-y rounded-2xl border" aria-label="Follow-ups">
+        {items.map((f) => (
+          <li key={f.id} className="flex flex-wrap items-start gap-3 p-4">
+            {canSend && sendable(f) ? (
+              <input
+                type="checkbox"
+                name="followup_id"
+                value={f.id}
+                form={formId}
+                defaultChecked={f.status === "pending"}
+                aria-label={`Send to ${f.contact_name}`}
+                className="mt-1"
+              />
+            ) : null}
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <p className="flex flex-wrap items-center gap-2 text-sm">
+                <Link
+                  href={crmPath(slug, "contacts", f.contact_id)}
+                  className="font-medium underline-offset-4 hover:underline"
+                >
+                  {f.contact_name}
+                </Link>
+                <span className="text-muted-foreground">asked about</span>
+                <Link
+                  href={automotivePath(slug, "vehicles", f.sold_vehicle.id)}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {f.sold_vehicle.title}
+                </Link>
+                <Badge variant={MATCH_STATUS_VARIANT[f.status]}>
+                  {MATCH_STATUS_LABEL[f.status]}
+                </Badge>
+              </p>
+              <p className="text-muted-foreground text-xs">
+                Similar:{" "}
+                {f.suggestions.map((c) => `${c.title} (${euros(c.price_cents)})`).join(" · ") ||
+                  "none left"}
+              </p>
+              {skipReason(f.skip_reason) ? (
+                <p className="text-xs">{skipReason(f.skip_reason)}</p>
+              ) : null}
+            </div>
+            {canWrite && sendable(f) ? <DismissFollowup slug={slug} id={f.id} /> : null}
+          </li>
+        ))}
+      </ul>
+      {canSend && items.some(sendable) ? (
+        <Button type="submit" form={formId} disabled={pending} className="self-start">
+          {pending ? "Sending…" : "Send selected follow-ups"}
+        </Button>
+      ) : null}
+    </div>
   );
 }

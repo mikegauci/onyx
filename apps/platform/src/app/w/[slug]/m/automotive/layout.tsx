@@ -24,6 +24,7 @@ export default async function AutomotiveLayout({ children, params }: Props) {
   const sections = [{ href: automotivePath(slug, "vehicles"), label: "Vehicles" }];
   if (workspace.permissions.includes("crm.read")) {
     sections.push({ href: automotivePath(slug, "matches"), label: "Matches" });
+    sections.push({ href: automotivePath(slug, "follow-ups"), label: "Sold-car follow-ups" });
   }
   if (workspace.permissions.includes("catalogue.import")) {
     sections.push({ href: automotivePath(slug, "import"), label: "Import from website" });

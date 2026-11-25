@@ -88,8 +88,8 @@ them into chat.
       it under Vehicles → Alert settings. Meta charges for each marketing conversation.
 - [ ] **Consent wording:** agree with Ventur how staff ask customers for consent to car alerts
       (in person, phone, WhatsApp), and add car alerts to Ventur's privacy notice.
-- [ ] **Production migration 0037**, after the PR merges (needs your approval, like the
-      others).
+- [ ] **Production migrations 0037 and 0038**, after the PRs merge (they need your approval,
+      like the others).
 
 ## Later Ventur items: questions to ask them
 

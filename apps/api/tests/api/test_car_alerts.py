@@ -5,14 +5,19 @@ recorded marketing consent is messaged; each buyer gets at most one alert per ca
 STOP withdrawal, permissions and tenant isolation.
 """
 
+import asyncio
 import uuid
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
+from app.core.db.context import TenantContext
 from app.core.db.seed import seed_id
+from app.modules.automotive import followups
 from tests.api.conftest import As
 from tests.api.test_whatsapp_connector import (
     CLARA_ID,
@@ -48,6 +53,7 @@ def _car(engine: Engine, ref: str, **values: Any) -> uuid.UUID:
         "price_cents": 1_650_000,
         "status": "available",
         "listing_url": f"https://dealer.example.test/listing/{ref}/",
+        "body_type": "Hatchback",
         **values,
     }
     with engine.begin() as conn:
@@ -56,10 +62,10 @@ def _car(engine: Engine, ref: str, **values: Any) -> uuid.UUID:
                 conn.execute(
                     text(
                         "INSERT INTO automotive_vehicles (organization_id, source_ref, title, "
-                        "make, "
-                        "model, year, mileage_km, fuel, price_cents, status, listing_url) VALUES "
+                        "make, model, year, mileage_km, fuel, price_cents, status, listing_url, "
+                        "body_type) VALUES "
                         "(:org, :ref, :title, :make, :model, :year, :mileage_km, :fuel, "
-                        ":price_cents, :status, :listing_url) RETURNING id"
+                        ":price_cents, :status, :listing_url, :body_type) RETURNING id"
                     ),
                     {"org": LUMEN_ID, "ref": ref, **row},
                 ).scalar()
@@ -301,3 +307,141 @@ def test_export_includes_and_erasure_removes_consent_and_wanted_cars(
             for table in ("crm_marketing_consents", "automotive_wanted", "automotive_matches")
         ]
     assert left == [0, 0, 0]
+
+
+# --- sold-car follow-up (part 2) -------------------------------------------------------------
+
+
+def _sell(db_url: str, owner_engine: Engine, car: uuid.UUID) -> int:
+    """The car is sold (as a website import or a deal would mark it): follow-ups are created."""
+    with owner_engine.begin() as conn:
+        conn.execute(
+            text("UPDATE automotive_vehicles SET status = 'sold' WHERE id = :id"), {"id": car}
+        )
+
+    async def run() -> int:
+        engine = create_async_engine(db_url, poolclass=NullPool)
+        try:
+            async with async_sessionmaker(engine)() as session, session.begin():
+                return await followups.on_sold(
+                    session, TenantContext(organization_id=LUMEN_ID), [car]
+                )
+        finally:
+            await engine.dispose()
+
+    return asyncio.run(run())
+
+
+def _followups(api: TestClient, as_: As, **params: Any) -> list[dict[str, Any]]:
+    response = api.get(f"{AUTO}/followups", params=params, headers=as_.seeded(MIA))
+    assert response.status_code == 200, response.text
+    items: list[dict[str, Any]] = response.json()["items"]
+    return items
+
+
+def _interest(api: TestClient, as_: As, car: uuid.UUID) -> None:
+    linked = api.post(
+        f"{AUTO}/leads/{CLARA_LEAD}/interests",
+        json={"vehicle_id": str(car)},
+        headers=as_.seeded(MIA),
+    )
+    assert linked.status_code == 204, linked.text
+
+
+def test_an_enquirer_of_a_sold_car_is_offered_similar_cars_once(
+    api: TestClient,
+    as_: As,
+    ready: dict[str, str],
+    provider: FakeProvider,
+    owner_engine: Engine,
+    db_url: str,
+) -> None:
+    sold = _car(owner_engine, "s1", price_cents=1_000_000)
+    close = _car(owner_engine, "a1", title="Golf Life 2020", year=2020, price_cents=1_050_000)
+    _car(owner_engine, "b1", title="Golf Style 2018", year=2018, price_cents=1_150_000)
+    _car(owner_engine, "x1", title="Yaris", make="Toyota", price_cents=1_000_000)
+    _interest(api, as_, sold)
+    assert _sell(db_url, owner_engine, sold) == 1
+    assert _sell(db_url, owner_engine, sold) == 0  # once per contact and sold car
+    [follow] = _followups(api, as_, status="pending")
+    assert follow["sold_vehicle"]["id"] == str(sold)
+    assert [c["title"] for c in follow["suggestions"]] == ["Golf Life 2020", "Golf Style 2018"]
+
+    # Clara wrote on WhatsApp a moment ago, so the reply is free-form text (no consent needed).
+    assert (
+        api.post(
+            f"{AUTO}/followups/send", json={"followup_ids": [follow["id"]]}, headers=as_.seeded(MIA)
+        ).status_code
+        == 403
+    )
+    sent = api.post(
+        f"{AUTO}/followups/send", json={"followup_ids": [follow["id"]]}, headers=as_.seeded(OLIVIA)
+    ).json()
+    assert (sent["sent"], sent["skipped"]) == ([follow["id"]], [])
+    message = provider.sent[-1]
+    assert message.template is None
+    assert message.text is not None
+    assert "has now been sold" in message.text
+    assert "Golf Life 2020, €10,500" in message.text
+    again = api.post(
+        f"{AUTO}/followups/send", json={"followup_ids": [follow["id"]]}, headers=as_.seeded(OLIVIA)
+    ).json()
+    assert [s["reason"] for s in again["skipped"]] == ["already_decided"]
+    assert provider.calls == 1
+    assert str(close) in [c["id"] for c in follow["suggestions"]]
+
+
+def test_outside_the_window_a_follow_up_needs_the_template_and_consent(
+    api: TestClient,
+    as_: As,
+    ready: dict[str, str],
+    provider: FakeProvider,
+    owner_engine: Engine,
+    db_url: str,
+) -> None:
+    sold = _car(owner_engine, "s1", price_cents=1_000_000)
+    _car(owner_engine, "a1", title="Golf Life 2020", year=2020, price_cents=1_050_000)
+    _interest(api, as_, sold)
+    _sell(db_url, owner_engine, sold)
+    with owner_engine.begin() as conn:
+        conn.execute(text("SET LOCAL session_replication_role = replica"))  # append-only guard
+        conn.execute(
+            text(
+                "UPDATE inbox_messages SET occurred_at = now() - interval '2 days' "
+                "WHERE organization_id = :o AND direction = 'inbound'"
+            ),
+            {"o": LUMEN_ID},
+        )
+    [follow] = _followups(api, as_)
+
+    def send() -> list[str]:
+        out = api.post(
+            f"{AUTO}/followups/send",
+            json={"followup_ids": [follow["id"]]},
+            headers=as_.seeded(OLIVIA),
+        ).json()
+        return [s["reason"] for s in out["skipped"]]
+
+    assert send() == ["not_set_up"]
+    assert _settings(api, as_, ready["monthly_offer"]).status_code == 200
+    assert send() == ["no_consent"]
+    assert provider.calls == 0
+    api.put(CONSENT, json={"method": "phone"}, headers=as_.seeded(MIA))
+    assert send() == []
+    assert provider.sent[-1].template is not None
+    assert provider.sent[-1].template.name == "monthly_offer"
+
+
+def test_no_follow_up_without_a_similar_car_or_for_a_stale_enquiry(
+    api: TestClient, as_: As, ready: dict[str, str], owner_engine: Engine, db_url: str
+) -> None:
+    lonely = _car(owner_engine, "s1", body_type="Convertible")
+    _interest(api, as_, lonely)
+    assert _sell(db_url, owner_engine, lonely) == 0
+    old = _car(owner_engine, "s2", price_cents=1_000_000)
+    _car(owner_engine, "a1", year=2020, price_cents=1_050_000)
+    _interest(api, as_, old)
+    with owner_engine.begin() as conn:
+        conn.execute(text("UPDATE automotive_interests SET last_at = now() - interval '31 days'"))
+    assert _sell(db_url, owner_engine, old) == 0
+    assert _followups(api, as_) == []

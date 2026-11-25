@@ -1,11 +1,11 @@
 """Stock matching rules (VA-005): deterministic, explainable, missing data never matches."""
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pytest
 
-from app.modules.automotive.matching import has_criteria, match, normalise
+from app.modules.automotive.matching import has_criteria, match, normalise, similar
 
 
 @dataclass
@@ -89,3 +89,31 @@ def test_criteria_are_required_and_text_is_normalised() -> None:
     assert not has_criteria(Want(make="  "))
     assert not match(Want(), Car()).ok
     assert normalise("  Land   Rover ") == "land rover"
+
+
+@dataclass
+class Listing(Car):
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
+    body_type: str | None = "Hatchback"
+    title: str = "Golf"
+
+
+def test_similar_cars_share_make_and_body_within_the_price_and_year_bands() -> None:
+    sold = Listing(price_cents=1_000_000, year=2019, status="sold")
+    close = Listing(price_cents=1_050_000, year=2020, title="Close")
+    edge = Listing(price_cents=1_200_000, year=2017, title="Edge")  # +20%, -2 years
+    newer_same_gap = Listing(price_cents=950_000, year=2021, title="Newer")
+    cars = [
+        edge,
+        close,
+        newer_same_gap,
+        Listing(price_cents=1_200_001, title="Too dear"),
+        Listing(year=2016, price_cents=1_000_000, title="Too old"),
+        Listing(make="Toyota", price_cents=1_000_000, title="Other make"),
+        Listing(body_type="SUV", price_cents=1_000_000, title="Other body"),
+        Listing(price_cents=None, title="No price"),
+        Listing(price_cents=1_000_000, status="reserved", title="Reserved"),
+        sold,
+    ]
+    assert [c.title for c in similar(sold, cars)] == ["Newer", "Close", "Edge"]
+    assert similar(Listing(body_type=None, status="sold"), cars) == []

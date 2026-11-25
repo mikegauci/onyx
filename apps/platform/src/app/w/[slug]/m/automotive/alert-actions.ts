@@ -203,3 +203,70 @@ export async function withdrawConsent(
   refresh(slug);
   return { status: "ok", message: "Consent withdrawn. No more car alerts go to this customer." };
 }
+
+export async function sendFollowups(
+  slug: string,
+  _prev: SendState,
+  formData: FormData,
+): Promise<SendState> {
+  const ids = formData.getAll("followup_id").map(String).filter(Boolean);
+  if (ids.length === 0) return { status: "error", message: "Select at least one follow-up." };
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/automotive/followups/send", {
+      params: { path: { slug } },
+      body: { followup_ids: ids.slice(0, 50) },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  const { sent, skipped } = outcome.data;
+  const parts = [`${sent.length} follow-up${sent.length === 1 ? "" : "s"} sent.`];
+  if (skipped.length > 0) {
+    parts.push(
+      `${skipped.length} not sent: ${[...new Set(skipped.map((s) => s.message))].join(" ")}`,
+    );
+  }
+  return {
+    status: skipped.length > 0 && sent.length === 0 ? "error" : "ok",
+    message: parts.join(" "),
+    sent: sent.length,
+  };
+}
+
+export async function dismissFollowup(
+  slug: string,
+  followupId: string,
+  _prev: FormState,
+): Promise<FormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/automotive/followups/{followup_id}/dismiss", {
+      params: { path: { slug, followup_id: followupId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return { status: "ok", message: "Dismissed." };
+}
+
+export async function linkInterest(
+  slug: string,
+  leadId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const vehicleId = text(formData, "vehicle_id");
+  if (!vehicleId) return { status: "error", message: "Choose a car." };
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/automotive/leads/{lead_id}/interests", {
+      params: { path: { slug, lead_id: leadId } },
+      body: { vehicle_id: vehicleId },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return {
+    status: "ok",
+    message: "Noted. If this car is sold, they will be offered similar cars.",
+  };
+}

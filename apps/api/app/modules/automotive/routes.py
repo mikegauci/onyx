@@ -15,7 +15,7 @@ from app.core.auth.permissions import Permission
 from app.core.errors import ConflictError, ErrorDetail, NotFoundError, ValidationFailedError
 from app.core.modules.access import module_router
 from app.core.modules.registry import ModuleKey
-from app.modules.automotive import service
+from app.modules.automotive import followups, service
 from app.modules.automotive.alerts import AlertService, deactivate_pending
 from app.modules.automotive.models import Vehicle, VehicleStatus
 from app.modules.automotive.vehica import KINDS, STATUS_RULES, SourceError, VehicaClient
@@ -216,5 +216,11 @@ async def apply_import(request: Request, workspace: Importer, db: DbDep) -> Impo
         org,
         [v.id for v, _, _ in plan.updates if v.status != VehicleStatus.AVAILABLE.value]
         + [v.id for v in plan.withdrawals],
+    )
+    # Cars the site now shows as sold: offer their recent enquirers similar cars (part 2).
+    await followups.on_sold(
+        db,
+        workspace.tenant,
+        [v.id for v, _, changed in plan.updates if "status" in changed and v.status == "sold"],
     )
     return ImportApplied(run_id=run.id, **plan.summary())

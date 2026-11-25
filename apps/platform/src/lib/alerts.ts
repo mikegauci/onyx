@@ -6,6 +6,7 @@ export type CarMatch = components["schemas"]["MatchOut"];
 export type MatchStatus = components["schemas"]["MatchStatus"];
 export type AlertSettings = components["schemas"]["AlertSettingsOut"];
 export type Consent = components["schemas"]["ConsentOut"];
+export type Followup = components["schemas"]["FollowupOut"];
 export type ConsentMethod = components["schemas"]["ConsentMethod"];
 
 export const MATCH_STATUS_LABEL: Record<MatchStatus, string> = {
@@ -33,6 +34,8 @@ export const SKIP_REASON_TEXT: Record<string, string> = {
   no_phone: "The customer has no phone number.",
   no_whatsapp_conversation: "The customer has never written on the alerts WhatsApp number.",
   cannot_send: "WhatsApp refused it (for example, the customer opted out).",
+  no_suggestions: "None of the similar cars is still available.",
+  not_set_up: "More than 24 hours since they wrote: choose the car-alert template first.",
 };
 
 export function skipReason(code: string | null | undefined): string | null {

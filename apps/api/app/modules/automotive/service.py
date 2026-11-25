@@ -259,6 +259,17 @@ async def apply_import(
     return run
 
 
+async def vehicle_ids(db: AsyncSession, org: uuid.UUID, source_refs: list[str]) -> list[uuid.UUID]:
+    if not source_refs:
+        return []
+    rows = await db.scalars(
+        select(Vehicle.id).where(
+            Vehicle.organization_id == org, Vehicle.source_ref.in_(source_refs)
+        )
+    )
+    return list(rows.all())
+
+
 async def list_vehicles(
     db: AsyncSession,
     org: uuid.UUID,

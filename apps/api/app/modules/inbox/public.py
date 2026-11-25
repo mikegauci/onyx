@@ -2,8 +2,9 @@
 
 Callers read a conversation's customer-facing thread, add an internal note written by the
 assistant, hand a conversation back to staff, and (outbound, PR-016) send a reply that staff
-approved. ``send_reply`` is the only function here that reaches a customer, and only the
-outbound module calls it, after its approval checks. Every function filters on the bound
+approved. ``send_reply`` is the only function here that reaches a customer. It is called by the
+outbound module after its approval checks, and by car alerts (VA-005) after staff send a match
+and its consent check. Every function filters on the bound
 tenant explicitly, on top of row-level security.
 """
 
@@ -29,8 +30,10 @@ from app.modules.inbox.models import (
     Handler,
     Message,
     MessageDirection,
+    TemplateCategory,
+    WhatsAppTemplate,
 )
-from app.modules.inbox.service import InboxService
+from app.modules.inbox.service import InboxService, template_usable
 from app.modules.inbox.service import RenderedTemplate as RenderedTemplate
 
 THREAD_MAX_MESSAGES = 20
@@ -214,13 +217,82 @@ async def render_template(
     conversation_id: uuid.UUID,
     template_id: uuid.UUID,
     params: Sequence[str],
+    *,
+    marketing: bool = False,
 ) -> RenderedTemplate:
     """Check a WhatsApp template can be sent on this conversation and render its text.
 
     The template must belong to the conversation's channel and be approved, utility and
     supported; the values are checked against the provider's rules (422 names the value).
+    ``marketing`` also allows a marketing template: only after checking the customer's
+    marketing consent (car alerts, VA-005).
     """
-    return await InboxService(db, workspace).render_template(conversation_id, template_id, params)
+    return await InboxService(db, workspace).render_template(
+        conversation_id, template_id, params, marketing=marketing
+    )
+
+
+@dataclass(frozen=True)
+class TemplateInfo:
+    id: uuid.UUID
+    channel_id: uuid.UUID
+    name: str
+    language: str
+    category: str
+    usable_for_marketing: bool
+    param_count: int
+    body: str | None
+
+
+async def whatsapp_template(
+    db: AsyncSession, tenant: TenantContext, template_id: uuid.UUID
+) -> TemplateInfo | None:
+    """A synced WhatsApp template of this tenant, or None."""
+    template = await db.scalar(
+        select(WhatsAppTemplate).where(
+            WhatsAppTemplate.organization_id == tenant.organization_id,
+            WhatsAppTemplate.id == template_id,
+        )
+    )
+    if template is None:
+        return None
+    return TemplateInfo(
+        id=template.id,
+        channel_id=template.channel_id,
+        name=template.name,
+        language=template.language,
+        category=template.category.value,
+        usable_for_marketing=template_usable(template, marketing=True)
+        and template.category is TemplateCategory.MARKETING,
+        param_count=template.param_count,
+        body=template.body,
+    )
+
+
+async def whatsapp_conversation_for_contact(
+    db: AsyncSession, workspace: WorkspaceAccess, contact_id: uuid.UUID, channel_id: uuid.UUID
+) -> uuid.UUID | None:
+    """The contact's latest conversation on this WhatsApp channel, reopened if it was closed.
+
+    None if they never wrote on it. Used to send a car alert (VA-005) into their thread.
+    """
+    conversation = await db.scalar(
+        select(Conversation)
+        .where(
+            Conversation.organization_id == workspace.tenant.organization_id,
+            Conversation.channel_id == channel_id,
+            Conversation.contact_id == contact_id,
+        )
+        .order_by(Conversation.last_message_at.desc().nulls_last(), Conversation.created_at.desc())
+        .limit(1)
+        .with_for_update()
+    )
+    if conversation is None:
+        return None
+    if conversation.status is ConversationStatus.CLOSED:
+        set_status(db, conversation, ConversationStatus.OPEN, workspace.user.id, reason="car_alert")
+        await db.flush()
+    return conversation.id
 
 
 async def mark_waiting_after_reply(

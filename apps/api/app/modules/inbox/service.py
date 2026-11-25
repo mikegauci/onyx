@@ -211,10 +211,17 @@ class RenderedTemplate:
     body: str
 
 
-def template_usable(template: WhatsAppTemplate) -> bool:
+def template_usable(template: WhatsAppTemplate, *, marketing: bool = False) -> bool:
+    """Approved, supported and utility. ``marketing`` also accepts marketing templates: only
+    for callers that checked the customer's marketing consent first (car alerts, VA-005)."""
+    categories = (
+        (TemplateCategory.UTILITY, TemplateCategory.MARKETING)
+        if marketing
+        else (TemplateCategory.UTILITY,)
+    )
     return (
         template.status == "approved"
-        and template.category is TemplateCategory.UTILITY
+        and template.category in categories
         and template.supported
         and template.body is not None
     )
@@ -1129,14 +1136,19 @@ class InboxService:
         return template
 
     async def render_template(
-        self, conversation_id: uuid.UUID, template_id: uuid.UUID, params: Sequence[str]
+        self,
+        conversation_id: uuid.UUID,
+        template_id: uuid.UUID,
+        params: Sequence[str],
+        *,
+        marketing: bool = False,
     ) -> RenderedTemplate:
         conversation = await self.get_conversation(conversation_id)
         channel = await self.get_channel(conversation.channel_id)
         if channel.kind is not ChannelKind.WHATSAPP:
             raise _invalid("template_id", "Templates can only be sent on WhatsApp channels.")
         template = await self._channel_template(channel, template_id)
-        if not template_usable(template) or template.body is None:
+        if not template_usable(template, marketing=marketing) or template.body is None:
             raise TemplateNotUsableError
         values = tuple(params)
         try:

@@ -22,8 +22,14 @@ export default async function AutomotiveLayout({ children, params }: Props) {
   );
   const workspace = requireOk(await getWorkspace(slug), path);
   const sections = [{ href: automotivePath(slug, "vehicles"), label: "Vehicles" }];
+  if (workspace.permissions.includes("crm.read")) {
+    sections.push({ href: automotivePath(slug, "matches"), label: "Matches" });
+  }
   if (workspace.permissions.includes("catalogue.import")) {
     sections.push({ href: automotivePath(slug, "import"), label: "Import from website" });
+  }
+  if (workspace.permissions.includes("inbox.manage")) {
+    sections.push({ href: automotivePath(slug, "alerts"), label: "Alert settings" });
   }
   return (
     <div className="flex flex-col gap-8">

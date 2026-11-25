@@ -80,6 +80,17 @@ them into chat.
 - [ ] **Forms:** once part 1 is live, upload the latest KYC & Loan Request and CCR PDFs under
       Deals → Settings.
 
+## Car alerts (VA-005, being built)
+
+- [ ] **Marketing template:** create and get approved in WhatsApp Manager a **marketing**
+      template for new-car alerts, for example: "Hi {{1}}, a {{2}} just arrived at Ventur for
+      {{3}}. See it here: {{4}}. Reply STOP to opt out." Then sync templates in Inbox and choose
+      it under Vehicles → Alert settings. Meta charges for each marketing conversation.
+- [ ] **Consent wording:** agree with Ventur how staff ask customers for consent to car alerts
+      (in person, phone, WhatsApp), and add car alerts to Ventur's privacy notice.
+- [ ] **Production migration 0037**, after the PR merges (needs your approval, like the
+      others).
+
 ## Later Ventur items: questions to ask them
 
 - [ ] **VA-008 finance schedules:** where payment records live today (a spreadsheet,

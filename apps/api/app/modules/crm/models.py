@@ -237,3 +237,69 @@ class Activity(Base):
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class ConsentPurpose(enum.StrEnum):
+    CAR_ALERTS = "car_alerts"  # WhatsApp alerts about newly arrived cars (VA-005)
+
+
+class ConsentMethod(enum.StrEnum):
+    IN_PERSON = "in_person"
+    PHONE = "phone"
+    WHATSAPP = "whatsapp"
+    EMAIL = "email"
+    FORM = "form"
+
+
+class ConsentWithdrawnVia(enum.StrEnum):
+    STAFF = "staff"
+    WHATSAPP_STOP = "whatsapp_stop"
+
+
+class MarketingConsent(Base):
+    """A contact's consent to one kind of marketing message, as recorded by staff.
+
+    Withdrawing keeps the row (history); a new grant adds a row. At most one active row per
+    contact and purpose.
+    """
+
+    __tablename__ = "crm_marketing_consents"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "contact_id"],
+            ["crm_contacts.organization_id", "crm_contacts.id"],
+            name="fk_crm_marketing_consents_contact_id_same_tenant",
+            ondelete="RESTRICT",
+        ),
+        CheckConstraint("purpose IN ('car_alerts')", name="purpose"),
+        CheckConstraint(
+            "method IN ('in_person', 'phone', 'whatsapp', 'email', 'form')", name="method"
+        ),
+        CheckConstraint(
+            "(withdrawn_at IS NULL) = (withdrawn_via IS NULL) AND (withdrawn_via IS NULL OR "
+            "withdrawn_via IN ('staff', 'whatsapp_stop'))",
+            name="withdrawn",
+        ),
+        Index(
+            "uq_crm_marketing_consents_active",
+            "organization_id",
+            "contact_id",
+            "purpose",
+            unique=True,
+            postgresql_where=text("withdrawn_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _organization_fk()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False)
+    method: Mapped[str] = mapped_column(String(16), nullable=False)
+    note: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    recorded_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    withdrawn_via: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    withdrawn_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
+    created_at: Mapped[datetime] = created_at_column()

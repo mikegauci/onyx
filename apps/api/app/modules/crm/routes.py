@@ -15,7 +15,8 @@ from app.core.errors import ErrorResponse
 from app.core.modules.access import module_router
 from app.core.modules.registry import ModuleKey
 from app.modules.crm import schemas
-from app.modules.crm.models import LeadStatus, SubjectType
+from app.modules.crm.consents import ConsentGrant, ConsentOut, ConsentService
+from app.modules.crm.models import ConsentPurpose, LeadStatus, SubjectType
 from app.modules.crm.service import CrmService, customer_out
 
 router = module_router(ModuleKey.CRM)
@@ -150,6 +151,38 @@ async def archive_contact(
 ) -> schemas.ContactOut:
     service = CrmService(db, workspace)
     return await service.contact_out(await service.set_contact_archived(contact_id, body.archived))
+
+
+@router.get("/contacts/{contact_id}/consents/{purpose}", response_model=ConsentOut)
+async def read_consent(
+    contact_id: uuid.UUID, purpose: ConsentPurpose, workspace: Reader, db: DbDep
+) -> ConsentOut:
+    """Whether the contact agreed to this kind of marketing message, with the history."""
+    return await ConsentService(db, workspace).read(contact_id, purpose)
+
+
+@router.put(
+    "/contacts/{contact_id}/consents/{purpose}", response_model=ConsentOut, responses=CONFLICT
+)
+async def grant_consent(
+    contact_id: uuid.UUID,
+    purpose: ConsentPurpose,
+    body: ConsentGrant,
+    workspace: Writer,
+    db: DbDep,
+) -> ConsentOut:
+    """Record that the customer agreed, how and when. Refused if already recorded."""
+    return await ConsentService(db, workspace).grant(contact_id, purpose, body)
+
+
+@router.delete(
+    "/contacts/{contact_id}/consents/{purpose}", response_model=ConsentOut, responses=CONFLICT
+)
+async def withdraw_consent(
+    contact_id: uuid.UUID, purpose: ConsentPurpose, workspace: Writer, db: DbDep
+) -> ConsentOut:
+    """Withdraw it. The record stays in the history."""
+    return await ConsentService(db, workspace).withdraw(contact_id, purpose)
 
 
 # --- leads -----------------------------------------------------------------------------------

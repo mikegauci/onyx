@@ -17,6 +17,7 @@ import { requireOk } from "@/lib/guards";
 import { workspaceWith } from "@/lib/settings-guard";
 
 import { recordId } from "../../../crm/data";
+import { MatchList } from "../../_components/alerts";
 
 export default async function VehiclePage({
   params,
@@ -35,6 +36,13 @@ export default async function VehiclePage({
     ),
     path,
   );
+  const matches = workspace.permissions.includes("crm.read")
+    ? await withApi((api) =>
+        api.GET("/v1/w/{slug}/automotive/matches", {
+          params: { path: { slug }, query: { vehicle_id: id, limit: 100 } },
+        }),
+      )
+    : null;
   const rows: [string, string | number | null][] = [
     ["Stock number", v.stock_number],
     ["Make", v.make],
@@ -109,6 +117,17 @@ export default async function VehiclePage({
                     </li>
                   ))}
                 </ul>
+              </Panel>
+            ) : null}
+            {matches?.ok && matches.data.items.length > 0 ? (
+              <Panel title="Buyers looking for this car" as="h3" divided={false}>
+                <MatchList
+                  slug={slug}
+                  items={matches.data.items}
+                  canSend={workspace.permissions.includes("outbound.approve")}
+                  canWrite={workspace.permissions.includes("crm.write")}
+                  showCar={false}
+                />
               </Panel>
             ) : null}
           </>

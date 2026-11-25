@@ -31,6 +31,7 @@ class RunSummary(BaseModel):
     check_tasks: int
     chase_tasks: int
     files_deleted: int
+    conversations_redacted: int = 0
     failed_tenants: int
 
 
@@ -72,6 +73,47 @@ async def run_scheduler(
         except Exception:  # one tenant must not stop the others
             failed += 1
             logger.exception("scheduler job failed", extra={"organization_id": str(org)})
-    summary = RunSummary(tenants=len(tenants), failed_tenants=failed, **totals)
+    redacted, retention_failed = await _conversation_retention(sessions)
+    summary = RunSummary(
+        tenants=len(tenants),
+        failed_tenants=failed + retention_failed,
+        conversations_redacted=redacted,
+        **totals,
+    )
     logger.info("scheduler run", extra=summary.model_dump())
     return summary
+
+
+RETENTION_BATCH = 200  # conversations per tenant per run; the next run continues
+
+
+async def _conversation_retention(sessions: Any) -> tuple[int, int]:
+    """Redact conversations older than each tenant's retention period (privacy tools part 2)."""
+    async with sessions() as session, session.begin():
+        await session.execute(text(f"SET LOCAL ROLE {WORKER_ROLE}"))
+        rows = (await session.execute(text("SELECT * FROM scheduler_retention_tenants()"))).all()
+    redacted = failed = 0
+    for row in rows:
+        try:
+            async with worker_transaction(sessions, row.organization_id) as (db, _tenant):
+                ids = (
+                    await db.execute(
+                        text(
+                            "SELECT id FROM inbox_conversations WHERE organization_id = :org "
+                            "AND redacted_at IS NULL AND coalesce(last_message_at, created_at) "
+                            "< now() - make_interval(months => :m) ORDER BY id LIMIT :n"
+                        ),
+                        {"org": row.organization_id, "m": row.months, "n": RETENTION_BATCH},
+                    )
+                ).scalars()
+                for conversation in list(ids):
+                    done = await db.scalar(
+                        text("SELECT app_redact_conversation(:c)"), {"c": conversation}
+                    )
+                    redacted += int(bool(done))
+        except Exception:  # one tenant must not stop the others
+            failed += 1
+            logger.exception(
+                "retention job failed", extra={"organization_id": str(row.organization_id)}
+            )
+    return redacted, failed

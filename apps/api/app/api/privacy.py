@@ -18,7 +18,8 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import text
+from sqlalchemy import func, select, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import DBAPIError
 
 from app.core.audit.record import record_workspace_audit
@@ -26,6 +27,7 @@ from app.core.auth.deps import DbDep, WorkspaceAccess, require_permission
 from app.core.auth.permissions import Permission
 from app.core.errors import WORKSPACE_ERRORS, ConflictError, NotFoundError, ValidationFailedError
 from app.core.logging import request_id_var
+from app.core.privacy.models import PrivacySettings
 from app.core.storage.files import StoredFileNotFoundError, TenantFileService
 from app.core.storage.store import ObjectStore
 
@@ -242,3 +244,68 @@ async def erase_contact(
             logger.warning("erase: no object store; file rows removed only")
             deleted += 1
     return EraseResult(erased_at=datetime.now(UTC), files_deleted=deleted)
+
+
+# --- retention settings (part 2) ------------------------------------------------------------
+
+RETENTION_CHOICES = (6, 12, 24, 36, 60, 120)
+
+
+class PrivacySettingsOut(BaseModel):
+    conversation_retention_months: int | None
+    choices: list[int]
+
+
+class PrivacySettingsUpdate(BaseModel):
+    conversation_retention_months: int | None = Field(
+        default=None, description="6, 12, 24, 36, 60 or 120; null keeps conversations"
+    )
+
+
+@router.get(
+    "/w/{slug}/privacy/settings", response_model=PrivacySettingsOut, responses=WORKSPACE_ERRORS
+)
+async def read_privacy_settings(workspace: Owner, db: DbDep) -> PrivacySettingsOut:
+    months = await db.scalar(
+        select(PrivacySettings.conversation_retention_months).where(
+            PrivacySettings.organization_id == workspace.tenant.organization_id
+        )
+    )
+    return PrivacySettingsOut(conversation_retention_months=months, choices=list(RETENTION_CHOICES))
+
+
+@router.put(
+    "/w/{slug}/privacy/settings", response_model=PrivacySettingsOut, responses=WORKSPACE_ERRORS
+)
+async def update_privacy_settings(
+    body: PrivacySettingsUpdate, workspace: Owner, db: DbDep
+) -> PrivacySettingsOut:
+    months = body.conversation_retention_months
+    if months is not None and months not in RETENTION_CHOICES:
+        raise ValidationFailedError("Choose 6, 12, 24, 36, 60 or 120 months, or keep everything.")
+    org = workspace.tenant.organization_id
+    await db.execute(
+        insert(PrivacySettings)
+        .values(
+            organization_id=org,
+            conversation_retention_months=months,
+            updated_by_user_id=workspace.user.id,
+        )
+        .on_conflict_do_update(
+            index_elements=[PrivacySettings.organization_id],
+            set_={
+                "conversation_retention_months": months,
+                "updated_by_user_id": workspace.user.id,
+                "updated_at": func.now(),
+            },
+        )
+    )
+    await record_workspace_audit(
+        db,
+        workspace,
+        action="privacy.settings_updated",
+        target_type="organization",
+        target_id=org,
+        details={"conversation_retention_months": months},
+    )
+    return PrivacySettingsOut(conversation_retention_months=months, choices=list(RETENTION_CHOICES))

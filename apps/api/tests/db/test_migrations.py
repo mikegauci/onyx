@@ -62,6 +62,7 @@ EXPECTED_TABLES = {
     "deal_documents",
     "deal_settings",
     "deal_upload_links",
+    "privacy_settings",
     "workflow_effects",
     "tasks",
     "billing_customers",

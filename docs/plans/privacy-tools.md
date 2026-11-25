@@ -49,8 +49,8 @@ CRM.
 
 ## Part 2: retention for conversations
 
-- A workspace setting: delete conversations with no activity for N months (default off; 6–120
-  months), set under Settings → Privacy.
+- A workspace setting: delete conversations with no activity for N months (default off; 6,
+  12, 24, 36, 60 or 120 months), set under Settings → Privacy.
 - The scheduler (VA-007) redacts old conversations the same way the erase does: message text,
   subject and participants. The counts of conversations and messages stay for Insights.
 - Insights and the audit log keep ids only.

@@ -234,6 +234,8 @@ class Conversation(Base):
     assignee_user_id: Mapped[uuid.UUID | None] = _user_fk()
     contact_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     lead_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    # Data protection: when the retention job removed the conversation's text.
+    redacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     external_thread_ref: Mapped[str | None] = mapped_column(
         String(EXTERNAL_REF_MAX_LENGTH), nullable=True
     )

@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 import { webDesignPackages } from "@/content/web-design";
 
 import { sendWebEnquiry } from "./actions";
+import { EnquiryCampaignField } from "./campaign-contact";
 import { emptyEnquiry, enquiryFields, type EnquiryState, type EnquiryValues } from "./enquiry";
 
 const fieldClass =
@@ -29,6 +30,7 @@ export function EnquiryForm() {
       </p>
       {state.status !== "sent" && (
         <form action={submit} className="grid gap-5" aria-label="Web project enquiry">
+          <EnquiryCampaignField />
           <fieldset disabled={pending} className="grid min-w-0 gap-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm">

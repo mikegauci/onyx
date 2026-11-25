@@ -161,3 +161,50 @@ export async function setAIBudget(
   refresh(slug);
   return { status: "ok", message: "AI budget saved." };
 }
+
+/** Attach a WhatsApp business number (Meta) to the organisation's WhatsApp channel. */
+export async function connectWhatsApp(
+  slug: string,
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/admin/organizations/{slug}/whatsapp-channels", {
+      params: { path: { slug } },
+      body: {
+        channel_name: text(formData, "channel_name") || "WhatsApp",
+        phone_number_id: text(formData, "phone_number_id"),
+        waba_id: text(formData, "waba_id"),
+        display_phone_number: text(formData, "display_phone_number"),
+      },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return {
+    status: "ok",
+    message:
+      "WhatsApp number connected. Ask the owner to press “Refresh from WhatsApp” under Inbox → Channels to load the templates.",
+  };
+}
+
+/** Connect a cloud number for missed-call text-back, threaded into a WhatsApp channel. */
+export async function connectPhoneLine(
+  slug: string,
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  const number = text(formData, "number").replace(/[\s()-]/g, "");
+  const outcome = await mutateApi((api) =>
+    api.POST("/v1/admin/organizations/{slug}/phone-lines", {
+      params: { path: { slug } },
+      body: { number, whatsapp_channel_name: text(formData, "whatsapp_channel_name") },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return {
+    status: "ok",
+    message: `Phone line ${number} connected. The owner sets the text-back message under Inbox → Channels.`,
+  };
+}

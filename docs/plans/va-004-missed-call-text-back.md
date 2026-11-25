@@ -89,6 +89,6 @@ The production API has no Temporal worker yet, so sending happens in the API pro
 ## Changes during implementation
 
 - **No new channel kind:** missed calls are threaded into the linked **WhatsApp** channel's conversation with the caller, not a separate "phone" channel. The text-back and the customer's WhatsApp answer then share one thread, and staff can reply inside the 24-hour window without switching conversations.
-- **Connecting a number** has no admin screen. Like WhatsApp numbers, a platform admin connects it through the API (`POST /v1/admin/organizations/{slug}/phone-lines`).
+- **Connecting a number:** a platform admin connects it in **Admin → the organisation → Connect a phone line**. The screen was added on 2026-11-25; it calls `POST /v1/admin/organizations/{slug}/phone-lines`.
 - **Landlines skipped:** text-back is also skipped for Maltese landlines (+356 2…), which can't receive WhatsApp or SMS.
 - **SMS fallback after a later failure:** the SMS fallback also runs when WhatsApp first accepts the message and later reports it failed (e.g. the number isn't on WhatsApp). The call is claimed first, so the SMS is still sent once.

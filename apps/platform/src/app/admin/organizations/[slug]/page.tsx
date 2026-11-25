@@ -8,6 +8,7 @@ import { billingStatus } from "@/lib/billing";
 import { usdFromMicros } from "@/lib/tenants";
 
 import { IntegrationList } from "../../../w/[slug]/settings/integrations/integration-list";
+import { ConnectPhoneLineForm, ConnectWhatsAppForm } from "./connect-forms";
 import { ModuleToggles } from "./module-toggles";
 import {
   BudgetForm,
@@ -154,6 +155,32 @@ export default async function AdminOrganizationPage({ params }: Props) {
           Integrations
         </h2>
         <IntegrationList status={integrations} />
+      </section>
+
+      <section
+        aria-labelledby="connect-whatsapp-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="connect-whatsapp-heading" className="text-base font-medium tracking-tight">
+          Connect a WhatsApp number
+        </h2>
+        <ConnectWhatsAppForm slug={org.slug} configured={integrations.whatsapp_configured} />
+      </section>
+
+      <section
+        aria-labelledby="connect-line-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="connect-line-heading" className="text-base font-medium tracking-tight">
+          Connect a phone line (missed-call text-back)
+        </h2>
+        <ConnectPhoneLineForm
+          slug={org.slug}
+          configured={integrations.telephony_configured ?? false}
+          whatsappChannels={integrations.channels
+            .filter((c) => c.kind === "whatsapp" && c.connected)
+            .map((c) => c.name)}
+        />
       </section>
 
       <section

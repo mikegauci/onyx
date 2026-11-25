@@ -112,8 +112,8 @@ export default function PrivacyPage() {
         <ul>
           <li>
             <strong>Website enquiries:</strong> the name, email address and project details you send
-            us, plus any business name or package choice you provide. If you arrive from a tagged
-            ad, we may include the campaign label with your enquiry.
+            us, plus any phone number, business name or package choice you provide. If you arrive
+            from a tagged ad, we may include the campaign label with your enquiry.
           </li>
           <li>
             <strong>Account data:</strong> name, work email and role of the staff who use Onyx

@@ -42,6 +42,11 @@ export async function sendWebEnquiry(
     };
   }
 
+  const { phone, ...details } = values;
+  if (/[\r\n\u2028\u2029]/u.test(phone)) {
+    return { status: "error", message: "Enter your phone number on a single line." };
+  }
+
   if (values.package && !webDesignPackages.some(({ name }) => name === values.package)) {
     return { status: "error", message: "Choose a package from the list or leave it blank." };
   }
@@ -51,7 +56,11 @@ export async function sendWebEnquiry(
 
   const campaign =
     formData.get("campaign") === websiteDesignCampaign.code ? websiteDesignCampaign : null;
-  const content = campaign ? { ...values, campaign: campaign.code } : values;
+  const content = {
+    ...details,
+    ...(phone ? { phone } : {}),
+    ...(campaign ? { campaign: campaign.code } : {}),
+  };
   // Resend deduplicates identical enquiries for 24 hours, including retries after a timeout.
   const digest = createHmac("sha256", apiKey).update(JSON.stringify(content)).digest("hex");
 
@@ -71,6 +80,7 @@ export async function sendWebEnquiry(
         text: [
           `Name: ${values.name}`,
           `Email: ${values.email}`,
+          ...(phone ? [`Phone: ${phone}`] : []),
           `Business: ${values.business || "Not supplied"}`,
           `Package: ${values.package || "Not selected"}`,
           ...(campaign ? [`Campaign: ${campaign.label} (${campaign.code})`] : []),

@@ -145,6 +145,12 @@ class Settings(BaseSettings):
     storage_bucket: str = Field(default="tenant-files", pattern=r"^[a-z0-9][a-z0-9-]{2,62}$")
     storage_local_dir: str = ".storage"
 
+    # Scheduler (VA-007 part 3): a free GitHub Actions schedule calls POST
+    # /v1/internal/scheduler/run with this secret every 30 minutes. Unset = the endpoint is off.
+    scheduler_secret: SecretStr | None = Field(
+        default=None, description="Bearer secret for the scheduler endpoint (32+ characters)."
+    )
+
     # Billing (PR-026). Off until the owner creates the Stripe account and plans; test-mode
     # keys first. Price ids map Onyx plans to Stripe prices.
     stripe_api_key: SecretStr | None = Field(default=None, description="Stripe secret key")
@@ -190,6 +196,7 @@ class Settings(BaseSettings):
         "twilio_auth_token",
         "telephony_fake_secret",
         "supabase_service_key",
+        "scheduler_secret",
         "telephony_webhook_url",
         "twilio_account_sid",
         "sentry_dsn",

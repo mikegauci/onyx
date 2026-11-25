@@ -1,0 +1,36 @@
+# The lightweight scheduler (VA-007 part 3): every 30 minutes, ask the API to run its periodic
+# jobs (document tasks and retention). Free, and it wakes the free Render instance.
+# Needs the repository secret ONYX_SCHEDULER_SECRET (the same value as the API's
+# ONYX_API_SCHEDULER_SECRET) and, optionally, the variable ONYX_SCHEDULER_URL.
+name: scheduler
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run the scheduled jobs
+        env:
+          SECRET: ${{ secrets.ONYX_SCHEDULER_SECRET }}
+          URL: ${{ vars.ONYX_SCHEDULER_URL || 'https://api.onyx.mt/v1/internal/scheduler/run' }}
+        run: |
+          if [ -z "$SECRET" ]; then
+            echo "ONYX_SCHEDULER_SECRET is not set; nothing to do."
+            exit 0
+          fi
+          # The free API may be asleep: allow time for it to start, and retry once.
+          for attempt in 1 2; do
+            if curl --fail-with-body --silent --show-error --max-time 120 \
+                 -X POST -H "Authorization: Bearer $SECRET" "$URL"; then
+              exit 0
+            fi
+            sleep 30
+          done
+          exit 1

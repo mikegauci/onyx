@@ -30,6 +30,7 @@ from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 from app.core.observability import init_sentry
+from app.core.scheduler.routes import router as scheduler_router
 from app.core.storage.deps import build_object_store
 from app.core.storage.store import ObjectStore
 from app.integrations import email, telephony, whatsapp
@@ -319,6 +320,7 @@ def create_app(
     v1.include_router(knowledge_router)
     v1.include_router(deals_router)
     v1.include_router(public_uploads_router)
+    v1.include_router(scheduler_router)
     v1.include_router(webhooks_router)
     app.include_router(v1)
     return app

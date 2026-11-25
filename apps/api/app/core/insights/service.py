@@ -72,6 +72,16 @@ class MissedCalls:
 
 
 @dataclass(frozen=True)
+class Deals:
+    created: int
+    sold: int  # marked sold in the period
+    collected: int
+    cancelled: int
+    open_now: int  # not sold, collected or cancelled, today
+    customer_uploads: int  # documents customers sent through the upload link
+
+
+@dataclass(frozen=True)
 class Insights:
     days: int
     since: datetime
@@ -81,6 +91,7 @@ class Insights:
     runs: Runs | None
     quotes: Quotes | None
     missed_calls: MissedCalls | None
+    deals: Deals | None = None
 
 
 async def _one(db: AsyncSession, sql: str, params: dict[str, Any]) -> Any:
@@ -286,6 +297,35 @@ async def missed_calls(db: AsyncSession, p: dict[str, Any]) -> MissedCalls:
     )
 
 
+async def deals(db: AsyncSession, p: dict[str, Any]) -> Deals:
+    row = await _one(
+        db,
+        """
+        SELECT
+            count(*) FILTER (WHERE created_at >= :since) AS created,
+            count(*) FILTER (WHERE sold_at >= :since) AS sold,
+            count(*) FILTER (WHERE stage = 'collected' AND closed_at >= :since) AS collected,
+            count(*) FILTER (WHERE stage = 'cancelled' AND closed_at >= :since) AS cancelled,
+            count(*) FILTER (
+                WHERE stage NOT IN ('sold', 'collected', 'cancelled')
+            ) AS open_now,
+            (SELECT count(*) FROM deal_documents d
+              WHERE d.organization_id = :org AND d.received_from = 'customer'
+                AND d.received_at >= :since) AS uploads
+        FROM deals WHERE organization_id = :org
+        """,
+        p,
+    )
+    return Deals(
+        created=int(row["created"]),
+        sold=int(row["sold"]),
+        collected=int(row["collected"]),
+        cancelled=int(row["cancelled"]),
+        open_now=int(row["open_now"]),
+        customer_uploads=int(row["uploads"]),
+    )
+
+
 async def build(
     db: AsyncSession,
     organization_id: uuid.UUID,
@@ -308,4 +348,5 @@ async def build(
             await quotes(db, p, outbound="outbound" in modules) if "quotations" in modules else None
         ),
         missed_calls=await missed_calls(db, p) if inbox_on else None,
+        deals=await deals(db, p) if "deals" in modules else None,
     )

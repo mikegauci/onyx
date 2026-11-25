@@ -198,6 +198,25 @@ export const ONBOARDING: Guide = {
       image: shot("quote", "A quote with its lines, totals and actions"),
     },
     {
+      id: "deals",
+      title: "Deals and documents",
+      intro:
+        "A deal follows one sale from reservation to collection: reserved, deposit received, documents, finance (for financed sales), sold and collected.",
+      steps: [
+        "Deals → “New deal”: choose the customer and, if you sell cars, the car. The car is marked reserved, so the assistant stops offering it.",
+        "Record the deposit when it is paid (amount, date and method). Onyx never takes money itself.",
+        "Collect the documents on the checklist. Upload what the customer gives you, or press “Request documents” to send them a private link (valid 7 days) where they can take photos with their phone.",
+        "An owner or admin opens each document and verifies it, or rejects it with a reason so the customer can send it again.",
+        "When everything is verified, move the deal to sold, then to collected when the customer drives away.",
+      ],
+      points: [
+        "A deal cannot be marked sold while required documents are not verified. An owner can override this with a reason, which is recorded.",
+        "Onyx adds tasks for you: checking documents that arrived, and chasing customers whose documents are still missing after two days.",
+        "Document files are deleted automatically some time after a deal is collected or cancelled (180 days unless you change it under Deals → Settings). The deal record stays.",
+      ],
+      image: shot("deal", "A deal with its document checklist, stage and details"),
+    },
+    {
       id: "tasks",
       title: "Tasks",
       points: [
@@ -300,6 +319,16 @@ export const OPERATOR: Guide = {
       points: [
         "The assistant's note says why: for example, no price, not enough stock, or the customer asked for a person.",
         "Answer it yourself. Don't ask the assistant again until the cause is fixed, such as a missing price.",
+      ],
+    },
+    {
+      id: "deals",
+      title: "Deals and documents",
+      points: [
+        "When a customer says yes, create the deal straight away so the car is reserved.",
+        "Use “Request documents” to send the customer their upload link, or upload what they hand you.",
+        "“Chase documents” tasks list deals still missing documents; follow them up the same day.",
+        "Only owners and admins open and verify documents. Never forward customer documents by email or chat.",
       ],
     },
     {

@@ -63,8 +63,10 @@ them into chat.
       `onyx`.
 - [ ] **Render:** add the Supabase service key as `ONYX_API_SUPABASE_SERVICE_KEY` (preview and
       production).
-- [ ] **Scheduler secret:** choose one and add it as `ONYX_API_SCHEDULER_SECRET` on Render, and
-      as the GitHub Actions secret `ONYX_SCHEDULER_SECRET` in the `onyx` repository.
+- [ ] **Scheduler secret:** choose a long random value (32+ characters) and add it as
+      `ONYX_API_SCHEDULER_SECRET` on Render (`onyx-api`), and as the GitHub Actions secret
+      `ONYX_SCHEDULER_SECRET` in the `onyx` repository. Until then the schedule does nothing
+      (no "chase documents" tasks, no automatic deletion of old files).
 - [ ] **Documents:** ask Ventur exactly which documents they need per sale, and how long they
       must keep them.
 - [ ] **Templates:** the WhatsApp document template (see WhatsApp above).
@@ -95,4 +97,4 @@ them into chat.
 
 - [x] Meta business verification (approved 2026-11-24).
 - [x] Privacy policy page live at https://onyx.mt/privacy (2026-11-24).
-- [x] Production database migrated to 0028 (2026-11-25).
+- [x] Production database migrated to 0030 (2026-11-25).

@@ -66,6 +66,9 @@ services:
       # return 503 (fail closed).
       - key: ONYX_API_SUPABASE_SERVICE_KEY
         sync: false
+      # Scheduler (VA-007): same value as the GitHub secret ONYX_SCHEDULER_SECRET.
+      - key: ONYX_API_SCHEDULER_SECRET
+        sync: false
       # Missed-call text-back (VA-004): off until the owner buys the cloud number.
       - key: ONYX_API_TELEPHONY_WEBHOOK_URL
         sync: false

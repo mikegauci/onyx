@@ -3868,6 +3868,44 @@
         "title": "DealUpdate",
         "type": "object"
       },
+      "DealsOut": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "collected": {
+            "title": "Collected",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "customer_uploads": {
+            "title": "Customer Uploads",
+            "type": "integer"
+          },
+          "open_now": {
+            "title": "Open Now",
+            "type": "integer"
+          },
+          "sold": {
+            "title": "Sold",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "sold",
+          "collected",
+          "cancelled",
+          "open_now",
+          "customer_uploads"
+        ],
+        "title": "DealsOut",
+        "type": "object"
+      },
       "DeliveryStatus": {
         "enum": [
           "received",
@@ -5530,6 +5568,16 @@
           "days": {
             "title": "Days",
             "type": "integer"
+          },
+          "deals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DealsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "drafts": {
             "anyOf": [

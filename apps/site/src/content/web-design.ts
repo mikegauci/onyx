@@ -9,21 +9,25 @@ export const webDesignPackages = [
   {
     name: "Bronze",
     price: "€300",
-    type: "One-page website",
-    description: "A focused page that explains what you do and makes it easy to get in touch.",
+    type: "Small business website",
+    description: "Launch or refresh your business website with a choice of ready-made layouts.",
     features: [
-      "One mobile-friendly page",
-      "Light editing of supplied copy",
-      "Basic SEO and an enquiry form",
+      "Up to five mobile-friendly pages",
+      "Light editing of your supplied text and photos",
+      "Basic SEO setup",
+      "Enquiry form and click-to-WhatsApp",
+      "One round of revisions",
     ],
   },
   {
     name: "Silver",
     price: "€750",
     type: "Business website",
-    description: "A new site or a redesign with room to explain your services in detail.",
+    description:
+      "A new site or redesign with more room for your services and more design flexibility.",
     features: [
-      "Up to five pages",
+      "Up to 10 mobile-friendly pages",
+      "Flexible layouts tailored to your business",
       "Copywriting from your brief",
       "On-page SEO and an enquiry form",
     ],

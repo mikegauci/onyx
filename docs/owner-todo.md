@@ -72,6 +72,14 @@ them into chat.
       must keep them.
 - [ ] **Templates:** the WhatsApp document template (see WhatsApp above).
 
+## Finance pre-qualification (VA-006)
+
+- [ ] **Rates and fees:** confirm with Ventur that the website's figures are current: 6.5% a
+      year (simple interest), a 4% onboarding fee and a 1% yearly financing & maintenance fee.
+      Ask whether there is a minimum or maximum term.
+- [ ] **Forms:** once part 1 is live, upload the latest KYC & Loan Request and CCR PDFs under
+      Deals → Settings.
+
 ## Later Ventur items: questions to ask them
 
 - [ ] **VA-008 finance schedules:** where payment records live today (a spreadsheet,

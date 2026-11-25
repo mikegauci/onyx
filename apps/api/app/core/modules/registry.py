@@ -19,6 +19,7 @@ class ModuleKey(enum.StrEnum):
     OUTBOUND = "outbound"
     KNOWLEDGE = "knowledge"
     AUTOMOTIVE = "automotive"
+    DEALS = "deals"
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,8 @@ REGISTRY: dict[ModuleKey, ModuleSpec] = {
         ModuleSpec(ModuleKey.KNOWLEDGE, "Knowledge"),
         # Vehicle stock for car dealers; extends the catalogue (VA-001).
         ModuleSpec(ModuleKey.AUTOMOTIVE, "Vehicles", frozenset({ModuleKey.CATALOGUE})),
+        # Sales from reservation to collection, with customer documents (VA-007).
+        ModuleSpec(ModuleKey.DEALS, "Deals", frozenset({ModuleKey.CRM})),
     )
 }
 

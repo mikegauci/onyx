@@ -167,3 +167,15 @@ reserved → deposit received → documents → finance → sold → collected
 - Taking payments (VA-008 records payments; Onyx never collects money).
 - E-signatures and contract generation.
 - Virus scanning of uploads. The file type and size are checked; a scanner can be added later.
+
+## Changes during implementation
+
+- **Part 1:**
+  - **Tasks:** "Check documents" tasks for owners and admins are created by the scheduler
+    (part 3), because only the worker role may create tasks.
+  - **Dashboard uploads:** these go through a server action, which Vercel caps at about 4.5 MB
+    per request. Photos over 3 MB are resized in the browser. The customer upload page (part 2)
+    goes straight to the API and accepts the full 10 MB.
+  - **Plan:** the `deals` module is included in the Growth plan.
+  - **API:** routes are under `/v1/w/{slug}/deals` (list and create), `/deals/{id}/…` and
+    `/deals/settings`.

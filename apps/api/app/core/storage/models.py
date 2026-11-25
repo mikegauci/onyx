@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, String
+from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db.base import Base, created_at_column, uuid_pk
@@ -20,6 +20,7 @@ class StoredFile(Base):
             name="object_key_in_tenant_prefix",
         ),
         CheckConstraint("size_bytes >= 0", name="size_bytes_non_negative"),
+        UniqueConstraint("organization_id", "id"),  # same-tenant references (VA-007)
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()

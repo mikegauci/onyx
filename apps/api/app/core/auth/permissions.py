@@ -41,6 +41,10 @@ class Permission(enum.StrEnum):
     TASKS_READ = "tasks.read"  # see the tasks meant for your role, and mark them done
     TASKS_MANAGE = "tasks.manage"  # cancel tasks
     BILLING_READ = "billing.read"  # the plan, its status and the AI usage report
+    DEALS_READ = "deals.read"  # deals and which documents are missing
+    DEALS_WRITE = "deals.write"  # create deals, change stages, record deposits, upload documents
+    DEALS_DOCUMENTS = "deals.documents"  # open, verify and reject customer documents
+    DEALS_MANAGE = "deals.manage"  # the checklist, retention and reminder settings
     BILLING_MANAGE = "billing.manage"  # change plan, payment details and invoices (owners)
 
 
@@ -59,6 +63,8 @@ _MEMBER = frozenset(
         Permission.OUTBOUND_WRITE,
         Permission.KNOWLEDGE_READ,
         Permission.TASKS_READ,
+        Permission.DEALS_READ,
+        Permission.DEALS_WRITE,
     }
 )
 _ADMIN = _MEMBER | {
@@ -80,6 +86,8 @@ _ADMIN = _MEMBER | {
     Permission.KNOWLEDGE_MANAGE,
     Permission.TASKS_MANAGE,
     Permission.BILLING_READ,
+    Permission.DEALS_DOCUMENTS,
+    Permission.DEALS_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

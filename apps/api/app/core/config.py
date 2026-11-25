@@ -133,6 +133,18 @@ class Settings(BaseSettings):
     )
     telephony_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
 
+    # Tenant files (VA-007 deal documents). "supabase" needs the URL above and the service key;
+    # "local" keeps files under storage_local_dir (development); "memory" is for tests.
+    storage_backend: Literal["supabase", "local", "memory"] | None = Field(
+        default=None,
+        description="Unset: supabase when deployed and configured, local otherwise.",
+    )
+    supabase_service_key: SecretStr | None = Field(
+        default=None, description="Supabase secret (service) key; server only, never logged."
+    )
+    storage_bucket: str = Field(default="tenant-files", pattern=r"^[a-z0-9][a-z0-9-]{2,62}$")
+    storage_local_dir: str = ".storage"
+
     # Billing (PR-026). Off until the owner creates the Stripe account and plans; test-mode
     # keys first. Price ids map Onyx plans to Stripe prices.
     stripe_api_key: SecretStr | None = Field(default=None, description="Stripe secret key")
@@ -177,6 +189,7 @@ class Settings(BaseSettings):
         "whatsapp_access_token",
         "twilio_auth_token",
         "telephony_fake_secret",
+        "supabase_service_key",
         "telephony_webhook_url",
         "twilio_account_sid",
         "sentry_dsn",
@@ -300,6 +313,15 @@ class Settings(BaseSettings):
             raise MissingDatabaseUrlError("ONYX_API_DATABASE_URL is not set.")
         return self.database_url.get_secret_value()
 
+    @property
+    def resolved_storage_backend(self) -> str | None:
+        """Where tenant files go, or None when deployed without Supabase Storage (fail closed)."""
+        if self.storage_backend is not None:
+            return self.storage_backend
+        if self.supabase_url is not None and self.supabase_service_key is not None:
+            return "supabase"
+        return None if self.is_deployed else "local"
+
     def require_migration_database_url(self) -> str:
         """The schema-owner URL. Locally it falls back to the application URL."""
         if self.migration_database_url is not None:
@@ -335,6 +357,8 @@ class Settings(BaseSettings):
             )
         if self.billing_provider == "fake" and self.is_deployed:
             raise ValueError("The fake billing provider is not allowed in a deployed environment.")
+        if self.storage_backend in ("local", "memory") and self.is_deployed:
+            raise ValueError("Local or in-memory file storage is not allowed when deployed.")
         return self
 
     @model_validator(mode="after")

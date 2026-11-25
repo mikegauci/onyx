@@ -41,6 +41,7 @@ GROWTH_MODULES = [
     "automotive",
     "catalogue",
     "crm",
+    "deals",
     "inbox",
     "knowledge",
     "outbound",

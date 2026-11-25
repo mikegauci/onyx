@@ -177,13 +177,21 @@ async def plan_import(
             plan.creates.append(item)
             continue
         wanted = _wanted(item)
-        changed = [name for name in TRACKED if getattr(vehicle, name) != wanted[name]]
+        changed = [
+            name
+            for name in TRACKED
+            if getattr(vehicle, name) != wanted[name]
+            # A car held by an open deal keeps the status the deal gave it (VA-007).
+            and not (name == "status" and vehicle.held_by_deal_id is not None)
+        ]
         if changed:
             plan.updates.append((vehicle, item, changed))
         else:
             plan.unchanged += 1
     plan.withdrawals = [
-        v for ref, v in existing.items() if ref not in by_ref and v.status in OPEN_STATUSES
+        v
+        for ref, v in existing.items()
+        if ref not in by_ref and v.status in OPEN_STATUSES and v.held_by_deal_id is None
     ]
     return plan
 

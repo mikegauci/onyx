@@ -15,6 +15,7 @@ from app.modules.assistant import models as assistant_models
 from app.modules.automotive import models as automotive_models
 from app.modules.catalogue import models as catalogue_models
 from app.modules.crm import models as crm_models
+from app.modules.deals import models as deal_models
 from app.modules.inbox import models as inbox_models
 from app.modules.knowledge import models as knowledge_models
 from app.modules.outbound import models as outbound_models
@@ -32,6 +33,7 @@ __all__ = [
     "catalogue_models",
     "control_models",
     "crm_models",
+    "deal_models",
     "inbox_models",
     "knowledge_models",
     "module_models",

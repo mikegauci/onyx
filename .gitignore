@@ -16,6 +16,9 @@ coverage/
 .ruff_cache/
 __pycache__/
 
+# Local tenant files (development storage backend)
+.storage/
+
 # Environment — never commit secrets
 .env
 .env.*

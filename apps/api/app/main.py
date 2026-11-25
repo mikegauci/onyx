@@ -30,6 +30,8 @@ from app.core.db.session import create_engine, create_session_factory
 from app.core.errors import install_error_handlers
 from app.core.logging import REQUEST_ID_HEADER, RequestIdMiddleware, configure_logging
 from app.core.observability import init_sentry
+from app.core.storage.deps import build_object_store
+from app.core.storage.store import ObjectStore
 from app.integrations import email, telephony, whatsapp
 from app.integrations.billing import BillingConfig, BillingProvider
 from app.integrations.billing.fake import FakeBillingProvider
@@ -48,6 +50,7 @@ from app.modules.automotive import fake_site
 from app.modules.automotive.routes import router as automotive_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
+from app.modules.deals.routes import router as deals_router
 from app.modules.inbox import whatsapp_send
 from app.modules.inbox.email_connector import EmailConnector
 from app.modules.inbox.missed_calls import MissedCallConnector
@@ -190,6 +193,7 @@ def create_app(
     whatsapp_provider: WhatsAppProvider | None = None,
     billing_provider: BillingProvider | None = None,
     telephony_provider: TelephonyProvider | None = None,
+    object_store: ObjectStore | None = None,
 ) -> FastAPI:
     """Build the app. Auth and database are optional: without them those routes return 503."""
     settings = settings or get_settings()
@@ -201,6 +205,7 @@ def create_app(
         engine = None
         app.state.token_verifier = token_verifier or _default_verifier(settings)
         app.state.session_factory = session_factory
+        app.state.object_store = object_store or build_object_store(settings)
         if session_factory is None and settings.database_url is not None:
             engine = create_engine(settings)
             app.state.session_factory = create_session_factory(engine)
@@ -311,6 +316,7 @@ def create_app(
     v1.include_router(automotive_router)
     v1.include_router(outbound_router)
     v1.include_router(knowledge_router)
+    v1.include_router(deals_router)
     v1.include_router(webhooks_router)
     app.include_router(v1)
     return app

@@ -126,6 +126,19 @@ def test_keys_are_secret_in_settings_repr() -> None:
     assert "sk-test-not-a-real-key" not in str(settings.model_dump())
 
 
+def test_example_from_schema_leaves_optional_objects_out_and_respects_limits() -> None:
+    schema = {
+        "type": "object",
+        "properties": {
+            "details": {"anyOf": [{"$ref": "#/$defs/D"}, {"type": "null"}]},
+            "years": {"type": "number", "exclusiveMinimum": 0},
+            "count": {"type": "integer", "exclusiveMinimum": 3},
+        },
+        "$defs": {"D": {"type": "object", "properties": {"x": {"type": "string"}}}},
+    }
+    assert example_from_schema(schema) == {"details": None, "years": 1, "count": 4}
+
+
 def test_example_from_schema_builds_valid_values() -> None:
     schema = {
         "type": "object",

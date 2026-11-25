@@ -12,7 +12,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                                        |
 | VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | Merged ([#64](https://github.com/mikegauci/onyx/pull/64)); go-live needs a +356 number  |
 | VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Approved 2026-11-19, not started                                                        |
-| VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Approved 2026-11-19, not started                                                        |
+| VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Part 1 merged (#85), part 2 in review                                                   |
 | VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Parts 1–2 merged (#77, #78), part 3 in review; customer reminders wait for the template |
 | VA-008   | Ventur     | In-house finance schedules and reminders      | VA-007                        | 14–24h     | Approved 2026-11-19, not started; payment record source unknown                         |
 | VA-009   | Ventur     | Review requests and service/renewal reminders | VA-007, PR-021                | 14–22h     | Approved 2026-11-19, not started                                                        |

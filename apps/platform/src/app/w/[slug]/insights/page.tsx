@@ -159,6 +159,22 @@ export default async function InsightsPage({ params, searchParams }: Props) {
             />
           </Panel>
         ) : null}
+        {data.finance && (data.finance.started > 0 || data.finance.open_now > 0) ? (
+          <Panel
+            title="Finance"
+            description="Finance applications started in the period, and decisions recorded."
+          >
+            <Facts
+              items={[
+                ["Applications started", String(data.finance.started)],
+                ["Started by the assistant", String(data.finance.by_assistant)],
+                ["Approved", String(data.finance.approved)],
+                ["Declined", String(data.finance.declined)],
+                ["Open right now", String(data.finance.open_now)],
+              ]}
+            />
+          </Panel>
+        ) : null}
         {data.missed_calls && data.missed_calls.total > 0 ? (
           <Panel title="Missed calls" description="Calls forwarded to Onyx when nobody answered.">
             <Facts

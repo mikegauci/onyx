@@ -217,6 +217,22 @@ export const ONBOARDING: Guide = {
       image: shot("deal", "A deal with its document checklist, stage and details"),
     },
     {
+      id: "finance",
+      title: "Finance",
+      intro:
+        "Deals → Finance works out monthly payments with the same calculation as your website's loan calculator, and keeps each customer's finance application.",
+      steps: [
+        "Use the calculator for a quick estimate: price, deposit and years.",
+        "On a deal, press “Start a finance application”. Choose the applicant type and marital status; the deal's checklist switches to the documents that applicant needs, including the spouse's when married.",
+        "Send the customer the upload link: the KYC & Loan Request and CCR forms can be downloaded right next to their checklist items.",
+        "Owners and admins record income details and the decision (approved or declined). Onyx never approves or declines finance.",
+      ],
+      points: [
+        "When a customer asks about paying monthly, the sales assistant can draft a reply with the estimate and start the application. Its reply always says it is an estimate, and it never promises approval or a rate. You approve the reply before it is sent.",
+        "Set the rates, the term range, the disclaimer and the PDF forms under Deals → Settings.",
+      ],
+    },
+    {
       id: "tasks",
       title: "Tasks",
       points: [
@@ -329,6 +345,15 @@ export const OPERATOR: Guide = {
         "Use “Request documents” to send the customer their upload link, or upload what they hand you.",
         "“Chase documents” tasks list deals still missing documents; follow them up the same day.",
         "Only owners and admins open and verify documents. Never forward customer documents by email or chat.",
+      ],
+    },
+    {
+      id: "finance",
+      title: "Finance questions",
+      points: [
+        "Give estimates from Deals → Finance, never from memory, and always say it is an estimate.",
+        "Never tell a customer they are approved or promise a rate; Ventur's finance team decides.",
+        "Check the assistant's finance replies before approving: the amounts and the disclaimer.",
       ],
     },
     {

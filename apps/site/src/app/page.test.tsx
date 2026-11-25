@@ -17,7 +17,7 @@ describe("Onyx Studio home page", () => {
       /businesses that live on enquiries/i,
       /first call to a system/i,
       /our own platform/i,
-      /fair questions/i,
+      "Frequently Asked Questions",
       /how your business runs/i,
     ]) {
       expect(screen.getByRole("heading", { level: 2, name })).toBeInTheDocument();
@@ -39,10 +39,13 @@ describe("Onyx Studio home page", () => {
   });
 
   it("offers an email contact and in-page navigation targets", () => {
-    expect(screen.getAllByRole("link", { name: /info@onyx\.mt/i })[0]).toHaveAttribute(
-      "href",
-      "mailto:info@onyx.mt",
-    );
+    const navigation = within(screen.getByRole("navigation", { name: "Main" }));
+    const startProject = navigation.getByRole("link", { name: "Start a project" });
+    const email = screen.getByRole("link", { name: "Email info@onyx.mt" });
+    expect(startProject).toHaveAttribute("href", "#contact");
+    expect(email).toHaveAttribute("href", "mailto:info@onyx.mt");
+    expect(startProject.closest("[data-magnetic]")).toBeNull();
+    expect(email.closest("[data-magnetic]")).toBeNull();
     for (const id of ["studio", "system", "industries", "process", "faq", "contact"]) {
       expect(document.getElementById(id)).not.toBeNull();
     }

@@ -19,6 +19,7 @@ from sqlalchemy import (
     Integer,
     SmallInteger,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -26,6 +27,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db.base import Base, created_at_column, str_enum, updated_at_column, uuid_pk
+from app.modules.deals.finance_rules import ApplicantType, ApplicationStatus, MaritalStatus
 from app.modules.deals.lifecycle import DealDepositMethod, DealDocumentState, DealStage
 
 
@@ -148,6 +150,7 @@ class DealDocument(Base):
     verified_by_user_id: Mapped[uuid.UUID | None] = _user()
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     file_deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    form_kind: Mapped[str | None] = mapped_column(String(16), nullable=True)  # "kyc" or "ccr"
     updated_at: Mapped[datetime] = updated_at_column()
 
 
@@ -188,3 +191,81 @@ class DealUploadLink(Base):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by_user_id: Mapped[uuid.UUID | None] = _user()
     created_at: Mapped[datetime] = created_at_column()
+
+
+class FinanceSettings(Base):
+    """The workspace's finance estimate figures and forms (VA-006). Missing row = standard."""
+
+    __tablename__ = "finance_settings"
+    __table_args__ = (
+        _same_tenant("finance_settings", "kyc_form_file_id", "stored_files"),
+        _same_tenant("finance_settings", "ccr_form_file_id", "stored_files"),
+    )
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="RESTRICT"), primary_key=True
+    )
+    annual_rate_bp: Mapped[int] = mapped_column(Integer, nullable=False, server_default="650")
+    onboarding_fee_bp: Mapped[int] = mapped_column(Integer, nullable=False, server_default="400")
+    yearly_fee_bp: Mapped[int] = mapped_column(Integer, nullable=False, server_default="100")
+    min_term_months: Mapped[int] = mapped_column(Integer, nullable=False, server_default="6")
+    max_term_months: Mapped[int] = mapped_column(Integer, nullable=False, server_default="120")
+    disclaimer: Mapped[str] = mapped_column(String(500), nullable=False)
+    checklists: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    kyc_form_file_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    ccr_form_file_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    updated_by_user_id: Mapped[uuid.UUID | None] = _user()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class FinanceApplication(Base):
+    __tablename__ = "finance_applications"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        _same_tenant("finance_applications", "contact_id", "crm_contacts"),
+        _same_tenant("finance_applications", "deal_id", "deals"),
+        Index(
+            "uq_finance_applications_deal",
+            "organization_id",
+            "deal_id",
+            unique=True,
+            postgresql_where=text("deal_id IS NOT NULL"),
+        ),
+        Index("ix_finance_applications_list", "organization_id", "status", "updated_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    deal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    applicant_type: Mapped[ApplicantType] = mapped_column(
+        str_enum(ApplicantType, "finance_applicant_type"), nullable=False
+    )
+    marital_status: Mapped[MaritalStatus] = mapped_column(
+        str_enum(MaritalStatus, "finance_marital_status"), nullable=False
+    )
+    vehicle_label: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    price_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    deposit_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    term_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    monthly_estimate_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    estimate: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    employer: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    net_monthly_income_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    existing_commitments_cents: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[ApplicationStatus] = mapped_column(
+        str_enum(ApplicationStatus, "finance_application_status"), nullable=False
+    )
+    decision_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    decided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    source: Mapped[str] = mapped_column(String(16), nullable=False, server_default="staff")
+    created_by_user_id: Mapped[uuid.UUID | None] = _user()
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()

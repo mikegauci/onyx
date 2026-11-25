@@ -343,6 +343,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/public/uploads/{token}/forms/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Customer Form */
+        get: operations["download_customer_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}": {
         parameters: {
             query?: never;
@@ -1088,6 +1105,112 @@ export interface paths {
         put?: never;
         /** Create Deal */
         post: operations["create_deal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Finance Applications */
+        get: operations["list_finance_applications"];
+        put?: never;
+        /** Create Finance Application */
+        post: operations["create_finance_application"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/applications/{application_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Finance Application */
+        get: operations["get_finance_application"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Finance Application */
+        patch: operations["update_finance_application"];
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/applications/{application_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change Finance Status */
+        post: operations["change_finance_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finance Estimate */
+        post: operations["finance_estimate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/forms/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Finance Form */
+        get: operations["download_finance_form"];
+        /** Upload Finance Form */
+        put: operations["upload_finance_form"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Finance Settings */
+        get: operations["get_finance_settings"];
+        /** Put Finance Settings */
+        put: operations["put_finance_settings"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2387,6 +2510,16 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
+        /**
+         * ApplicantType
+         * @enum {string}
+         */
+        ApplicantType: "maltese_resident" | "non_maltese_resident" | "self_employed" | "company";
+        /**
+         * ApplicationStatus
+         * @enum {string}
+         */
+        ApplicationStatus: "started" | "documents" | "in_review" | "approved" | "declined" | "withdrawn";
         /** ApproveRequest */
         ApproveRequest: {
             /** Acknowledge */
@@ -3238,6 +3371,8 @@ export interface components {
             documents_verified: number;
             /** Events */
             events: components["schemas"]["DealEventOut"][];
+            /** Finance Application Id */
+            finance_application_id?: string | null;
             /** Financed */
             financed: boolean;
             /** Has Trade In */
@@ -3290,6 +3425,8 @@ export interface components {
             file_deleted_at: string | null;
             /** Filename */
             filename: string | null;
+            /** Form Kind */
+            form_kind?: string | null;
             /** Has File */
             has_file: boolean;
             /**
@@ -3888,6 +4025,53 @@ export interface components {
         ErrorResponse: {
             error: components["schemas"]["ApiError"];
         };
+        /** EstimateOut */
+        EstimateOut: {
+            /** Annual Rate Bp */
+            annual_rate_bp: number;
+            /** Deposit Cents */
+            deposit_cents: number;
+            /** Disclaimer */
+            disclaimer: string;
+            /** Interest Cents */
+            interest_cents: number;
+            /** Monthly Cents */
+            monthly_cents: number;
+            /** Net Loan Cents */
+            net_loan_cents: number;
+            /** Onboarding Fee Bp */
+            onboarding_fee_bp: number;
+            /** Onboarding Fee Cents */
+            onboarding_fee_cents: number;
+            /** Payoff Months */
+            payoff_months: number | null;
+            /** Payoff Saving Cents */
+            payoff_saving_cents: number | null;
+            /** Price Cents */
+            price_cents: number;
+            /** Term Months */
+            term_months: number;
+            /** Total Cents */
+            total_cents: number;
+            /** Yearly Fee Bp */
+            yearly_fee_bp: number;
+            /** Yearly Fee Cents */
+            yearly_fee_cents: number;
+        };
+        /** EstimateRequest */
+        EstimateRequest: {
+            /**
+             * Deposit Cents
+             * @default 0
+             */
+            deposit_cents: number;
+            /** Payoff Months */
+            payoff_months?: number | null;
+            /** Price Cents */
+            price_cents: number;
+            /** Term Months */
+            term_months: number;
+        };
         /**
          * EventKind
          * @enum {string}
@@ -3930,6 +4114,198 @@ export interface components {
          * @enum {string}
          */
         ExpiryReason: "time" | "new_customer_message" | "quote_changed" | "quote_expired";
+        /** FinanceApplicationCreate */
+        FinanceApplicationCreate: {
+            applicant_type: components["schemas"]["ApplicantType"];
+            /**
+             * Contact Id
+             * @description Required without a deal
+             */
+            contact_id?: string | null;
+            /** Deal Id */
+            deal_id?: string | null;
+            /** Deposit Cents */
+            deposit_cents?: number | null;
+            /** Employer */
+            employer?: string | null;
+            /** Existing Commitments Cents */
+            existing_commitments_cents?: number | null;
+            marital_status: components["schemas"]["MaritalStatus"];
+            /** Net Monthly Income Cents */
+            net_monthly_income_cents?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Price Cents */
+            price_cents?: number | null;
+            /** Term Months */
+            term_months?: number | null;
+            /** Vehicle Label */
+            vehicle_label?: string | null;
+        };
+        /** FinanceApplicationDetail */
+        FinanceApplicationDetail: {
+            applicant_type: components["schemas"]["ApplicantType"];
+            /** Checklist */
+            checklist: string[];
+            contact: components["schemas"]["DealRef"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deal Id */
+            deal_id: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision Note */
+            decision_note: string | null;
+            /** Deposit Cents */
+            deposit_cents: number | null;
+            /** Employer */
+            employer: string | null;
+            estimate: components["schemas"]["EstimateOut"] | null;
+            /** Existing Commitments Cents */
+            existing_commitments_cents: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            marital_status: components["schemas"]["MaritalStatus"];
+            /** Monthly Estimate Cents */
+            monthly_estimate_cents: number | null;
+            /** Net Monthly Income Cents */
+            net_monthly_income_cents: number | null;
+            /** Notes */
+            notes: string | null;
+            /** Price Cents */
+            price_cents: number | null;
+            /** Restricted */
+            restricted: boolean;
+            /** Source */
+            source: string;
+            status: components["schemas"]["ApplicationStatus"];
+            /** Term Months */
+            term_months: number | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Vehicle Label */
+            vehicle_label: string | null;
+        };
+        /** FinanceApplicationList */
+        FinanceApplicationList: {
+            /** Items */
+            items: components["schemas"]["FinanceApplicationSummary"][];
+        };
+        /** FinanceApplicationSummary */
+        FinanceApplicationSummary: {
+            applicant_type: components["schemas"]["ApplicantType"];
+            contact: components["schemas"]["DealRef"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deal Id */
+            deal_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            marital_status: components["schemas"]["MaritalStatus"];
+            /** Monthly Estimate Cents */
+            monthly_estimate_cents: number | null;
+            /** Source */
+            source: string;
+            status: components["schemas"]["ApplicationStatus"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Vehicle Label */
+            vehicle_label: string | null;
+        };
+        /** FinanceApplicationUpdate */
+        FinanceApplicationUpdate: {
+            applicant_type?: components["schemas"]["ApplicantType"] | null;
+            /** Deposit Cents */
+            deposit_cents?: number | null;
+            /** Employer */
+            employer?: string | null;
+            /** Existing Commitments Cents */
+            existing_commitments_cents?: number | null;
+            marital_status?: components["schemas"]["MaritalStatus"] | null;
+            /** Net Monthly Income Cents */
+            net_monthly_income_cents?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Price Cents */
+            price_cents?: number | null;
+            /** Term Months */
+            term_months?: number | null;
+            /** Vehicle Label */
+            vehicle_label?: string | null;
+        };
+        /** FinanceFormUpload */
+        FinanceFormUpload: {
+            /** Content Base64 */
+            content_base64: string;
+            /** Filename */
+            filename: string;
+        };
+        /** FinanceSettingsOut */
+        FinanceSettingsOut: {
+            /** Annual Rate Bp */
+            annual_rate_bp: number;
+            /** Ccr Form */
+            ccr_form: boolean;
+            /** Checklists */
+            checklists: {
+                [key: string]: {
+                    [key: string]: string[];
+                };
+            };
+            /** Disclaimer */
+            disclaimer: string;
+            /** Kyc Form */
+            kyc_form: boolean;
+            /** Max Term Months */
+            max_term_months: number;
+            /** Min Term Months */
+            min_term_months: number;
+            /** Onboarding Fee Bp */
+            onboarding_fee_bp: number;
+            /** Uses Standard Checklists */
+            uses_standard_checklists: boolean;
+            /** Yearly Fee Bp */
+            yearly_fee_bp: number;
+        };
+        /** FinanceSettingsUpdate */
+        FinanceSettingsUpdate: {
+            /** Annual Rate Bp */
+            annual_rate_bp?: number | null;
+            /** Disclaimer */
+            disclaimer?: string | null;
+            /** Max Term Months */
+            max_term_months?: number | null;
+            /** Min Term Months */
+            min_term_months?: number | null;
+            /** Onboarding Fee Bp */
+            onboarding_fee_bp?: number | null;
+            /** Yearly Fee Bp */
+            yearly_fee_bp?: number | null;
+        };
+        /** FinanceStatusChange */
+        FinanceStatusChange: {
+            /** Note */
+            note?: string | null;
+            status: components["schemas"]["ApplicationStatus"];
+        };
         /**
          * Handler
          * @description Who is expected to respond: staff, or (from PR-015) the assistant drafting for staff.
@@ -4394,6 +4770,11 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /**
+         * MaritalStatus
+         * @enum {string}
+         */
+        MaritalStatus: "single" | "married" | "separated" | "divorced" | "widowed" | "not_applicable";
         /** MeResponse */
         MeResponse: {
             /** Is Platform Admin */
@@ -4711,7 +5092,7 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read" | "tasks.read" | "tasks.manage" | "billing.read" | "deals.read" | "deals.write" | "deals.documents" | "deals.manage" | "privacy.manage" | "billing.manage";
+        Permission: "workspace.read" | "workspace.update" | "members.read" | "invitations.create" | "audit.read" | "crm.read" | "crm.write" | "crm.import" | "crm.archive" | "catalogue.read" | "catalogue.import" | "catalogue.manage" | "inbox.read" | "inbox.write" | "inbox.manage" | "quotations.read" | "quotations.write" | "quotations.approve" | "quotations.manage" | "assistant.run" | "assistant.manage" | "outbound.read" | "outbound.write" | "outbound.approve" | "outbound.manage" | "knowledge.read" | "knowledge.manage" | "ai.usage.read" | "tasks.read" | "tasks.manage" | "billing.read" | "deals.read" | "deals.write" | "deals.documents" | "deals.manage" | "finance.manage" | "privacy.manage" | "billing.manage";
         /**
          * PhoneLineConnect
          * @description Connect a cloud number for missed-call text-back (VA-004).
@@ -5061,6 +5442,8 @@ export interface components {
         };
         /** PublicUploadItem */
         PublicUploadItem: {
+            /** Form Kind */
+            form_kind?: string | null;
             /**
              * Id
              * Format: uuid
@@ -7541,6 +7924,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicUploadPage"];
+                };
+            };
+            /** @description The link is not valid (any more) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a supported file */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Uploads are unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    download_customer_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The form */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
                 };
             };
             /** @description The link is not valid (any more) */
@@ -11707,6 +12140,779 @@ export interface operations {
                 };
             };
             /** @description Not allowed at this stage, or the car is not available */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_finance_applications: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ApplicationStatus"] | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceApplicationList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_finance_application: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceApplicationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceApplicationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_finance_application: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceApplicationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_finance_application: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceApplicationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceApplicationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_finance_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceStatusChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceApplicationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    finance_estimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstimateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstimateOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    download_finance_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The form */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_finance_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceFormUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_finance_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_finance_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
             409: {
                 headers: {
                     [name: string]: unknown;

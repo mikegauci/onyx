@@ -6,6 +6,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
+from app.modules.deals.finance_rules import ApplicantType, ApplicationStatus, MaritalStatus
 from app.modules.deals.lifecycle import (
     ChecklistCondition,
     DealDepositMethod,
@@ -124,6 +125,7 @@ class DealDocumentOut(BaseModel):
     received_from: str | None
     verified_at: datetime | None
     file_deleted_at: datetime | None
+    form_kind: str | None = None  # "kyc" or "ccr": a blank form to download
 
 
 class DealEventOut(BaseModel):
@@ -167,6 +169,7 @@ class DealDetail(DealSummary):
     documents: list[DealDocumentOut]
     events: list[DealEventOut]
     upload_link: "UploadLinkOut | None" = None
+    finance_application_id: uuid.UUID | None = None
 
 
 class DealList(BaseModel):
@@ -205,6 +208,7 @@ class UploadLinkCreated(BaseModel):
 
 class PublicUploadItem(BaseModel):
     id: uuid.UUID
+    form_kind: str | None = None
     label: str
     note: str | None
     rejected_reason: str | None
@@ -223,3 +227,135 @@ class PublicUpload(_Input):
 
 
 DealDetail.model_rebuild()
+
+
+# --- finance (VA-006) -------------------------------------------------------------------------
+
+Bp = Annotated[int, Field(ge=0, le=5000)]
+Months = Annotated[int, Field(ge=1, le=360)]
+
+
+class FinanceSettingsOut(BaseModel):
+    annual_rate_bp: int
+    onboarding_fee_bp: int
+    yearly_fee_bp: int
+    min_term_months: int
+    max_term_months: int
+    disclaimer: str
+    checklists: dict[str, dict[str, list[str]]]
+    uses_standard_checklists: bool
+    kyc_form: bool
+    ccr_form: bool
+
+
+class FinanceSettingsUpdate(_Input):
+    annual_rate_bp: Bp | None = None
+    onboarding_fee_bp: Annotated[int, Field(ge=0, le=2000)] | None = None
+    yearly_fee_bp: Annotated[int, Field(ge=0, le=2000)] | None = None
+    min_term_months: Months | None = None
+    max_term_months: Months | None = None
+    disclaimer: (
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+        | None
+    ) = None
+
+
+class FinanceFormUpload(_Input):
+    filename: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+    content_base64: Annotated[str, StringConstraints(min_length=1, max_length=BASE64_MAX_LENGTH)]
+
+
+class EstimateRequest(_Input):
+    price_cents: Annotated[int, Field(gt=0, le=100_000_000_00)]
+    deposit_cents: Annotated[int, Field(ge=0, le=100_000_000_00)] = 0
+    term_months: Months
+    payoff_months: Months | None = None
+
+
+class EstimateOut(BaseModel):
+    price_cents: int
+    deposit_cents: int
+    term_months: int
+    net_loan_cents: int
+    interest_cents: int
+    yearly_fee_cents: int
+    onboarding_fee_cents: int
+    total_cents: int
+    monthly_cents: int
+    annual_rate_bp: int
+    onboarding_fee_bp: int
+    yearly_fee_bp: int
+    payoff_months: int | None
+    payoff_saving_cents: int | None
+    disclaimer: str
+
+
+class FinanceApplicationCreate(_Input):
+    contact_id: uuid.UUID | None = Field(default=None, description="Required without a deal")
+    deal_id: uuid.UUID | None = None
+    applicant_type: ApplicantType
+    marital_status: MaritalStatus
+    vehicle_label: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None
+    ) = None
+    price_cents: Annotated[int, Field(gt=0, le=100_000_000_00)] | None = None
+    deposit_cents: Annotated[int, Field(ge=0, le=100_000_000_00)] | None = None
+    term_months: Months | None = None
+    employer: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+    net_monthly_income_cents: Cents | None = None
+    existing_commitments_cents: Cents | None = None
+    notes: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] | None = None
+
+
+class FinanceApplicationUpdate(_Input):
+    applicant_type: ApplicantType | None = None
+    marital_status: MaritalStatus | None = None
+    vehicle_label: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None
+    ) = None
+    price_cents: Annotated[int, Field(gt=0, le=100_000_000_00)] | None = None
+    deposit_cents: Annotated[int, Field(ge=0, le=100_000_000_00)] | None = None
+    term_months: Months | None = None
+    employer: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+    net_monthly_income_cents: Cents | None = None
+    existing_commitments_cents: Cents | None = None
+    notes: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] | None = None
+
+
+class FinanceStatusChange(_Input):
+    status: ApplicationStatus
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] | None = None
+
+
+class FinanceApplicationSummary(BaseModel):
+    id: uuid.UUID
+    contact: DealRef
+    deal_id: uuid.UUID | None
+    applicant_type: ApplicantType
+    marital_status: MaritalStatus
+    vehicle_label: str | None
+    monthly_estimate_cents: int | None
+    status: ApplicationStatus
+    source: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class FinanceApplicationDetail(FinanceApplicationSummary):
+    price_cents: int | None
+    deposit_cents: int | None
+    term_months: int | None
+    estimate: EstimateOut | None
+    decided_at: datetime | None
+    # Only with finance.manage (owners and admins); otherwise null and `restricted` is true.
+    employer: str | None
+    net_monthly_income_cents: int | None
+    existing_commitments_cents: int | None
+    notes: str | None
+    decision_note: str | None
+    restricted: bool
+    checklist: list[str]
+
+
+class FinanceApplicationList(BaseModel):
+    items: list[FinanceApplicationSummary]

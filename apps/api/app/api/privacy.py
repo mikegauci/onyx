@@ -97,6 +97,14 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE organization_id = :org AND contact_id = :c ORDER BY created_at",
     ),
     (
+        "finance_applications",
+        "SELECT id, deal_id, applicant_type, marital_status, vehicle_label, price_cents, "
+        "deposit_cents, term_months, monthly_estimate_cents, employer, "
+        "net_monthly_income_cents, existing_commitments_cents, notes, status, decision_note, "
+        "decided_at, created_at FROM finance_applications "
+        "WHERE organization_id = :org AND contact_id = :c ORDER BY created_at",
+    ),
+    (
         "deal_documents",
         "SELECT d.deal_id, d.label, d.state, d.received_at, d.received_from, d.verified_at, "
         "d.file_deleted_at, f.filename, f.content_type, f.size_bytes FROM deal_documents d "
@@ -142,6 +150,7 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "quotes": "quotations",
         "deals": "deals",
         "deal_documents": "deals",
+        "finance_applications": "deals",
     }
     for name, sql in EXPORT_QUERIES:
         module = skip.get(name)
@@ -227,6 +236,17 @@ async def erase_contact(
         if getattr(getattr(exc.orig, "diag", None), "sqlstate", None) == "P0002":
             raise NotFoundError("Contact not found.") from exc
         raise
+    # Finance applications (VA-006): keep the figures, drop the personal details.
+    if await _module_on(db, org, "deals"):
+        await db.execute(
+            text(
+                "UPDATE finance_applications SET employer = NULL, notes = NULL, "
+                "decision_note = NULL, vehicle_label = NULL, net_monthly_income_cents = NULL, "
+                "existing_commitments_cents = NULL, updated_at = now() "
+                "WHERE organization_id = :org AND contact_id = :c"
+            ),
+            {"org": org, "c": contact_id},
+        )
     store: ObjectStore | None = getattr(request.app.state, "object_store", None)
     deleted = 0
     for file_id in files:

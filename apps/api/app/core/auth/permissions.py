@@ -45,6 +45,7 @@ class Permission(enum.StrEnum):
     DEALS_WRITE = "deals.write"  # create deals, change stages, record deposits, upload documents
     DEALS_DOCUMENTS = "deals.documents"  # open, verify and reject customer documents
     DEALS_MANAGE = "deals.manage"  # the checklist, retention and reminder settings
+    FINANCE_MANAGE = "finance.manage"  # finance applications' income details and decisions
     PRIVACY_MANAGE = "privacy.manage"  # export or erase a person's data (owners)
     BILLING_MANAGE = "billing.manage"  # change plan, payment details and invoices (owners)
 
@@ -89,6 +90,7 @@ _ADMIN = _MEMBER | {
     Permission.BILLING_READ,
     Permission.DEALS_DOCUMENTS,
     Permission.DEALS_MANAGE,
+    Permission.FINANCE_MANAGE,
 }
 
 ROLE_PERMISSIONS: dict[MembershipRole, frozenset[Permission]] = {

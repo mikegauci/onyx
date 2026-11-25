@@ -33,7 +33,7 @@ self-service signup (Meta Embedded Signup, with a token per business) is PR-025 
 
 The business number's `phone_number_id` is what routes a webhook to a tenant, so tenants cannot
 set it. A **platform admin**, after checking in Meta Business Manager that the number belongs
-to the customer, calls:
+to the customer, uses **Admin → the organisation → Connect a WhatsApp number**, which calls:
 
 ```http
 POST /v1/admin/organizations/{slug}/whatsapp-channels

@@ -580,3 +580,27 @@ def test_text_back_is_paused_by_the_pilot_controls_but_the_call_is_still_logged(
     assert (call.outcome, call.skip_reason) == ("skipped", "paused")
     assert len(_tasks(owner_engine)) == 1
     assert wa.sent == []
+
+
+def test_connected_lines_are_listed_for_admins_and_the_workspace(
+    api: TestClient, as_: As, line: str
+) -> None:
+    admin = api.get(f"/v1/admin/organizations/{LUMEN}/integrations", headers=as_.seeded(PAT))
+    assert admin.status_code == 200, admin.text
+    body = admin.json()
+    assert body["telephony_configured"] is True
+    assert body["phone_lines"] == [
+        {
+            "id": line,
+            "number": LINE,
+            "provider": "fake",
+            "whatsapp_channel_name": "Shop WhatsApp",
+            "text_back_enabled": False,
+        }
+    ]
+    owner = api.get(f"/v1/w/{LUMEN}/integrations", headers=as_.seeded(OLIVIA)).json()
+    assert [p["number"] for p in owner["phone_lines"]] == [LINE]
+    other = api.get(f"/v1/admin/organizations/{HARBOUR}/integrations", headers=as_.seeded(PAT))
+    assert other.json()["phone_lines"] == []
+    denied = api.get(f"/v1/admin/organizations/{LUMEN}/integrations", headers=as_.seeded(OLIVIA))
+    assert denied.status_code == 404

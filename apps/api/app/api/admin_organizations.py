@@ -11,7 +11,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 from pydantic import AfterValidator, BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
@@ -21,6 +21,7 @@ from app.api.ai import MAX_MONTHLY_LIMIT_USD_MICROS
 from app.api.workspaces import _check_email
 from app.core.auth.deps import DbDep, PlatformAdminDep, WorkspaceAccess, require_permission
 from app.core.auth.permissions import Permission
+from app.core.config import Settings, get_settings
 from app.core.errors import (
     WORKSPACE_ERRORS,
     ConflictError,
@@ -36,6 +37,8 @@ from app.core.tenancy.invitations import INVITATION_TTL, hash_token, new_token
 from app.core.tenancy.models import MembershipRole, OrganizationStatus
 from app.modules.inbox.channels.base import channel_connected
 from app.modules.inbox.models import ChannelKind
+
+SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 router = APIRouter(tags=["admin"])
 
@@ -120,6 +123,16 @@ class ChannelStatus(BaseModel):
     phone_number: str | None
 
 
+class PhoneLineStatus(BaseModel):
+    """A missed-call line (VA-004): the cloud number and the WhatsApp channel it texts from."""
+
+    id: uuid.UUID
+    number: str
+    provider: str
+    whatsapp_channel_name: str
+    text_back_enabled: bool
+
+
 class AIBudgetStatus(BaseModel):
     monthly_limit_usd_micros: int | None
     alert_percent: int | None
@@ -130,6 +143,8 @@ class IntegrationStatus(BaseModel):
     channels: list[ChannelStatus]
     email_configured: bool
     whatsapp_configured: bool
+    telephony_configured: bool = False
+    phone_lines: list[PhoneLineStatus] = []
     ai_budget: AIBudgetStatus | None  # platform admins only
 
 
@@ -372,7 +387,9 @@ def _configured(kind: ChannelKind) -> bool:
     response_model=IntegrationStatus,
     responses=ADMIN_ERRORS,
 )
-async def admin_integrations(slug: str, _admin: PlatformAdminDep, db: DbDep) -> IntegrationStatus:
+async def admin_integrations(
+    slug: str, _admin: PlatformAdminDep, db: DbDep, settings: SettingsDep
+) -> IntegrationStatus:
     await _detail(db, slug)
     rows = await db.execute(text("SELECT * FROM app_admin_channels(:slug)"), {"slug": slug})
     channels = [
@@ -392,10 +409,13 @@ async def admin_integrations(slug: str, _admin: PlatformAdminDep, db: DbDep) -> 
     budget = (
         await db.execute(text("SELECT * FROM app_admin_ai_budget(:slug)"), {"slug": slug})
     ).one()
+    lines = await db.execute(text("SELECT * FROM app_admin_phone_lines(:slug)"), {"slug": slug})
     return IntegrationStatus(
         channels=channels,
         email_configured=_configured(ChannelKind.EMAIL),
         whatsapp_configured=_configured(ChannelKind.WHATSAPP),
+        telephony_configured=settings.telephony_configured,
+        phone_lines=[PhoneLineStatus(**row._mapping) for row in lines],
         ai_budget=AIBudgetStatus(
             monthly_limit_usd_micros=budget.monthly_limit_usd_micros,
             alert_percent=budget.alert_percent,
@@ -408,13 +428,26 @@ SettingsWorkspace = Annotated[WorkspaceAccess, require_permission(Permission.WOR
 
 
 @router.get("/w/{slug}/integrations", response_model=IntegrationStatus, responses=WORKSPACE_ERRORS)
-async def workspace_integrations(workspace: SettingsWorkspace, db: DbDep) -> IntegrationStatus:
+async def workspace_integrations(
+    workspace: SettingsWorkspace, db: DbDep, settings: SettingsDep
+) -> IntegrationStatus:
     """The workspace's channels and whether each is connected. No credentials or provider ids.
 
     Tenant policies scope the channels to this workspace, and hide them while the inbox module
     is off.
     """
     del workspace
+    # Tenant policies scope the lines too, and hide them while the inbox is off.
+    lines = (
+        await db.execute(
+            text(
+                "SELECT l.id, l.provider, l.number, c.name AS whatsapp_channel_name, "
+                "l.text_back_enabled FROM inbox_phone_lines l JOIN inbox_channels c "
+                "ON c.organization_id = l.organization_id AND c.id = l.whatsapp_channel_id "
+                "ORDER BY l.number"
+            )
+        )
+    ).all()
     rows = await db.execute(
         text(
             "SELECT id, kind, name, disabled_at, phone_number_id IS NOT NULL AS has_number, "
@@ -439,6 +472,8 @@ async def workspace_integrations(workspace: SettingsWorkspace, db: DbDep) -> Int
         channels=channels,
         email_configured=_configured(ChannelKind.EMAIL),
         whatsapp_configured=_configured(ChannelKind.WHATSAPP),
+        telephony_configured=settings.telephony_configured,
+        phone_lines=[PhoneLineStatus(**row._mapping) for row in lines],
         ai_budget=None,
     )
 

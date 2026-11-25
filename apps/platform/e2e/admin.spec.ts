@@ -67,4 +67,15 @@ test("platform admin connects a WhatsApp number and a phone line from the admin 
   await phone.getByLabel("Cloud number").fill(line);
   await phone.getByRole("button", { name: "Connect phone line" }).click();
   await expect(phone.getByRole("alert")).toContainText("already connected");
+
+  // Disconnect the line, then the WhatsApp number (the line uses it, so it goes first).
+  const numbers = page.getByRole("list", { name: "Connected numbers" });
+  const lineForm = numbers.getByRole("form", { name: `Disconnect ${line}` });
+  await lineForm.getByRole("button", { name: `Disconnect ${line}` }).click();
+  await lineForm.getByRole("button", { name: "Disconnect", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Phone lines" })).toHaveCount(0);
+  const waForm = numbers.getByRole("form", { name: "Disconnect +356 2100 7777" });
+  await waForm.getByRole("button", { name: "Disconnect +356 2100 7777" }).click();
+  await waForm.getByRole("button", { name: "Disconnect", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Connected numbers" })).toHaveCount(0);
 });

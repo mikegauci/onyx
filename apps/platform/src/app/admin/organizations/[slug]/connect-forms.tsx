@@ -3,12 +3,17 @@
 import { Button } from "@onyx/ui/components/button";
 import { FormField } from "@onyx/ui/components/form-field";
 import { Input } from "@onyx/ui/components/input";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { IDLE } from "@/lib/form-state";
 
 import { FormStatus, SELECT_CLASS } from "../../../w/[slug]/settings/form-status";
-import { connectPhoneLine, connectWhatsApp } from "../actions";
+import {
+  connectPhoneLine,
+  connectWhatsApp,
+  disconnectPhoneLine,
+  disconnectWhatsApp,
+} from "../actions";
 
 /** Platform admins only: the number routes Meta's webhooks to this organisation. */
 export function ConnectWhatsAppForm({ slug, configured }: { slug: string; configured: boolean }) {
@@ -136,6 +141,53 @@ export function ConnectPhoneLineForm({
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? "Connecting…" : "Connect phone line"}
       </Button>
+    </form>
+  );
+}
+
+/** Disconnect a WhatsApp number or a phone line, after a confirmation step. */
+export function DisconnectButton({
+  slug,
+  kind,
+  id,
+  label,
+}: {
+  slug: string;
+  kind: "whatsapp" | "line";
+  id: string;
+  label: string;
+}) {
+  const act = kind === "whatsapp" ? disconnectWhatsApp : disconnectPhoneLine;
+  const [state, action, pending] = useActionState(act.bind(null, slug, id), IDLE);
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <form action={action} className="flex flex-col gap-2" aria-label={`Disconnect ${label}`}>
+      <FormStatus state={state} />
+      {confirming ? (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span>
+            {kind === "whatsapp"
+              ? "Messages to this number will stop reaching Onyx."
+              : "Calls to this number will stop reaching Onyx."}
+          </span>
+          <Button type="submit" variant="destructive" size="sm" disabled={pending}>
+            {pending ? "Disconnecting…" : "Disconnect"}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setConfirming(true)}
+          className="self-start"
+        >
+          Disconnect {label}
+        </Button>
+      )}
     </form>
   );
 }

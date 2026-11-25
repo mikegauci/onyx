@@ -5,6 +5,7 @@ import { createHmac } from "node:crypto";
 import { site } from "@/content/site";
 import { webDesignPackages } from "@/content/web-design";
 
+import { websiteDesignCampaign } from "./campaign";
 import { emptyEnquiry, enquiryFields, type EnquiryState, type EnquiryValues } from "./enquiry";
 
 const unavailable: EnquiryState = {
@@ -41,6 +42,11 @@ export async function sendWebEnquiry(
     };
   }
 
+  const { phone, ...details } = values;
+  if (/[\r\n\u2028\u2029]/u.test(phone)) {
+    return { status: "error", message: "Enter your phone number on a single line." };
+  }
+
   if (values.package && !webDesignPackages.some(({ name }) => name === values.package)) {
     return { status: "error", message: "Choose a package from the list or leave it blank." };
   }
@@ -48,8 +54,15 @@ export async function sendWebEnquiry(
   const apiKey = process.env.ONYX_SITE_RESEND_API_KEY?.trim();
   if (!apiKey) return unavailable;
 
+  const campaign =
+    formData.get("campaign") === websiteDesignCampaign.code ? websiteDesignCampaign : null;
+  const content = {
+    ...details,
+    ...(phone ? { phone } : {}),
+    ...(campaign ? { campaign: campaign.code } : {}),
+  };
   // Resend deduplicates identical enquiries for 24 hours, including retries after a timeout.
-  const digest = createHmac("sha256", apiKey).update(JSON.stringify(values)).digest("hex");
+  const digest = createHmac("sha256", apiKey).update(JSON.stringify(content)).digest("hex");
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -67,8 +80,10 @@ export async function sendWebEnquiry(
         text: [
           `Name: ${values.name}`,
           `Email: ${values.email}`,
+          ...(phone ? [`Phone: ${phone}`] : []),
           `Business: ${values.business || "Not supplied"}`,
           `Package: ${values.package || "Not selected"}`,
+          ...(campaign ? [`Campaign: ${campaign.label} (${campaign.code})`] : []),
           "",
           values.brief,
         ].join("\n"),

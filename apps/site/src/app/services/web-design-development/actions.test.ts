@@ -26,6 +26,7 @@ describe("website enquiries", () => {
 
     const form = validEnquiry();
     expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+    form.set("phone", " ");
     expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
 
     const [url, request] = send.mock.calls[0]!;
@@ -35,14 +36,60 @@ describe("website enquiries", () => {
       reply_to: "visitor@example.com",
       text: expect.stringContaining("Package: Silver"),
     });
+    expect(JSON.parse(request?.body as string).text).not.toContain("Phone:");
     const key = new Headers(request?.headers).get("Idempotency-Key");
     expect(key).toMatch(/^studio-web-enquiry\/[a-f0-9]{64}$/);
     expect(new Headers(send.mock.calls[1]?.[1]?.headers).get("Idempotency-Key")).toBe(key);
   });
 
+  it("includes a supplied phone number in the enquiry and distinguishes it from a blank one", async () => {
+    vi.stubEnv("ONYX_SITE_RESEND_API_KEY", "fake-key");
+    const send = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", send);
+
+    const form = validEnquiry();
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+    form.set("phone", "  +356 9900 0000  ");
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+
+    expect(send).toHaveBeenCalledTimes(2);
+    const withoutPhone = send.mock.calls[0]![1];
+    const withPhone = send.mock.calls[1]![1];
+    expect(JSON.parse(withPhone?.body as string)).toMatchObject({
+      reply_to: "visitor@example.com",
+      text: expect.stringContaining("Phone: +356 9900 0000\n"),
+    });
+    expect(new Headers(withPhone?.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(withoutPhone?.headers).get("Idempotency-Key"),
+    );
+  });
+
+  it("labels recognised campaigns and keeps untrusted labels out of enquiry emails", async () => {
+    vi.stubEnv("ONYX_SITE_RESEND_API_KEY", "fake-key");
+    const send = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", send);
+
+    const form = validEnquiry();
+    form.set("campaign", "website_design_300");
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+    form.set("campaign", "unknown\nInjected label");
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+
+    const [tagged, ignored] = send.mock.calls.map(([, request]) => request!);
+    expect(JSON.parse(tagged?.body as string).text).toContain(
+      "Campaign: Facebook paid ad · Website design €300 (website_design_300)",
+    );
+    expect(JSON.parse(ignored?.body as string).text).not.toMatch(/Campaign:|Injected label/);
+    expect(new Headers(tagged?.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(ignored?.headers).get("Idempotency-Key"),
+    );
+  });
+
   it.each([
     ["email", "visitor@example.com,other@example.com"],
     ["package", "Unknown"],
+    ["phone", "1".repeat(41)],
+    ["phone", "+356 9900 0000\nInjected label"],
     ["brief", "x".repeat(3001)],
     ["name", ""],
   ])("rejects invalid %s before calling the provider", async (field, value) => {

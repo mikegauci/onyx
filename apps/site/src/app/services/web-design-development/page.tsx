@@ -7,12 +7,12 @@ import { site } from "@/content/site";
 import {
   webDesignPackages,
   webDesignPath,
-  webDesignPhone,
   webDesignProjects,
   type WebDesignPackageName,
 } from "@/content/web-design";
 import { siteEnv } from "@/lib/env";
 
+import { EnquiryContacts } from "./campaign-contact";
 import { EnquiryForm } from "./enquiry-form";
 
 const title = "Web design and development in Malta";
@@ -47,13 +47,6 @@ const packageAccents = {
 
 export default function WebDesignPage() {
   const { platformUrl } = siteEnv();
-  const phone = webDesignPhone.international;
-  const contacts = [
-    { label: "Email us", hint: site.contactEmail, href: `mailto:${site.contactEmail}` },
-    { label: "Call us", hint: webDesignPhone.display, href: `tel:${phone}` },
-    { label: "Text us", hint: "SMS", href: `sms:${phone}` },
-    { label: "WhatsApp", hint: "Send a message", href: `https://wa.me/${phone.slice(1)}` },
-  ];
 
   return (
     <>
@@ -251,19 +244,7 @@ export default function WebDesignPage() {
               Tell us what you’d like to build or improve, and what you want your customers to be
               able to do. We’ll get back to you to discuss the scope.
             </p>
-            <ul className="mt-6 grid gap-3 min-[380px]:grid-cols-2">
-              {contacts.map(({ label, hint, href }) => (
-                <li key={label} className="min-w-0">
-                  <a
-                    href={href}
-                    className="hover:border-brand/60 focus-visible:ring-ring/60 block rounded-xl border border-white/10 px-4 py-3 transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                  >
-                    <span className="block text-sm font-medium">{label}</span>
-                    <span className="text-muted-foreground block text-sm break-words">{hint}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <EnquiryContacts />
           </div>
           <EnquiryForm />
         </section>

@@ -9,6 +9,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 import { ArchiveButton, LeadEditForm, LeadStatusForm } from "../../_components/forms";
 import { ActivitySection } from "../../_components/activity-section";
 import { recordId, param, type SearchParams } from "../../data";
+import { WantedPanel } from "../../../automotive/_components/alerts";
 export default async function LeadPage({
   params,
   searchParams,
@@ -27,6 +28,12 @@ export default async function LeadPage({
     path,
   );
   const canWrite = workspace.permissions.includes("crm.write");
+  // Only when the vehicles module is on (the API answers 403 otherwise).
+  const wanted = await withApi((api) =>
+    api.GET("/v1/w/{slug}/automotive/leads/{lead_id}/wanted", {
+      params: { path: { slug, lead_id: id } },
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -91,6 +98,16 @@ export default async function LeadPage({
                 </div>
               ) : null}
             </Panel>
+            {wanted.ok ? (
+              <Panel title="Car wanted" divided={false}>
+                <WantedPanel
+                  slug={slug}
+                  leadId={id}
+                  items={wanted.data.items}
+                  canWrite={canWrite && !record.archived_at}
+                />
+              </Panel>
+            ) : null}
           </>
         }
         aside={

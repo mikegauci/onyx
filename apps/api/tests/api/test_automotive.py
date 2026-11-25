@@ -294,3 +294,29 @@ def test_a_car_held_by_a_deal_keeps_its_status_through_imports(
     assert (cars["S-1"]["status"], cars["S-1"]["price_cents"]) == ("reserved", 1_695_000)
     assert cars["S-3"]["status"] == "reserved"  # not withdrawn while held
     assert "S-1" not in [v["stock_number"] for v in _vehicles(api, as_, status="available")]
+
+
+@pytest.mark.usefixtures("enabled")
+def test_an_import_matches_new_cars_and_drops_cars_that_left(
+    api: TestClient, as_: As, site: FakeSite
+) -> None:
+    """VA-005: imported cars are matched against what buyers want; gone cars are not offered."""
+    from app.core.db.seed import seed_id
+
+    lead = seed_id(f"{LUMEN}:lead:Lobby chandelier replacement")
+    wanted = api.post(
+        f"{BASE}/leads/{lead}/wanted",
+        json={"make": "Volkswagen", "mileage_max_km": 50_000},
+        headers=as_.seeded(MIA),
+    )
+    assert (wanted.status_code, wanted.json()["pending_matches"]) == (201, 0)
+    _connect(api, as_)
+    api.post(f"{BASE}/import/apply", headers=as_.seeded(ADAM))
+    [match] = api.get(f"{BASE}/matches", headers=as_.seeded(MIA)).json()["items"]
+    assert (match["vehicle"]["title"], match["status"]) == ("Car 1", "pending")
+    assert match["reasons"] == ["make Volkswagen", "mileage 42,000 km ≤ 50,000 km"]
+
+    site.cars = [c for c in site.cars if c["id"] != 1]
+    api.post(f"{BASE}/import/apply", headers=as_.seeded(ADAM))
+    [gone] = api.get(f"{BASE}/matches", headers=as_.seeded(MIA)).json()["items"]
+    assert (gone["status"], gone["skip_reason"]) == ("skipped", "car_not_available")

@@ -105,6 +105,25 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE organization_id = :org AND contact_id = :c ORDER BY created_at",
     ),
     (
+        "marketing_consents",
+        "SELECT purpose, method, note, granted_at, withdrawn_at, withdrawn_via "
+        "FROM crm_marketing_consents WHERE organization_id = :org AND contact_id = :c "
+        "ORDER BY granted_at",
+    ),
+    (
+        "wanted_cars",
+        "SELECT make, model, price_max_cents, year_min, mileage_max_km, fuel, active, source, "
+        "created_at FROM automotive_wanted WHERE organization_id = :org AND contact_id = :c "
+        "ORDER BY created_at",
+    ),
+    (
+        "car_alerts",
+        "SELECT v.title AS vehicle, m.status, m.created_at, m.decided_at "
+        "FROM automotive_matches m JOIN automotive_vehicles v "
+        "ON v.organization_id = m.organization_id AND v.id = m.vehicle_id "
+        "WHERE m.organization_id = :org AND m.contact_id = :c ORDER BY m.created_at",
+    ),
+    (
         "deal_documents",
         "SELECT d.deal_id, d.label, d.state, d.received_at, d.received_from, d.verified_at, "
         "d.file_deleted_at, f.filename, f.content_type, f.size_bytes FROM deal_documents d "
@@ -151,6 +170,9 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "deals": "deals",
         "deal_documents": "deals",
         "finance_applications": "deals",
+        "marketing_consents": "crm",
+        "wanted_cars": "automotive",
+        "car_alerts": "automotive",
     }
     for name, sql in EXPORT_QUERIES:
         module = skip.get(name)
@@ -246,6 +268,25 @@ async def erase_contact(
                 "WHERE organization_id = :org AND contact_id = :c"
             ),
             {"org": org, "c": contact_id},
+        )
+    # Consent records and wanted criteria (VA-005) go entirely.
+    params = {"org": org, "c": contact_id}
+    if await _module_on(db, org, "automotive"):
+        await db.execute(
+            text("DELETE FROM automotive_matches WHERE organization_id = :org AND contact_id = :c"),
+            params,
+        )
+        await db.execute(
+            text("DELETE FROM automotive_wanted WHERE organization_id = :org AND contact_id = :c"),
+            params,
+        )
+    if await _module_on(db, org, "crm"):
+        await db.execute(
+            text(
+                "DELETE FROM crm_marketing_consents WHERE organization_id = :org "
+                "AND contact_id = :c"
+            ),
+            params,
         )
     store: ObjectStore | None = getattr(request.app.state, "object_store", None)
     deleted = 0

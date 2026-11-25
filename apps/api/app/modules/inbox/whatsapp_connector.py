@@ -7,7 +7,8 @@ untrusted data; in particular nothing in it chooses the tenant:
   tenant by ``inbox_whatsapp_channel_for_number`` (SECURITY DEFINER, ids only, executable by
   ``onyx_worker`` only). The message is stored by ``InboxIngest`` in an ``onyx_worker``
   transaction bound to that tenant, deduplicated by the provider's message id and threaded by
-  the customer's number. "STOP" (and the other configured words) opts the number out.
+  the customer's number. "STOP" (and the other configured words) opts the number out and
+  withdraws the contact's marketing consent.
 - Status reports (``sent``, ``delivered``, ``read``, ``failed``): the send is found by the
   provider's message id, or by our attempt id echoed in ``biz_opaque_callback_data``, through
   ``inbox_whatsapp_send_tenant``; the report must come for the same business number. Status
@@ -31,6 +32,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.core.db.context import worker_transaction
 from app.core.db.rls import WORKER_ROLE
 from app.integrations.whatsapp import WhatsAppConfig
+from app.modules.crm import consents
 from app.modules.inbox.channels.whatsapp import (
     STATUS_RANK,
     InboundItem,
@@ -191,6 +193,9 @@ class WhatsAppConnector:
                 and item.message.sender_phone is not None
             ):
                 await suppress(db, tenant, item.message.sender_phone, SuppressionReason.OPTED_OUT)
+                if result.conversation.contact_id is not None:
+                    # Marketing consent (VA-005) goes with it.
+                    await consents.withdraw_all_on_stop(db, tenant, result.conversation.contact_id)
                 outcome = Outcome.OPTED_OUT
             ids = {
                 "conversation_id": str(result.conversation.id),

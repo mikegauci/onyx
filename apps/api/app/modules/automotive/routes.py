@@ -16,6 +16,7 @@ from app.core.errors import ConflictError, ErrorDetail, NotFoundError, Validatio
 from app.core.modules.access import module_router
 from app.core.modules.registry import ModuleKey
 from app.modules.automotive import service
+from app.modules.automotive.alerts import AlertService, deactivate_pending
 from app.modules.automotive.models import Vehicle, VehicleStatus
 from app.modules.automotive.vehica import KINDS, STATUS_RULES, SourceError, VehicaClient
 
@@ -204,4 +205,16 @@ async def apply_import(request: Request, workspace: Importer, db: DbDep) -> Impo
     """Fetch again and apply. Re-running with nothing changed at the site changes nothing."""
     source, plan = await _plan(request, workspace, db)
     run = await service.apply_import(db, workspace, source, plan)
+    # Stock-match alerts (VA-005): new or changed cars against what buyers want; cars that
+    # left stock can no longer be offered.
+    org = workspace.tenant.organization_id
+    changed = await service.vehicle_ids(db, org, [i.source_ref for i in plan.creates])
+    changed += [vehicle.id for vehicle, _, _ in plan.updates]
+    await AlertService(db, workspace).refresh_for_vehicles(changed)
+    await deactivate_pending(
+        db,
+        org,
+        [v.id for v, _, _ in plan.updates if v.status != VehicleStatus.AVAILABLE.value]
+        + [v.id for v in plan.withdrawals],
+    )
     return ImportApplied(run_id=run.id, **plan.summary())

@@ -12,6 +12,7 @@ import { workspaceWith } from "@/lib/settings-guard";
 import { ContactForm, ArchiveButton } from "../../_components/forms";
 import { ActivitySection } from "../../_components/activity-section";
 import { PrivacyPanel } from "../../_components/privacy-panel";
+import { ConsentPanel } from "../../../automotive/_components/alerts";
 import { recordId, param, type SearchParams, customerOptions } from "../../data";
 export default async function ContactPage({
   params,
@@ -33,6 +34,11 @@ export default async function ContactPage({
     path,
   );
   const canWrite = workspace.permissions.includes("crm.write");
+  const consent = await withApi((api) =>
+    api.GET("/v1/w/{slug}/crm/contacts/{contact_id}/consents/{purpose}", {
+      params: { path: { slug, contact_id: id, purpose: "car_alerts" } },
+    }),
+  );
   const customers = canWrite ? await customerOptions(slug) : [];
   if (record.customer && !customers.some((c) => c.id === record.customer?.id))
     customers.unshift({ id: record.customer.id, label: record.customer.name });
@@ -98,6 +104,17 @@ export default async function ContactPage({
               )}
               {archiveForm ? <div className="mt-5 border-t pt-4">{archiveForm}</div> : null}
             </Panel>
+            {consent.ok && !record.erased_at ? (
+              <Panel title="Car alerts" divided={false}>
+                <ConsentPanel
+                  slug={slug}
+                  contactId={id}
+                  consent={consent.data}
+                  canWrite={canWrite && !record.archived_at}
+                  timezone={workspace.timezone}
+                />
+              </Panel>
+            ) : null}
             {workspace.permissions.includes("privacy.manage") ? (
               <Panel title="Privacy" divided={false}>
                 <PrivacyPanel

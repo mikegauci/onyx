@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { mutateApi } from "@/lib/api-client";
+import { platformEnv } from "@/lib/env";
 import { centsFrom, type DealStage, dealsPath, type DepositMethod } from "@/lib/deals";
 import { type FormState, failureState, optionalText, text } from "@/lib/form-state";
 
@@ -221,4 +222,67 @@ export async function saveSettings(
   if (!outcome.ok) return failureState(outcome);
   revalidatePath(dealsPath(slug, "settings"));
   return { status: "ok", message: "Deal settings saved. New deals use this checklist." };
+}
+
+export type LinkState = FormState & { link?: string };
+
+/** A new customer upload link; optionally a reply with it, saved for approval (never sent). */
+export async function requestDocuments(
+  slug: string,
+  dealId: string,
+  conversationId: string | null,
+  _prev: LinkState,
+  formData: FormData,
+): Promise<LinkState> {
+  const created = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/deals/{deal_id}/upload-link", {
+      params: { path: { slug, deal_id: dealId } },
+    }),
+  );
+  if (!created.ok) return failureState(created);
+  const link = new URL(`/u/${created.data.token}`, platformEnv().appUrl).toString();
+  revalidatePath(dealsPath(slug, dealId));
+  if (formData.get("prepare") !== "on" || !conversationId) {
+    return { status: "ok", message: "Link ready. Copy it now: it is shown only once.", link };
+  }
+  const name = text(formData, "first_name");
+  const body = [
+    `Hi${name ? ` ${name}` : ""}, to complete your purchase please upload these documents here:`,
+    link,
+    "The link works for 7 days. You can take photos with your phone.",
+  ].join("\n");
+  const draft = await mutateApi((api) =>
+    api.POST("/v1/w/{slug}/outbound/conversations/{conversation_id}/drafts", {
+      params: { path: { slug, conversation_id: conversationId } },
+      body: { body },
+    }),
+  );
+  if (!draft.ok) {
+    return {
+      status: "ok",
+      message: `Link ready, but the reply could not be prepared (${draft.error?.message ?? "the conversation has an open reply"}). Copy the link instead.`,
+      link,
+    };
+  }
+  return {
+    status: "ok",
+    message: "Link ready, and a reply with it is waiting for approval in the conversation.",
+    link,
+  };
+}
+
+export async function revokeUploadLink(
+  slug: string,
+  dealId: string,
+  _prev: FormState,
+): Promise<FormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.DELETE("/v1/w/{slug}/deals/{deal_id}/upload-link", {
+      params: { path: { slug, deal_id: dealId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  revalidatePath(dealsPath(slug, dealId));
+  return { status: "ok", message: "The link no longer works." };
 }

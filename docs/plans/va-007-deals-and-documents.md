@@ -179,3 +179,10 @@ reserved → deposit received → documents → finance → sold → collected
   - **Plan:** the `deals` module is included in the Growth plan.
   - **API:** routes are under `/v1/w/{slug}/deals` (list and create), `/deals/{id}/…` and
     `/deals/settings`.
+- **Part 2:**
+  - **Message text:** the dashboard builds the link from its own address. If staff ask for it,
+    it prepares an ordinary reply with the link through the outbound API, so the API needs no
+    app address setting.
+  - **Notification:** a customer upload creates a "Check … for …" task for owners and admins,
+    and a deal history entry. There is no extra inbox note.
+  - **Upload limit:** a link allows 30 uploads.

@@ -518,14 +518,23 @@ a:focus-visible .link-draw {
   }
 }
 
+.portfolio-card {
+  border-color: color-mix(in oklch, var(--package-accent) 42%, transparent);
+}
+
+.portfolio-package {
+  border-color: color-mix(in oklch, var(--package-accent) 72%, transparent);
+  color: var(--package-accent);
+}
+
 .portfolio-card:focus-within {
-  border-color: color-mix(in oklch, var(--brand) 62%, transparent);
+  border-color: color-mix(in oklch, var(--package-accent) 85%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .portfolio-card:hover {
-    border-color: color-mix(in oklch, var(--brand) 52%, transparent);
-    box-shadow: 0 12px 35px color-mix(in oklch, var(--brand) 15%, transparent);
+    border-color: color-mix(in oklch, var(--package-accent) 75%, transparent);
+    box-shadow: 0 12px 35px color-mix(in oklch, var(--package-accent) 15%, transparent);
   }
 }
 

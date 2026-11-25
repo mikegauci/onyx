@@ -52,9 +52,22 @@ export const webDesignPackages = [
   },
 ] as const;
 
+export type WebDesignPackageName = (typeof webDesignPackages)[number]["name"];
+
+type WebDesignProject = {
+  name: string;
+  website: string;
+  type: string;
+  packageName: WebDesignPackageName;
+  screenshot: { src: string; height: number; alt: string };
+  technologies: readonly string[];
+  description: string;
+};
+
 export const webDesignProjects = [
   {
     name: "Pantrila",
+    packageName: "Onyx",
     website: "https://pantrila.com/",
     type: "AI web app",
     screenshot: {
@@ -68,6 +81,7 @@ export const webDesignProjects = [
   },
   {
     name: "QTM Detailing",
+    packageName: "Gold",
     website: "https://www.qtmdetailing.mt/",
     type: "Service website",
     screenshot: {
@@ -81,6 +95,7 @@ export const webDesignProjects = [
   },
   {
     name: "MaltaGuns",
+    packageName: "Onyx",
     website: "https://www.maltaguns.com/",
     type: "Community platform",
     screenshot: {
@@ -94,6 +109,7 @@ export const webDesignProjects = [
   },
   {
     name: "Rotta",
+    packageName: "Gold",
     website: "https://rotta.mt/",
     type: "Automotive community platform",
     screenshot: {
@@ -107,6 +123,7 @@ export const webDesignProjects = [
   },
   {
     name: "Malta Detailing Academy",
+    packageName: "Gold",
     website: "https://mda.mt/",
     type: "Training website",
     screenshot: {
@@ -120,6 +137,7 @@ export const webDesignProjects = [
   },
   {
     name: "Jam Weddings",
+    packageName: "Bronze",
     website: "https://jam.mt/",
     type: "Creative portfolio",
     screenshot: {
@@ -133,6 +151,7 @@ export const webDesignProjects = [
   },
   {
     name: "Thrust Studio",
+    packageName: "Bronze",
     website: "https://www.thruststudio.co/",
     type: "Creative portfolio",
     screenshot: {
@@ -146,6 +165,7 @@ export const webDesignProjects = [
   },
   {
     name: "Beachaven",
+    packageName: "Silver",
     website: "https://www.beachavencomplex.com/",
     type: "Hospitality website",
     screenshot: {
@@ -159,6 +179,7 @@ export const webDesignProjects = [
   },
   {
     name: "Motor Element",
+    packageName: "Gold",
     website: "https://www.motorelement.com/",
     type: "E-commerce storefront",
     screenshot: {
@@ -170,4 +191,4 @@ export const webDesignProjects = [
     description:
       "A Shopify storefront showcasing custom car T-shirts, hoodies, wall art and other merchandise for automotive enthusiasts.",
   },
-] as const;
+] as const satisfies readonly WebDesignProject[];

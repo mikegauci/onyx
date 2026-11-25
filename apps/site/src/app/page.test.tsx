@@ -13,7 +13,7 @@ describe("Onyx Studio home page", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     for (const name of [
       /every channel in/i,
-      /four things/i,
+      /services for your business/i,
       /businesses that live on enquiries/i,
       /first call to a system/i,
       /our own platform/i,
@@ -51,11 +51,19 @@ describe("Onyx Studio home page", () => {
     }
   });
 
-  it("links to the dedicated web design service from the services section", () => {
-    const services = within(screen.getByRole("region", { name: /four things/i }));
-    expect(
-      services.getByRole("link", { name: /explore web design and development/i }),
-    ).toHaveAttribute("href", "/services/web-design-development");
+  it("links every homepage service to its relevant page or section", () => {
+    const services = within(screen.getByRole("region", { name: /services for your business/i }));
+    for (const [label, href] of [
+      ["Explore web design and development", "/services/web-design-development"],
+      ["Explore AI assistants", "/services/ai-automation#ai-assistants"],
+      ["Explore workflow automation", "/services/ai-automation#workflow-automation"],
+      ["See integrations in an automation project", "/services/ai-automation#integrations"],
+      ["Explore app development", "/services/app-development"],
+      ["Explore branding and graphic design", "/services/branding-graphic-design"],
+      ["Explore SEO", "/services/seo"],
+    ]) {
+      expect(services.getByRole("link", { name: label })).toHaveAttribute("href", href);
+    }
   });
 
   it("gives the headline a stable accessible name with the first rotating word", () => {

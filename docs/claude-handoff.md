@@ -126,6 +126,9 @@ controls, manual mode and Insights; migration `0027`; `onyx-preview` is at `0027
 guides (in-app Help and PDFs) and `docs/operations/pilot-runbook.md`. Plan:
 `docs/plans/pr-018-pilot-tools.md`. Production is at `0025`; `0026` and `0027` need the owner's approval.
 
+VA-007 (deals and documents) is in progress: plan `docs/plans/va-007-deals-and-documents.md`.
+Owner actions for everything are tracked in `docs/owner-todo.md`; keep it up to date.
+
 **First client: Ventur Auto Import** (19 November 2026), a car dealer, replaces the lighting
 retailer. The owner's decisions:
 

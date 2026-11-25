@@ -13,7 +13,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | Merged ([#64](https://github.com/mikegauci/onyx/pull/64)); go-live needs a +356 number |
 | VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Approved 2026-11-19, not started                                                       |
 | VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Approved 2026-11-19, not started                                                       |
-| VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Approved 2026-11-19, not started                                                       |
+| VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | In progress; plan in `docs/plans/va-007-deals-and-documents.md`                        |
 | VA-008   | Ventur     | In-house finance schedules and reminders      | VA-007                        | 14–24h     | Approved 2026-11-19, not started; payment record source unknown                        |
 | VA-009   | Ventur     | Review requests and service/renewal reminders | VA-007, PR-021                | 14–22h     | Approved 2026-11-19, not started                                                       |
 | VA-010   | Ventur     | Daily owner summary                           | VA-001, VA-008                | 10–18h     | Approved 2026-11-19, not started                                                       |

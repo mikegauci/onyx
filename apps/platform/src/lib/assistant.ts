@@ -15,11 +15,13 @@ export function assistantPath(slug: string, ...parts: string[]): string {
 export const OUTCOME_LABEL: Record<RunOutcome, string> = {
   drafted: "Draft quote created",
   escalated: "Handed to staff",
+  finance: "Finance estimate drafted",
 };
 
-export const OUTCOME_VARIANT: Record<RunOutcome, "success" | "warning"> = {
+export const OUTCOME_VARIANT: Record<RunOutcome, "success" | "warning" | "info"> = {
   drafted: "success",
   escalated: "warning",
+  finance: "info",
 };
 
 /** Integer micro-USD to a short dollar string, without floating-point arithmetic. */

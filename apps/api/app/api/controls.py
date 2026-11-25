@@ -183,6 +183,14 @@ class DealsOut(BaseModel):
     customer_uploads: int
 
 
+class FinanceOut(BaseModel):
+    started: int
+    by_assistant: int
+    approved: int
+    declined: int
+    open_now: int
+
+
 class BaselineOut(BaseModel):
     first_reply_minutes: int | None
     enquiries_per_week: int | None
@@ -199,6 +207,7 @@ class InsightsOut(BaseModel):
     quotes: QuotesOut | None
     missed_calls: MissedCallsOut | None
     deals: DealsOut | None = None
+    finance: FinanceOut | None = None
 
 
 def _counts(pairs: list[tuple[str, int]]) -> list[Count]:
@@ -264,4 +273,5 @@ async def read_insights(
             else None
         ),
         deals=DealsOut(**vars(data.deals)) if data.deals else None,
+        finance=FinanceOut(**vars(data.finance)) if data.finance else None,
     )

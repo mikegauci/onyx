@@ -5991,6 +5991,39 @@
         "title": "FinanceFormUpload",
         "type": "object"
       },
+      "FinanceOut": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "by_assistant": {
+            "title": "By Assistant",
+            "type": "integer"
+          },
+          "declined": {
+            "title": "Declined",
+            "type": "integer"
+          },
+          "open_now": {
+            "title": "Open Now",
+            "type": "integer"
+          },
+          "started": {
+            "title": "Started",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "started",
+          "by_assistant",
+          "approved",
+          "declined",
+          "open_now"
+        ],
+        "title": "FinanceOut",
+        "type": "object"
+      },
       "FinanceSettingsOut": {
         "properties": {
           "annual_rate_bp": {
@@ -6613,6 +6646,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/EnquiriesOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinanceOut"
               },
               {
                 "type": "null"
@@ -9773,7 +9816,10 @@
           "quote_failed",
           "ai_unavailable",
           "budget_exceeded",
-          "provider_failed"
+          "provider_failed",
+          "finance_promise",
+          "finance_amount",
+          "finance_unavailable"
         ],
         "title": "Reason",
         "type": "string"
@@ -10068,7 +10114,8 @@
       "RunOutcome": {
         "enum": [
           "drafted",
-          "escalated"
+          "escalated",
+          "finance"
         ],
         "title": "RunOutcome",
         "type": "string"

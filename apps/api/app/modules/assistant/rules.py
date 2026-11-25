@@ -32,6 +32,9 @@ class Reason(enum.StrEnum):
     AI_UNAVAILABLE = "ai_unavailable"
     BUDGET_EXCEEDED = "budget_exceeded"
     PROVIDER_FAILED = "provider_failed"  # error, timeout or output that never validated
+    FINANCE_PROMISE = "finance_promise"  # promised approval, a rate or terms
+    FINANCE_AMOUNT = "finance_amount"  # an amount that is not from the estimate tool
+    FINANCE_UNAVAILABLE = "finance_unavailable"  # finance is not set up for this workspace
 
 
 REASON_TEXT: dict[Reason, str] = {
@@ -54,6 +57,9 @@ REASON_TEXT: dict[Reason, str] = {
     Reason.AI_UNAVAILABLE: "AI is not available for this workspace.",
     Reason.BUDGET_EXCEEDED: "The workspace's AI budget is used up.",
     Reason.PROVIDER_FAILED: "The AI provider did not return a usable answer.",
+    Reason.FINANCE_PROMISE: "The draft promised finance approval, a rate or terms.",
+    Reason.FINANCE_AMOUNT: "The draft stated an amount the finance estimate did not give.",
+    Reason.FINANCE_UNAVAILABLE: "Finance is not set up for this workspace.",
 }
 
 # Currency symbols or codes, a number with two decimals (12.50, 12,50), a percentage, or any
@@ -84,6 +90,9 @@ class Trace:
     found_topics: set[str] = field(default_factory=set)
     found_sources: set[str] = field(default_factory=set)  # knowledge chunk ids returned
     seen_vehicles: set[str] = field(default_factory=set)  # listing links of available cars
+    # Amounts the finance estimate tool returned (cents), the only ones a finance reply may say.
+    estimate_amounts: set[int] = field(default_factory=set)
+    estimates: list[dict[str, object]] = field(default_factory=list)
     calls: list[dict[str, object]] = field(default_factory=list)
 
 
@@ -151,4 +160,38 @@ def check(
         add(Reason.UNKNOWN_POLICY)
     if any(source not in trace.found_sources for source in proposal.sources_used):
         add(Reason.UNKNOWN_SOURCE)
+    return reasons
+
+
+# --- finance replies (VA-006) -----------------------------------------------------------------
+
+# Approval, rate or terms promises. Finance is decided by people, never by the assistant.
+_PROMISE = re.compile(
+    r"\b(pre-?approved|approved|guarantee[ds]?|definitely qualify|you qualify|will qualify|"
+    r"no credit check|lower (?:the )?rate|special rate|interest[- ]free|"
+    # Maltese: approved, guaranteed, without interest, you will be accepted
+    r"approvat[a]?|garantit[a]?|bla interess|tiġi aċċettat[a]?|tigi accettat[a]?)\b|\d\s*%",
+    re.IGNORECASE,
+)
+_NUMBER = r"(\d[\d,]*(?:\.\d{1,2})?)"
+_EURO = re.compile(
+    rf"(?:€|\beur(?:o|os)?\b)\s*{_NUMBER}|{_NUMBER}\s*(?:€|\beur(?:o|os)?\b)", re.IGNORECASE
+)
+
+
+def _cents(text: str) -> int:
+    whole, _, part = text.replace(",", "").partition(".")
+    return int(whole) * 100 + int((part + "00")[:2])
+
+
+def check_finance(reply: str, trace: Trace) -> list[Reason]:
+    """A finance reply may state only the estimate's own figures, and never promise terms."""
+    reasons: list[Reason] = []
+    if _PROMISE.search(reply):
+        reasons.append(Reason.FINANCE_PROMISE)
+    for match in _EURO.finditer(reply):
+        amount = _cents(match.group(1) or match.group(2))
+        if amount not in trace.estimate_amounts:
+            reasons.append(Reason.FINANCE_AMOUNT)
+            break
     return reasons

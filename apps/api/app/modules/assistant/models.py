@@ -36,6 +36,7 @@ POLICY_BODY_MAX_LENGTH = 4000
 class RunOutcome(enum.StrEnum):
     DRAFTED = "drafted"  # a draft quote and a draft reply (as a note) were created
     ESCALATED = "escalated"  # handed to staff; a note says why; no quote
+    FINANCE = "finance"  # answered a finance question with the estimate; application started
 
 
 def _organization_fk() -> Mapped[uuid.UUID]:

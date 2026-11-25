@@ -108,3 +108,11 @@ Revert the PR and disable the module for tenants. Migration `0014` downgrades lo
 both tables, removes the module and restores the note rule) and refuses while assistant notes
 exist, because messages are append-only. Deployed databases use a forward fix or a backup
 restore.
+
+## Finance questions (VA-006)
+
+With the deals module on, the assistant can answer "how much a month?" with `estimate_finance`,
+the workspace's own calculation (Deals → Finance). The backend accepts the reply only when every
+euro amount in it came from that tool and it promises no approval, rate or terms (English and
+Maltese). It then appends the disclaimer, starts a finance application when the applicant type
+and marital status are known, and leaves the reply for approval. Anything else goes to staff.

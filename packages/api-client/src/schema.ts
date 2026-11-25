@@ -4258,6 +4258,19 @@ export interface components {
             /** Filename */
             filename: string;
         };
+        /** FinanceOut */
+        FinanceOut: {
+            /** Approved */
+            approved: number;
+            /** By Assistant */
+            by_assistant: number;
+            /** Declined */
+            declined: number;
+            /** Open Now */
+            open_now: number;
+            /** Started */
+            started: number;
+        };
         /** FinanceSettingsOut */
         FinanceSettingsOut: {
             /** Annual Rate Bp */
@@ -4507,6 +4520,7 @@ export interface components {
             deals?: components["schemas"]["DealsOut"] | null;
             drafts: components["schemas"]["DraftsOut"] | null;
             enquiries: components["schemas"]["EnquiriesOut"] | null;
+            finance?: components["schemas"]["FinanceOut"] | null;
             missed_calls: components["schemas"]["MissedCallsOut"] | null;
             quotes: components["schemas"]["QuotesOut"] | null;
             response_time: components["schemas"]["ResponseTimeOut"] | null;
@@ -5635,7 +5649,7 @@ export interface components {
          * Reason
          * @enum {string}
          */
-        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "unknown_source" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
+        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "unknown_source" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed" | "finance_promise" | "finance_amount" | "finance_unavailable";
         /**
          * ReasonOut
          * @description Why a run went to staff: a stable code and the text staff read.
@@ -5743,7 +5757,7 @@ export interface components {
          * RunOutcome
          * @enum {string}
          */
-        RunOutcome: "drafted" | "escalated";
+        RunOutcome: "drafted" | "escalated" | "finance";
         /** RunsOut */
         RunsOut: {
             /** Drafted */

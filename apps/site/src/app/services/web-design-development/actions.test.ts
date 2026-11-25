@@ -52,13 +52,15 @@ describe("website enquiries", () => {
     form.set("phone", "  +356 9900 0000  ");
     expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
 
-    const [withoutPhone, withPhone] = send.mock.calls.map(([, request]) => request!);
-    expect(JSON.parse(withPhone.body as string)).toMatchObject({
+    expect(send).toHaveBeenCalledTimes(2);
+    const withoutPhone = send.mock.calls[0]![1];
+    const withPhone = send.mock.calls[1]![1];
+    expect(JSON.parse(withPhone?.body as string)).toMatchObject({
       reply_to: "visitor@example.com",
       text: expect.stringContaining("Phone: +356 9900 0000\n"),
     });
-    expect(new Headers(withPhone.headers).get("Idempotency-Key")).not.toBe(
-      new Headers(withoutPhone.headers).get("Idempotency-Key"),
+    expect(new Headers(withPhone?.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(withoutPhone?.headers).get("Idempotency-Key"),
     );
   });
 

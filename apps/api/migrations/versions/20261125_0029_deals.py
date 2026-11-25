@@ -248,9 +248,7 @@ def upgrade() -> None:
             "checklist", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb"), nullable=False
         ),
         sa.Column("retention_days", sa.Integer(), server_default=sa.text("180"), nullable=False),
-        sa.Column(
-            "customer_reminders", sa.Boolean(), server_default=sa.false(), nullable=False
-        ),
+        sa.Column("customer_reminders", sa.Boolean(), server_default=sa.false(), nullable=False),
         sa.Column("updated_by_user_id", sa.UUID(), nullable=True),
         _ts("updated_at"),
         sa.CheckConstraint(

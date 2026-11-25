@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.core.config import Settings
+from app.core.db.rls import CURRENT_ORGANIZATION_SETTING
 from app.core.storage.store import InMemoryObjectStore
 from app.main import create_app
 from tests.api.conftest import As
@@ -25,6 +26,7 @@ ADAM = "adam.admin@lumen.example.test"
 MIA = "mia.member@lumen.example.test"
 HUGO = "hugo.owner@harbour.example.test"
 JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 64
+SECRET = "scheduler-secret-for-tests-0123456789"  # noqa: S105 - a test value
 
 
 @pytest.fixture
@@ -34,7 +36,12 @@ def store() -> InMemoryObjectStore:
 
 @pytest.fixture
 def api(db_url: str, tokens: TokenFactory, store: InMemoryObjectStore) -> Iterator[TestClient]:
-    settings = Settings(_env_file=None, environment="test", cors_origins=["http://localhost:3001"])
+    settings = Settings(
+        _env_file=None,
+        environment="test",
+        cors_origins=["http://localhost:3001"],
+        scheduler_secret=SECRET,
+    )
     app = create_app(
         settings,
         token_verifier=tokens.verifier(),
@@ -207,3 +214,86 @@ def test_the_history_tables_still_refuse_changes_outside_an_erasure(
         conn.execute(text("SET LOCAL ROLE onyx_app"))
         refused = conn.execute(text("SELECT app_erasing('inbox_messages'::regclass)")).scalar()
     assert (allowed, refused) == (True, False)
+
+
+# --- retention (part 2) -----------------------------------------------------------------------
+
+
+def test_owners_set_retention_and_the_scheduler_removes_old_conversations(
+    api: TestClient, as_: As, owner_engine: Engine
+) -> None:
+    url = f"/v1/w/{LUMEN}/privacy/settings"
+    assert api.get(url, headers=as_.seeded(OLIVIA)).json()["conversation_retention_months"] is None
+    for who in (MIA, ADAM):
+        denied = api.put(url, json={"conversation_retention_months": 6}, headers=as_.seeded(who))
+        assert denied.status_code == 403
+    bad = api.put(url, json={"conversation_retention_months": 7}, headers=as_.seeded(OLIVIA))
+    assert bad.status_code == 422
+    saved = api.put(url, json={"conversation_retention_months": 6}, headers=as_.seeded(OLIVIA))
+    assert saved.json()["conversation_retention_months"] == 6
+
+    old, recent = (
+        row.id
+        for row in _sql(
+            owner_engine,
+            "SELECT id FROM inbox_conversations WHERE organization_id = :org ORDER BY id LIMIT 2",
+            org=LUMEN_ID,
+        )
+    )
+    _sql(
+        owner_engine,
+        "UPDATE inbox_conversations SET last_message_at = now() - interval '7 months', "
+        "created_at = now() - interval '8 months' WHERE id = :c",
+        c=old,
+    )
+    _sql(
+        owner_engine,
+        "UPDATE inbox_conversations SET last_message_at = now() WHERE id = :c",
+        c=recent,
+    )
+    run = api.post("/v1/internal/scheduler/run", headers={"Authorization": f"Bearer {SECRET}"})
+    assert run.status_code == 200, run.text
+    assert run.json()["conversations_redacted"] == 1
+    bodies = {
+        r.body
+        for r in _sql(
+            owner_engine, "SELECT body FROM inbox_messages WHERE conversation_id = :c", c=old
+        )
+    }
+    assert bodies == {"[removed]"}
+    kept = {
+        r.body
+        for r in _sql(
+            owner_engine, "SELECT body FROM inbox_messages WHERE conversation_id = :c", c=recent
+        )
+    }
+    assert "[removed]" not in kept
+    conversation = _sql(
+        owner_engine,
+        "SELECT subject, redacted_at FROM inbox_conversations WHERE id = :c",
+        c=old,
+    ).one()
+    assert conversation.subject == "Conversation removed (retention)"
+    assert conversation.redacted_at is not None
+    again = api.post("/v1/internal/scheduler/run", headers={"Authorization": f"Bearer {SECRET}"})
+    assert again.json()["conversations_redacted"] == 0
+
+
+def test_the_worker_cannot_redact_a_conversation_that_is_not_old_enough(
+    owner_engine: Engine,
+) -> None:
+    # With no retention set, the function refuses (returns false) for any conversation.
+    with owner_engine.begin() as conn:
+        conversation = conn.execute(
+            text("SELECT id FROM inbox_conversations WHERE organization_id = :org LIMIT 1"),
+            {"org": LUMEN_ID},
+        ).scalar()
+        conn.execute(text("SET LOCAL ROLE onyx_worker"))
+        conn.execute(
+            text("SELECT set_config(:s, :org, true)"),
+            {"s": CURRENT_ORGANIZATION_SETTING, "org": str(LUMEN_ID)},
+        )
+        done = conn.execute(
+            text("SELECT app_redact_conversation(:c)"), {"c": conversation}
+        ).scalar()
+    assert done is False

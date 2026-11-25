@@ -138,3 +138,28 @@ export async function updateControls(
   revalidatePath(`/w/${slug}`, "layout");
   return { status: "ok", message: "Pilot controls saved." };
 }
+
+/** How long conversations are kept before their text is removed (owners). */
+export async function saveRetention(
+  slug: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const raw = String(formData.get("months") ?? "");
+  const months = raw === "" ? null : Number(raw);
+  const outcome = await mutateApi((api) =>
+    api.PUT("/v1/w/{slug}/privacy/settings", {
+      params: { path: { slug } },
+      body: { conversation_retention_months: months },
+    }),
+  );
+  if (!outcome.ok) return failure(outcome);
+  revalidatePath(`/w/${slug}/settings/privacy`);
+  return {
+    status: "ok",
+    message:
+      months === null
+        ? "Conversations are kept until you erase them."
+        : `Conversations with no activity for ${months} months will have their text removed.`,
+  };
+}

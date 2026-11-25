@@ -1,4 +1,4 @@
-import { LUMEN, USERS, expect, signInAs, test } from "./fixtures";
+import { HARBOUR, LUMEN, USERS, expect, signInAs, test } from "./fixtures";
 
 test.setTimeout(120_000);
 
@@ -38,4 +38,30 @@ test("an owner exports and erases a person; members do not see the tools", async
 
   await owner.close();
   await member.close();
+});
+
+test("owners set conversation retention; admins do not see it", async ({ browser }) => {
+  const owner = await browser.newContext();
+  await signInAs(owner, USERS.olivia);
+  const page = await owner.newPage();
+  await page.goto(`${LUMEN}/settings/privacy`);
+  await page.getByLabel("Remove conversations after").selectOption("12");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "12 months" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Remove conversations after")).toHaveValue("12");
+  // Back to the default, so other specs see every conversation.
+  await page.getByLabel("Remove conversations after").selectOption("");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "kept" })).toBeVisible();
+
+  const admin = await browser.newContext();
+  await signInAs(admin, USERS.sam);
+  const a = await admin.newPage();
+  await a.goto(`${HARBOUR}/settings/general`); // Sam is a Harbour admin
+  await expect(
+    a.getByRole("navigation", { name: "Settings" }).getByRole("link", { name: "Privacy" }),
+  ).toHaveCount(0);
+  await owner.close();
+  await admin.close();
 });

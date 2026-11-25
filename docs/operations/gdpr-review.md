@@ -38,9 +38,12 @@ Each needs a data processing agreement and a listing as a sub-processor for clie
 ## Gaps before live client data
 
 1. **Contracts:** a data processing agreement with each client, and a sub-processor list.
-2. **Retention:** nothing is deleted automatically yet. Agree periods per client (for example
-   conversations 24 months after last activity) and build deletion jobs on the workflow
-   runtime.
+2. **Retention:** done (2026-11-25).
+   - **Conversations:** owners choose a period under Settings → Privacy (6 months to 10 years,
+     default keep). The scheduler then removes the text of conversations with no activity for
+     that long: messages, names, addresses and reply texts.
+   - **Deal documents:** their files are deleted after the deal's retention period (VA-007).
+   - **Still to do:** agree the periods with each client.
 3. **Data subject requests:** done (2026-11-25). On a contact's page, owners can **download
    their data** as one JSON file (audited), and **erase the person**. Erasing redacts the name,
    contact details, messages, notes, reply texts and quote titles, and deletes deal document

@@ -22,6 +22,8 @@ from app.modules.assistant.models import Policy
 from app.modules.assistant.rules import Trace
 from app.modules.automotive import public as automotive
 from app.modules.catalogue import public as catalogue
+from app.modules.deals import public as deals
+from app.modules.deals.finance_rules import EstimateError
 from app.modules.knowledge import public as knowledge
 
 MAX_STOCK_SKUS = 10
@@ -251,6 +253,66 @@ async def search_vehicles(
     return VehicleResults(found=bool(hits), vehicles=hits)
 
 
+class FinanceEstimateResult(BaseModel):
+    ok: bool
+    error: str | None = None
+    price_eur: str | None = None
+    deposit_eur: str | None = None
+    term_months: int | None = None
+    monthly_eur: str | None = None
+    total_eur: str | None = None
+    disclaimer: str | None = None
+
+
+async def estimate_finance(
+    ctx: RunContext[AssistantDeps], price_eur: float, deposit_eur: float, years: float
+) -> FinanceEstimateResult:
+    """The dealer's finance estimate (the same calculation as its website's loan calculator).
+
+    ``price_eur``: the car's price (from search_vehicles, or what the customer named).
+    ``deposit_eur``: the deposit (0 if none). ``years``: the term, in halves (5, 3.5).
+    These are the only finance amounts you may write in a reply, always as an estimate with the
+    disclaimer. Never promise approval, a rate or terms.
+    """
+    deps = ctx.deps
+    try:
+        result = await deals.finance_estimate(
+            deps.db,
+            deps.tenant.organization_id,
+            price_cents=round(price_eur * 100),
+            deposit_cents=round(deposit_eur * 100),
+            term_months=round(years * 12),
+        )
+    except EstimateError as exc:
+        deps.trace.calls.append({"tool": "estimate_finance", "ok": False})
+        return FinanceEstimateResult(ok=False, error=str(exc))
+    e = result.estimate
+    deps.trace.estimate_amounts.update(
+        {e.price_cents, e.deposit_cents, e.net_loan_cents, e.monthly_cents, e.total_cents}
+    )
+    deps.trace.estimates.append(
+        {
+            "price_cents": e.price_cents,
+            "deposit_cents": e.deposit_cents,
+            "term_months": e.term_months,
+            "monthly_cents": e.monthly_cents,
+        }
+    )
+    deps.trace.calls.append({"tool": "estimate_finance", "ok": True})
+    return FinanceEstimateResult(
+        ok=True,
+        price_eur=_eur(e.price_cents),
+        deposit_eur=_eur(e.deposit_cents),
+        term_months=e.term_months,
+        monthly_eur=_eur(e.monthly_cents),
+        total_eur=_eur(e.total_cents),
+        disclaimer=result.disclaimer,
+    )
+
+
+FINANCE_TOOL: Tool[AssistantDeps] = Tool(estimate_finance, takes_ctx=True, sequential=True)
+
+
 # ``sequential``: tools share the request's database session, which is not concurrency-safe.
 TOOLS: list[Tool[AssistantDeps]] = [
     Tool(search_products, takes_ctx=True, sequential=True),
@@ -264,7 +326,7 @@ VEHICLE_TOOL: Tool[AssistantDeps] = Tool(search_vehicles, takes_ctx=True, sequen
 
 
 def tools_for(
-    *, knowledge_enabled: bool, automotive_enabled: bool = False
+    *, knowledge_enabled: bool, automotive_enabled: bool = False, finance_enabled: bool = False
 ) -> list[Tool[AssistantDeps]]:
     """The tools for one run: document and vehicle search only where their modules are on."""
     tools = list(TOOLS)
@@ -272,4 +334,6 @@ def tools_for(
         tools.append(KNOWLEDGE_TOOL)
     if automotive_enabled:
         tools.append(VEHICLE_TOOL)
+    if finance_enabled:
+        tools.append(FINANCE_TOOL)
     return tools

@@ -8,7 +8,7 @@ import { billingStatus } from "@/lib/billing";
 import { usdFromMicros } from "@/lib/tenants";
 
 import { IntegrationList } from "../../../w/[slug]/settings/integrations/integration-list";
-import { ConnectPhoneLineForm, ConnectWhatsAppForm } from "./connect-forms";
+import { ConnectPhoneLineForm, ConnectWhatsAppForm, DisconnectButton } from "./connect-forms";
 import { ModuleToggles } from "./module-toggles";
 import {
   BudgetForm,
@@ -156,6 +156,51 @@ export default async function AdminOrganizationPage({ params }: Props) {
         </h2>
         <IntegrationList status={integrations} />
       </section>
+
+      {integrations.channels.some((c) => c.kind === "whatsapp" && c.phone_number) ||
+      (integrations.phone_lines ?? []).length > 0 ? (
+        <section
+          aria-labelledby="connected-numbers-heading"
+          className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+        >
+          <h2 id="connected-numbers-heading" className="text-base font-medium tracking-tight">
+            Connected numbers
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            To replace a WhatsApp number, disconnect it, then connect the new one with the same
+            channel name. Conversations and history stay.
+          </p>
+          <ul className="flex flex-col gap-3" aria-label="Connected numbers">
+            {integrations.channels
+              .filter((c) => c.kind === "whatsapp" && c.phone_number)
+              .map((c) => (
+                <li key={c.id} className="flex flex-col gap-2 rounded-xl border p-3 text-sm">
+                  <span>
+                    <span className="font-medium">{c.phone_number}</span>{" "}
+                    <span className="text-muted-foreground">WhatsApp · {c.name}</span>
+                  </span>
+                  <DisconnectButton
+                    slug={org.slug}
+                    kind="whatsapp"
+                    id={c.id}
+                    label={c.phone_number ?? c.name}
+                  />
+                </li>
+              ))}
+            {(integrations.phone_lines ?? []).map((line) => (
+              <li key={line.id} className="flex flex-col gap-2 rounded-xl border p-3 text-sm">
+                <span>
+                  <span className="font-medium">{line.number}</span>{" "}
+                  <span className="text-muted-foreground">
+                    Missed calls → {line.whatsapp_channel_name}
+                  </span>
+                </span>
+                <DisconnectButton slug={org.slug} kind="line" id={line.id} label={line.number} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="connect-whatsapp-heading"

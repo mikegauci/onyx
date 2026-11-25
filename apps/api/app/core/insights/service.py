@@ -82,6 +82,15 @@ class Deals:
 
 
 @dataclass(frozen=True)
+class Finance:
+    started: int  # applications started in the period
+    by_assistant: int
+    approved: int  # decided in the period
+    declined: int
+    open_now: int  # not decided or withdrawn, today
+
+
+@dataclass(frozen=True)
 class Insights:
     days: int
     since: datetime
@@ -92,6 +101,7 @@ class Insights:
     quotes: Quotes | None
     missed_calls: MissedCalls | None
     deals: Deals | None = None
+    finance: Finance | None = None
 
 
 async def _one(db: AsyncSession, sql: str, params: dict[str, Any]) -> Any:
@@ -326,6 +336,31 @@ async def deals(db: AsyncSession, p: dict[str, Any]) -> Deals:
     )
 
 
+async def finance(db: AsyncSession, p: dict[str, Any]) -> Finance:
+    row = await _one(
+        db,
+        """
+        SELECT
+            count(*) FILTER (WHERE created_at >= :since) AS started,
+            count(*) FILTER (WHERE created_at >= :since AND source = 'assistant') AS assistant,
+            count(*) FILTER (WHERE status = 'approved' AND decided_at >= :since) AS approved,
+            count(*) FILTER (WHERE status = 'declined' AND decided_at >= :since) AS declined,
+            count(*) FILTER (
+                WHERE status NOT IN ('approved', 'declined', 'withdrawn')
+            ) AS open_now
+        FROM finance_applications WHERE organization_id = :org
+        """,
+        p,
+    )
+    return Finance(
+        started=int(row["started"]),
+        by_assistant=int(row["assistant"]),
+        approved=int(row["approved"]),
+        declined=int(row["declined"]),
+        open_now=int(row["open_now"]),
+    )
+
+
 async def build(
     db: AsyncSession,
     organization_id: uuid.UUID,
@@ -349,4 +384,5 @@ async def build(
         ),
         missed_calls=await missed_calls(db, p) if inbox_on else None,
         deals=await deals(db, p) if "deals" in modules else None,
+        finance=await finance(db, p) if "deals" in modules else None,
     )

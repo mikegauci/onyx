@@ -28,11 +28,28 @@ class ProposedLine(BaseModel):
     )
 
 
+class FinanceDetails(BaseModel):
+    """What the customer said about financing (VA-006); leave out anything they did not say."""
+
+    applicant_type: (
+        Literal["maltese_resident", "non_maltese_resident", "self_employed", "company"] | None
+    ) = None
+    marital_status: (
+        Literal["single", "married", "separated", "divorced", "widowed", "not_applicable"] | None
+    ) = None
+    vehicle: Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None = None
+    price_eur: float | None = Field(default=None, ge=0)
+    deposit_eur: float | None = Field(default=None, ge=0)
+    years: float | None = Field(default=None, gt=0, le=30)
+
+
 class AssistantOutput(BaseModel):
     """The assistant's proposal. The backend checks every part before anything is created."""
 
-    action: Literal["draft_quote", "escalate"] = Field(
-        description="draft_quote only when every requested item maps to a SKU found by a tool."
+    action: Literal["draft_quote", "escalate", "finance"] = Field(
+        description="draft_quote only when every requested item maps to a SKU found by a tool. "
+        "finance for a question about paying in monthly instalments (when estimate_finance is "
+        "available)."
     )
     reply_draft: Annotated[
         str, StringConstraints(strip_whitespace=True, max_length=REPLY_MAX_LENGTH)
@@ -53,6 +70,9 @@ class AssistantOutput(BaseModel):
         default_factory=list,
         max_length=5,
         description="source_id of each search_knowledge passage the reply relies on.",
+    )
+    finance: FinanceDetails | None = Field(
+        default=None, description="With action finance: the details the customer gave."
     )
 
 

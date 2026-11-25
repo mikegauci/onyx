@@ -590,7 +590,7 @@ class OutboundService:
         self,
         conversation_id: uuid.UUID,
         body: str,
-        quote_id: uuid.UUID,
+        quote_id: uuid.UUID | None,
         run_id: uuid.UUID,
     ) -> uuid.UUID:
         """The assistant's proposal, waiting for approval. Replaces any open draft."""

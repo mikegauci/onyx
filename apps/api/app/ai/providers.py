@@ -97,9 +97,15 @@ def example_from_schema(schema: dict[str, Any], defs: dict[str, Any] | None = No
         return schema["const"]
     if schema.get("enum"):
         return schema["enum"][0]
-    for key in ("anyOf", "oneOf", "allOf"):
-        if schema.get(key):
-            return example_from_schema(schema[key][0], defs)
+    for key in ("anyOf", "oneOf"):
+        options = schema.get(key) or []
+        nested = [o for o in options if "$ref" in o or o.get("type") == "object"]
+        if nested and any(o.get("type") == "null" for o in options):
+            return None  # an optional nested object: the minimal answer leaves it out
+        if options:
+            return example_from_schema(options[0], defs)
+    if schema.get("allOf"):
+        return example_from_schema(schema["allOf"][0], defs)
     kind = schema.get("type")
     if kind == "object" or "properties" in schema:
         properties: dict[str, Any] = schema.get("properties", {})
@@ -107,8 +113,12 @@ def example_from_schema(schema: dict[str, Any], defs: dict[str, Any] | None = No
     if kind == "array":
         return []
     if kind == "integer":
+        if "exclusiveMinimum" in schema:
+            return int(schema["exclusiveMinimum"]) + 1
         return int(schema.get("minimum", 0))
     if kind == "number":
+        if "exclusiveMinimum" in schema:
+            return schema["exclusiveMinimum"] + 1
         return schema.get("minimum", 0)
     if kind == "boolean":
         return False

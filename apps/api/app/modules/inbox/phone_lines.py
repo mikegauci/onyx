@@ -81,7 +81,7 @@ class PhoneLineService:
         lines = (
             await self.db.scalars(
                 select(PhoneLine)
-                .where(PhoneLine.organization_id == self.org)
+                .where(PhoneLine.organization_id == self.org, PhoneLine.disconnected_at.is_(None))
                 .order_by(PhoneLine.created_at)
             )
         ).all()
@@ -90,7 +90,11 @@ class PhoneLineService:
     async def _line(self, line_id: uuid.UUID) -> PhoneLine:
         line = await self.db.scalar(
             select(PhoneLine)
-            .where(PhoneLine.organization_id == self.org, PhoneLine.id == line_id)
+            .where(
+                PhoneLine.organization_id == self.org,
+                PhoneLine.id == line_id,
+                PhoneLine.disconnected_at.is_(None),
+            )
             .with_for_update()
         )
         if line is None:

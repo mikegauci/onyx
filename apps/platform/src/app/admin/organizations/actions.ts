@@ -208,3 +208,39 @@ export async function connectPhoneLine(
     message: `Phone line ${number} connected. The owner sets the text-back message under Inbox → Channels.`,
   };
 }
+
+/** Remove the business number from a WhatsApp channel (to replace it, connect a new one). */
+export async function disconnectWhatsApp(
+  slug: string,
+  channelId: string,
+  _prev: AdminFormState,
+): Promise<AdminFormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.DELETE("/v1/admin/organizations/{slug}/whatsapp-channels/{channel_id}/number", {
+      params: { path: { slug, channel_id: channelId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return {
+    status: "ok",
+    message: "Number disconnected. Connect the new number to the same channel name to replace it.",
+  };
+}
+
+export async function disconnectPhoneLine(
+  slug: string,
+  lineId: string,
+  _prev: AdminFormState,
+): Promise<AdminFormState> {
+  void _prev;
+  const outcome = await mutateApi((api) =>
+    api.DELETE("/v1/admin/organizations/{slug}/phone-lines/{line_id}", {
+      params: { path: { slug, line_id: lineId } },
+    }),
+  );
+  if (!outcome.ok) return failureState(outcome);
+  refresh(slug);
+  return { status: "ok", message: "Phone line disconnected. Its missed-call history stays." };
+}

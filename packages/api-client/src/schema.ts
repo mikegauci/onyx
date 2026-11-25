@@ -241,6 +241,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/organizations/{slug}/phone-lines/{line_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect Phone Line
+         * @description Stop routing calls from a cloud number. Its missed-call history stays.
+         */
+        delete: operations["disconnect_phone_line"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/organizations/{slug}/status": {
         parameters: {
             query?: never;
@@ -270,6 +290,26 @@ export interface paths {
         /** Connect Whatsapp Channel */
         post: operations["connect_whatsapp_channel"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/organizations/{slug}/whatsapp-channels/{channel_id}/number": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect Whatsapp Number
+         * @description Remove the business number from a WhatsApp channel. The channel and history stay.
+         */
+        delete: operations["disconnect_whatsapp_number"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4258,6 +4298,19 @@ export interface components {
             /** Filename */
             filename: string;
         };
+        /** FinanceOut */
+        FinanceOut: {
+            /** Approved */
+            approved: number;
+            /** By Assistant */
+            by_assistant: number;
+            /** Declined */
+            declined: number;
+            /** Open Now */
+            open_now: number;
+            /** Started */
+            started: number;
+        };
         /** FinanceSettingsOut */
         FinanceSettingsOut: {
             /** Annual Rate Bp */
@@ -4507,6 +4560,7 @@ export interface components {
             deals?: components["schemas"]["DealsOut"] | null;
             drafts: components["schemas"]["DraftsOut"] | null;
             enquiries: components["schemas"]["EnquiriesOut"] | null;
+            finance?: components["schemas"]["FinanceOut"] | null;
             missed_calls: components["schemas"]["MissedCallsOut"] | null;
             quotes: components["schemas"]["QuotesOut"] | null;
             response_time: components["schemas"]["ResponseTimeOut"] | null;
@@ -5635,7 +5689,7 @@ export interface components {
          * Reason
          * @enum {string}
          */
-        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "unknown_source" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed";
+        Reason: "model_escalated" | "low_confidence" | "no_lines" | "ungrounded_sku" | "unknown_sku" | "archived_sku" | "missing_price" | "missing_vat" | "unknown_stock" | "insufficient_stock" | "reply_mentions_amount" | "reply_ungrounded_sku" | "unknown_policy" | "unknown_source" | "no_contact" | "quote_failed" | "ai_unavailable" | "budget_exceeded" | "provider_failed" | "finance_promise" | "finance_amount" | "finance_unavailable";
         /**
          * ReasonOut
          * @description Why a run went to staff: a stable code and the text staff read.
@@ -5743,7 +5797,7 @@ export interface components {
          * RunOutcome
          * @enum {string}
          */
-        RunOutcome: "drafted" | "escalated";
+        RunOutcome: "drafted" | "escalated" | "finance";
         /** RunsOut */
         RunsOut: {
             /** Drafted */
@@ -7576,6 +7630,63 @@ export interface operations {
             };
         };
     };
+    disconnect_phone_line: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                line_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     set_organization_status: {
         parameters: {
             query?: never;
@@ -7681,6 +7792,72 @@ export interface operations {
                 };
             };
             /** @description Number or channel name already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    disconnect_whatsapp_number: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not a platform admin, or no such resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No number, or a phone line still uses it */
             409: {
                 headers: {
                     [name: string]: unknown;

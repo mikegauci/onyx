@@ -145,3 +145,21 @@ Status: **approved 2026-11-25** · 2026-11-25 · Roadmap: `docs/roadmap-addition
   The KYC and CCR items link to the blank forms, both on the deal and on the customer upload page.
 - **Privacy:** export includes finance applications. Erasing a person clears their employer,
   income, notes and decision note, and keeps the figures.
+
+## Changes during implementation (part 2)
+
+- **The assistant:**
+  - It has an `estimate_finance` tool (only with the deals module) and a new action, `finance`.
+  - A finance run ends with the outcome `finance`: a note for staff with the reply, the estimate
+    and what is still missing, plus a reply waiting for approval (with no quote). The
+    conversation goes back to staff.
+- **What the backend checks, not the model:**
+  - The reply may state only the amounts the tool returned (the price, deposit, net loan,
+    monthly payment and total).
+  - Approval, rate and terms promises escalate, in English and Maltese, and so does any
+    percentage.
+  - The backend appends the workspace's disclaimer.
+- **The application:** it is started only with a linked contact, the applicant type and the
+  marital status. Otherwise the note says what to ask.
+- **Insights:** a Finance panel with applications started (and by the assistant), approved,
+  declined and open.

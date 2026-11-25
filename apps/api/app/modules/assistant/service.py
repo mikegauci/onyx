@@ -30,11 +30,14 @@ from app.modules.assistant.rules import (
     SkuFacts,
     Trace,
     check,
+    check_finance,
     merge_lines,
 )
 from app.modules.assistant.tools import AssistantDeps, tools_for
 from app.modules.automotive import public as automotive
 from app.modules.catalogue import public as catalogue
+from app.modules.deals import public as deals
+from app.modules.deals.finance_rules import ApplicantType, MaritalStatus
 from app.modules.inbox import public as inbox
 from app.modules.inbox.models import ConversationStatus, Handler, MessageDirection
 from app.modules.knowledge import public as knowledge
@@ -105,6 +108,16 @@ def _reason_out(code: str) -> schemas.ReasonOut:
     return schemas.ReasonOut(code=reason, message=REASON_TEXT[reason])
 
 
+def _int(estimate: dict[str, object] | None, key: str) -> int | None:
+    value = estimate.get(key) if estimate else None
+    return value if isinstance(value, int) else None
+
+
+def _euro(cents: object) -> str:
+    amount = int(cents) if isinstance(cents, int) else 0
+    return f"€{amount // 100:,}.{amount % 100:02d}"
+
+
 def _escalation_note(reasons: Sequence[Reason], model_reason: str) -> str:
     lines = ["The assistant handed this conversation to staff. No quote was drafted.", ""]
     lines += [f"- {REASON_TEXT[r]}" for r in reasons]
@@ -167,9 +180,11 @@ class AssistantService:
             gateway=gateway,
         )
         knowledge_enabled = await knowledge.is_enabled(self.db, self.workspace)
+        finance_enabled = await deals.is_enabled(self.db, self.workspace)
         tools = tools_for(
             knowledge_enabled=knowledge_enabled,
             automotive_enabled=await automotive.is_enabled(self.db, self.workspace),
+            finance_enabled=finance_enabled,
         )
         result: AIResult[schemas.AssistantOutput] | None = None
         failure: Reason | None = None
@@ -205,6 +220,9 @@ class AssistantService:
             run.usage_event_id = result.usage.event_id
             run.model = f"{result.usage.provider}:{result.usage.model}"
             run.cost_usd_micros = result.usage.cost_usd_micros
+
+        if result is not None and result.output.action == "finance":
+            return await self._finance(thread, run, result.output, deps, finance_enabled)
 
         reasons: list[Reason] = [failure] if failure is not None else []
         quote: quotations.DraftQuote | None = None
@@ -277,6 +295,132 @@ class AssistantService:
         )
         sources = await knowledge.describe_sources(self.db, self.tenant, _source_ids(run))
         return _run_out(run, {quote.id: quote.number} if quote else {}, sources)
+
+    async def _finance(
+        self,
+        thread: inbox.Thread,
+        run: Run,
+        output: schemas.AssistantOutput,
+        deps: AssistantDeps,
+        finance_enabled: bool,
+    ) -> schemas.RunOut:
+        """A finance question (VA-006): the estimate, an application for staff, never a decision.
+
+        The reply may state only the amounts the estimate tool returned and never promise
+        approval, a rate or terms; otherwise the run escalates like any other. The dealer's
+        disclaimer is appended by the backend, not left to the model.
+        """
+        reply = output.reply_draft.strip()
+        reasons: list[Reason] = []
+        if not finance_enabled:
+            reasons.append(Reason.FINANCE_UNAVAILABLE)
+        if output.confidence == "low":
+            reasons.append(Reason.LOW_CONFIDENCE)
+        reasons += check_finance(reply, deps.trace)
+        if reasons or not reply:
+            run.reasons = [r.value for r in reasons] or [Reason.MODEL_ESCALATED.value]
+            run.note_message_id = await inbox.add_assistant_note(
+                self.db,
+                self.tenant,
+                thread.conversation_id,
+                _escalation_note(reasons or [Reason.MODEL_ESCALATED], output.escalation_reason),
+            )
+            self.db.add(run)
+            await self.db.flush()
+            if thread.handler is Handler.ASSISTANT:
+                summary = "; ".join(REASON_TEXT[r] for r in reasons)[:500] or "Needs a person."
+                await inbox.hand_to_staff(self.db, self.workspace, thread.conversation_id, summary)
+            return await self._finish(run, thread, None)
+
+        details = output.finance or schemas.FinanceDetails()
+        last = deps.trace.estimates[-1] if deps.trace.estimates else None
+        disclaimer = await deals.finance_disclaimer(self.db, self.org)
+        full_reply = f"{reply}\n\n{disclaimer}"
+        missing: list[str] = []
+        if thread.contact_id is None:
+            missing.append("link the conversation to a contact")
+        if details.applicant_type is None:
+            missing.append("ask the applicant type")
+        if details.marital_status is None:
+            missing.append("ask the marital status")
+        application_id = None
+        if (
+            not missing
+            and thread.contact_id is not None
+            and details.applicant_type is not None
+            and details.marital_status is not None
+        ):
+            application_id = await deals.start_application(
+                self.db,
+                self.workspace,
+                contact_id=thread.contact_id,
+                applicant_type=ApplicantType(details.applicant_type),
+                marital_status=MaritalStatus(details.marital_status),
+                vehicle_label=details.vehicle,
+                price_cents=_int(last, "price_cents"),
+                deposit_cents=_int(last, "deposit_cents"),
+                term_months=_int(last, "term_months"),
+            )
+        lines = ["Finance enquiry. The assistant drafted this reply:", "", full_reply, ""]
+        if last is not None:
+            lines.append(
+                f"Estimate: {_euro(last['monthly_cents'])} a month over "
+                f"{last['term_months']} months, with {_euro(last['deposit_cents'])} down on "
+                f"{_euro(last['price_cents'])}."
+            )
+        if application_id is not None:
+            lines.append(
+                "A finance application was started (Deals → Finance). Send the forms and the "
+                "document list; Ventur's finance team decides."
+            )
+        else:
+            lines.append("No finance application yet: " + "; ".join(missing) + ".")
+        run.outcome = RunOutcome.FINANCE
+        run.reasons = []
+        run.note_message_id = await inbox.add_assistant_note(
+            self.db, self.tenant, thread.conversation_id, "\n".join(lines)
+        )
+        self.db.add(run)
+        await self.db.flush()
+        if await outbound.is_enabled(self.db, self.workspace):
+            await outbound.propose_reply(
+                self.db,
+                self.workspace,
+                conversation_id=thread.conversation_id,
+                body=full_reply,
+                quote_id=None,
+                run_id=run.id,
+            )
+        if thread.handler is Handler.ASSISTANT:
+            await inbox.hand_to_staff(
+                self.db,
+                self.workspace,
+                thread.conversation_id,
+                "Finance enquiry: a colleague follows up the application.",
+            )
+        return await self._finish(run, thread, application_id)
+
+    async def _finish(
+        self, run: Run, thread: inbox.Thread, application_id: uuid.UUID | None
+    ) -> schemas.RunOut:
+        await record_workspace_audit(
+            self.db,
+            self.workspace,
+            action=f"assistant.run.{run.outcome.value}",
+            target_type="conversation",
+            target_id=thread.conversation_id,
+            details={
+                "run_id": str(run.id),
+                "reasons": run.reasons,
+                "finance_application_id": str(application_id) if application_id else None,
+            },
+        )
+        logger.info(
+            "assistant run",
+            extra={"fields": {"run_id": str(run.id), "outcome": run.outcome.value}},
+        )
+        sources = await knowledge.describe_sources(self.db, self.tenant, _source_ids(run))
+        return _run_out(run, {}, sources)
 
     def _proposal(self, output: schemas.AssistantOutput) -> Proposal:
         lines: list[tuple[str, int]] = []

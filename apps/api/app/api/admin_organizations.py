@@ -444,7 +444,7 @@ async def workspace_integrations(
                 "SELECT l.id, l.provider, l.number, c.name AS whatsapp_channel_name, "
                 "l.text_back_enabled FROM inbox_phone_lines l JOIN inbox_channels c "
                 "ON c.organization_id = l.organization_id AND c.id = l.whatsapp_channel_id "
-                "ORDER BY l.number"
+                "WHERE l.disconnected_at IS NULL ORDER BY l.number"
             )
         )
     ).all()

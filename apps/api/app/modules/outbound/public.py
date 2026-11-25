@@ -32,7 +32,7 @@ async def propose_reply(
     *,
     conversation_id: uuid.UUID,
     body: str,
-    quote_id: uuid.UUID,
+    quote_id: uuid.UUID | None,
     run_id: uuid.UUID,
 ) -> uuid.UUID:
     """A pending assistant draft for the conversation; replaces any open draft there."""

@@ -44,6 +44,8 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "A", "C4", "SIM", "RUF", "ASY
 [tool.ruff.lint.per-file-ignores]
 # Tests build SQL from fixed table/role identifiers, never from input.
 "tests/**" = ["S101", "S608"]
+# Reuses the assistant tests' fixtures (api, script) by importing them.
+"tests/api/test_assistant_finance.py" = ["F811"]
 # Migrations build DDL from module-level constants, never from input.
 "migrations/**" = ["S608"]
 

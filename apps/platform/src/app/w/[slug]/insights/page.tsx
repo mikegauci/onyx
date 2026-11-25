@@ -142,6 +142,23 @@ export default async function InsightsPage({ params, searchParams }: Props) {
             />
           </Panel>
         ) : null}
+        {data.deals ? (
+          <Panel
+            title="Deals"
+            description="Sales from reservation to collection, and documents customers sent with their link."
+          >
+            <Facts
+              items={[
+                ["New deals", String(data.deals.created)],
+                ["Marked sold", String(data.deals.sold)],
+                ["Collected", String(data.deals.collected)],
+                ["Cancelled", String(data.deals.cancelled)],
+                ["Open right now", String(data.deals.open_now)],
+                ["Documents uploaded by customers", String(data.deals.customer_uploads)],
+              ]}
+            />
+          </Panel>
+        ) : null}
         {data.missed_calls && data.missed_calls.total > 0 ? (
           <Panel title="Missed calls" description="Calls forwarded to Onyx when nobody answered.">
             <Facts

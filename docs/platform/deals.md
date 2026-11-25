@@ -60,7 +60,25 @@ status). A partial unique index allows one open deal per car.
 - **After an upload:** the document becomes "received" (from the customer), the deal's history
   records it, and owners and admins get a "Check … for …" task.
 
-## Coming in part 3
+## Scheduler (part 3)
 
-The scheduler: tasks to chase missing documents, customer reminders, and retention deletion
-(`deal_settings.retention_days`, default 180 days after a deal closes).
+`POST /v1/internal/scheduler/run`, with `Authorization: Bearer <ONYX_API_SCHEDULER_SECRET>`
+(compared in constant time; without the setting it answers 404). A GitHub Actions schedule
+(`.github/workflows/scheduler.yml`, every 30 minutes, free) calls it, which also wakes the free
+Render API. `scheduler_deal_tenants()` (SECURITY DEFINER, worker only) lists active tenants with
+`deals` on; each runs in its own worker transaction, so one failure never blocks the others.
+Jobs (`app/modules/deals/jobs.py`) are idempotent:
+
+- **Check documents:** one task for owners/admins per received, unchecked document (same key as
+  a customer upload's task).
+- **Chase documents:** a task for staff when an open deal still misses required documents 2 days
+  after it was created; at most one a week, urgent after the first week.
+- **Retention:** files of deals collected or cancelled more than `retention_days` ago (default 180) are deleted; the checklist item keeps `file_deleted_at`, the deal records
+  `documents_deleted`.
+
+Insights shows deals (new, sold, collected, cancelled, open) and customer uploads.
+
+## Part 4 (later)
+
+Automatic customer reminders with a fresh upload link, through an approved WhatsApp utility
+template, once Meta approves the document template (owner decision, 2026-11-25).

@@ -345,6 +345,7 @@ def test_insights_count_only_this_workspace_and_the_chosen_range(
     }
     assert data["quotes"]["created"] == 1  # the seeded draft quote
     assert data["missed_calls"]["total"] == 0
+    assert data["deals"] is None  # the deals module is off for Lumen here
     # Lumen's records never show up in another workspace.
     harbour_after = _insights(api, as_, who=HUGO, slug=HARBOUR)
     assert {k: v for k, v in harbour_after.items() if k != "since"} == {

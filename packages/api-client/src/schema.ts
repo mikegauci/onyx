@@ -3414,6 +3414,21 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** DealsOut */
+        DealsOut: {
+            /** Cancelled */
+            cancelled: number;
+            /** Collected */
+            collected: number;
+            /** Created */
+            created: number;
+            /** Customer Uploads */
+            customer_uploads: number;
+            /** Open Now */
+            open_now: number;
+            /** Sold */
+            sold: number;
+        };
         /**
          * DeliveryStatus
          * @enum {string}
@@ -4041,6 +4056,7 @@ export interface components {
             baseline: components["schemas"]["BaselineOut"];
             /** Days */
             days: number;
+            deals?: components["schemas"]["DealsOut"] | null;
             drafts: components["schemas"]["DraftsOut"] | null;
             enquiries: components["schemas"]["EnquiriesOut"] | null;
             missed_calls: components["schemas"]["MissedCallsOut"] | null;

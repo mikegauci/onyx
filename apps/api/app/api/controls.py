@@ -174,6 +174,15 @@ class MissedCallsOut(BaseModel):
     skip_reasons: list[Count]
 
 
+class DealsOut(BaseModel):
+    created: int
+    sold: int
+    collected: int
+    cancelled: int
+    open_now: int
+    customer_uploads: int
+
+
 class BaselineOut(BaseModel):
     first_reply_minutes: int | None
     enquiries_per_week: int | None
@@ -189,6 +198,7 @@ class InsightsOut(BaseModel):
     runs: RunsOut | None
     quotes: QuotesOut | None
     missed_calls: MissedCallsOut | None
+    deals: DealsOut | None = None
 
 
 def _counts(pairs: list[tuple[str, int]]) -> list[Count]:
@@ -253,4 +263,5 @@ async def read_insights(
             if data.missed_calls
             else None
         ),
+        deals=DealsOut(**vars(data.deals)) if data.deals else None,
     )

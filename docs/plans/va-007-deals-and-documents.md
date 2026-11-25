@@ -186,3 +186,10 @@ reserved → deposit received → documents → finance → sold → collected
   - **Notification:** a customer upload creates a "Check … for …" task for owners and admins,
     and a deal history entry. There is no extra inbox note.
   - **Upload limit:** a link allows 30 uploads.
+- **Part 3 (owner decision, 2026-11-25):**
+  - **Reminders moved:** automatic customer reminders move to a part 4, built once the WhatsApp
+    document template is approved.
+  - **Part 3 itself:** the scheduler, document check tasks, chase tasks, retention deletion,
+    Insights and the guides.
+  - **Chase tasks** go to all staff (member audience), at most one a week per deal, and are
+    marked urgent after the first week.

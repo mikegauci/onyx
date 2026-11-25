@@ -23,7 +23,7 @@ async function shot(page: Page, name: string) {
 }
 
 test("guide screenshots", async ({ page, context }) => {
-  for (const key of ["quotations", "outbound", "automotive", "assistant", "knowledge"]) {
+  for (const key of ["quotations", "outbound", "automotive", "assistant", "knowledge", "deals"]) {
     await setLumenModule(key, true);
   }
   await signInAs(context, USERS.olivia);
@@ -63,12 +63,22 @@ test("guide screenshots", async ({ page, context }) => {
     .first()
     .click();
   await shot(page, "quote");
+  await page.goto(`${LUMEN}/m/deals/new`);
+  await page.getByLabel("Customer").selectOption({ label: "Clara Borg" });
+  const car = page.getByLabel("Car");
+  const first = (await car.locator("option").allTextContents()).find((t) =>
+    t.startsWith("Demo car"),
+  );
+  await car.selectOption({ label: first! });
+  await page.getByRole("button", { name: "Create deal" }).click();
+  await expect(page.getByRole("heading", { name: /Clara Borg · / })).toBeVisible();
+  await shot(page, "deal");
   await page.goto(`${LUMEN}/insights`);
   await shot(page, "insights");
   await page.goto(`${LUMEN}/settings/pilot`);
   await shot(page, "pilot-controls");
 
-  for (const key of ["automotive", "assistant", "knowledge", "outbound"]) {
+  for (const key of ["deals", "automotive", "assistant", "knowledge", "outbound"]) {
     await setLumenModule(key, false);
   }
 });

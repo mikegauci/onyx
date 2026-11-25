@@ -221,3 +221,14 @@ use a forward fix or a backup restore.
   - a provider error then a retry; a lost response never sent twice;
   - status ordering and number checks; template permissions and tenant isolation; the lookup
     functions' grants.
+
+## Disconnecting or replacing a number
+
+In Admin → the organisation → Connected numbers, a platform admin can disconnect a WhatsApp
+number. The channel, its conversations and templates stay, and the number stops routing. To
+replace a number, disconnect it and connect the new one with the same channel name. A number
+that a missed-call phone line texts from must have its line disconnected first.
+
+A disconnected phone line keeps its missed-call history, stops routing calls, and frees its
+number for a new line. Both actions are audited (`inbox.channel.whatsapp_disconnected`,
+`inbox.phone_line.disconnected`).

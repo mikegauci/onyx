@@ -591,7 +591,14 @@ class PhoneLine(Base):
     __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
-        UniqueConstraint("provider", "number"),
+        # One active line per number; a disconnected line frees its number.
+        Index(
+            "uq_inbox_phone_lines_active_number",
+            "provider",
+            "number",
+            unique=True,
+            postgresql_where=text("disconnected_at IS NULL"),
+        ),
         _same_tenant(
             "whatsapp_channel_id", "inbox_channels", "fk_inbox_phone_lines_channel_same_tenant"
         ),
@@ -624,6 +631,7 @@ class PhoneLine(Base):
     cooldown_hours: Mapped[int] = mapped_column(Integer, nullable=False, server_default="24")
     created_by_user_id: Mapped[uuid.UUID | None] = _user_fk()
     created_at: Mapped[datetime] = created_at_column()
+    disconnected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     updated_at: Mapped[datetime] = updated_at_column()
 
 

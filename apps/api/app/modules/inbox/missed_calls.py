@@ -349,6 +349,7 @@ class MissedCallConnector:
             )
             if (
                 line is None
+                or line.disconnected_at is not None
                 or channel is None
                 or channel.phone_number_id is None
                 or config is None

@@ -604,3 +604,60 @@ def test_connected_lines_are_listed_for_admins_and_the_workspace(
     assert other.json()["phone_lines"] == []
     denied = api.get(f"/v1/admin/organizations/{LUMEN}/integrations", headers=as_.seeded(OLIVIA))
     assert denied.status_code == 404
+
+
+# --- disconnecting and replacing ----------------------------------------------------------
+
+
+def test_a_disconnected_line_stops_routing_keeps_history_and_frees_its_number(
+    api: TestClient, as_: As, line: str, owner_engine: Engine
+) -> None:
+    assert _call(api, call_id="CA-before").status_code == 200
+    url = f"/v1/admin/organizations/{LUMEN}/phone-lines/{line}"
+    assert api.delete(url, headers=as_.seeded(OLIVIA)).status_code == 404  # admins only
+    assert api.delete(url, headers=as_.seeded(PAT)).status_code == 204
+    assert api.delete(url, headers=as_.seeded(PAT)).status_code == 404  # already disconnected
+    assert _call(api, call_id="CA-after").status_code == 200
+    assert len(_calls(owner_engine)) == 1  # the later call no longer routes; history stays
+    owner = api.get(f"/v1/w/{LUMEN}/integrations", headers=as_.seeded(OLIVIA)).json()
+    assert owner["phone_lines"] == []
+    assert (
+        api.get(f"/v1/w/{LUMEN}/inbox/phone-lines", headers=as_.seeded(OLIVIA)).json()["items"]
+        == []
+    )
+    again = api.post(
+        f"/v1/admin/organizations/{LUMEN}/phone-lines",
+        json={"number": LINE, "whatsapp_channel_name": "Shop WhatsApp"},
+        headers=as_.seeded(PAT),
+    )
+    assert again.status_code == 200, again.text
+
+
+def test_a_whatsapp_number_is_replaced_by_disconnecting_then_connecting(
+    api: TestClient, as_: As, line: str
+) -> None:
+    channels = api.get(f"/v1/admin/organizations/{LUMEN}/integrations", headers=as_.seeded(PAT))
+    channel = next(c for c in channels.json()["channels"] if c["name"] == "Shop WhatsApp")
+    url = f"/v1/admin/organizations/{LUMEN}/whatsapp-channels/{channel['id']}/number"
+    blocked = api.delete(url, headers=as_.seeded(PAT))
+    assert blocked.status_code == 409  # the phone line still texts from it
+    assert "phone line" in blocked.json()["error"]["message"]
+    api.delete(f"/v1/admin/organizations/{LUMEN}/phone-lines/{line}", headers=as_.seeded(PAT))
+    assert api.delete(url, headers=as_.seeded(OLIVIA)).status_code == 404
+    assert api.delete(url, headers=as_.seeded(PAT)).status_code == 204
+    assert api.delete(url, headers=as_.seeded(PAT)).status_code == 409  # no number now
+    after = api.get(f"/v1/admin/organizations/{LUMEN}/integrations", headers=as_.seeded(PAT))
+    replaced = next(c for c in after.json()["channels"] if c["id"] == channel["id"])
+    assert (replaced["phone_number"], replaced["connected"]) == (None, False)
+    connected = api.post(
+        f"/v1/admin/organizations/{LUMEN}/whatsapp-channels",
+        json={
+            "channel_name": "Shop WhatsApp",
+            "phone_number_id": "100000000000077",
+            "waba_id": WABA,
+            "display_phone_number": "+356 2100 0077",
+        },
+        headers=as_.seeded(PAT),
+    )
+    assert connected.status_code == 200, connected.text
+    assert connected.json()["channel_id"] == channel["id"]  # same channel, new number

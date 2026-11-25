@@ -302,3 +302,64 @@ async def set_manual_mode(
             "rid": request_id_var.get(),
         },
     )
+
+
+# --- disconnecting (replacing a number = disconnect, then connect again) --------------------
+
+
+def _sqlstate(exc: DBAPIError) -> str | None:
+    return getattr(getattr(exc.orig, "diag", None), "sqlstate", None)
+
+
+@router.delete(
+    "/organizations/{slug}/whatsapp-channels/{channel_id}/number",
+    status_code=204,
+    responses={
+        **ADMIN_ERRORS,
+        409: {"model": ErrorResponse, "description": "No number, or a phone line still uses it"},
+    },
+)
+async def disconnect_whatsapp_number(
+    slug: str, channel_id: uuid.UUID, _admin: PlatformAdminDep, db: DbDep
+) -> None:
+    """Remove the business number from a WhatsApp channel. The channel and history stay."""
+    await _detail(db, slug)
+    try:
+        async with db.begin_nested():
+            await db.execute(
+                text("SELECT app_admin_disconnect_whatsapp(:slug, :channel, :rid)"),
+                {"slug": slug, "channel": channel_id, "rid": request_id_var.get()},
+            )
+    except DBAPIError as exc:
+        state = _sqlstate(exc)
+        if state == "P0002":
+            raise NotFoundError("WhatsApp channel not found.") from exc
+        if state == "P0001":
+            raise ConflictError("This channel has no number connected.") from exc
+        if state == "P0003":
+            raise ConflictError(
+                "A missed-call phone line texts from this number. Disconnect the line first."
+            ) from exc
+        raise
+
+
+@router.delete(
+    "/organizations/{slug}/phone-lines/{line_id}",
+    status_code=204,
+    responses=ADMIN_ERRORS,
+)
+async def disconnect_phone_line(
+    slug: str, line_id: uuid.UUID, _admin: PlatformAdminDep, db: DbDep
+) -> None:
+    """Stop routing calls from a cloud number. Its missed-call history stays."""
+    await _detail(db, slug)
+    try:
+        async with db.begin_nested():
+            await db.execute(
+                text("SELECT app_admin_disconnect_phone_line(:slug, :line, :rid)"),
+                {"slug": slug, "line": line_id, "rid": request_id_var.get()},
+            )
+    except DBAPIError as exc:
+        if _sqlstate(exc) == "P0002":
+            raise NotFoundError("Phone line not found.") from exc
+        raise

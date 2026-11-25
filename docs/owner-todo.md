@@ -21,8 +21,9 @@ them into chat.
       documents (VA-007 defaults to deleting document files 180 days after a deal ends).
 - [ ] **Privacy notice:** Ventur tells its customers that messages are processed by Onyx and
       its sub-processors.
-- [ ] **Data subject requests:** until there is export and erase tooling, you handle them by
-      hand.
+- [ ] **Data subject requests:** use the tools on each contact's page in CRM (Privacy → download
+      their data, or erase them). Make sure the privacy notice says that erased data stays in
+      backups until they rotate out.
 
 ## WhatsApp (Meta)
 

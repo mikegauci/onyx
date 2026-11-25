@@ -20,6 +20,7 @@ from app.api.controls import router as controls_router
 from app.api.health import router as health_router
 from app.api.me import router as me_router
 from app.api.modules import router as modules_router
+from app.api.privacy import router as privacy_router
 from app.api.tasks import router as tasks_router
 from app.api.webhooks import router as webhooks_router
 from app.api.workspaces import router as workspaces_router
@@ -307,6 +308,7 @@ def create_app(
     v1.include_router(tasks_router)
     v1.include_router(billing_router)
     v1.include_router(controls_router)
+    v1.include_router(privacy_router)
     v1.include_router(admin_router)
     v1.include_router(admin_organizations_router)
     v1.include_router(ai_router)

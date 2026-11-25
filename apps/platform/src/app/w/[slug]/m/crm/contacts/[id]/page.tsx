@@ -11,6 +11,7 @@ import { requireOk } from "@/lib/guards";
 import { workspaceWith } from "@/lib/settings-guard";
 import { ContactForm, ArchiveButton } from "../../_components/forms";
 import { ActivitySection } from "../../_components/activity-section";
+import { PrivacyPanel } from "../../_components/privacy-panel";
 import { recordId, param, type SearchParams, customerOptions } from "../../data";
 export default async function ContactPage({
   params,
@@ -43,7 +44,13 @@ export default async function ContactPage({
       <RecordHeader
         back={{ href: crmPath(slug, "contacts"), label: "Back to contacts" }}
         title={record.full_name}
-        badges={record.archived_at ? <Badge variant="secondary">Archived contact</Badge> : null}
+        badges={
+          record.erased_at ? (
+            <Badge variant="outline">Erased</Badge>
+          ) : record.archived_at ? (
+            <Badge variant="secondary">Archived contact</Badge>
+          ) : null
+        }
         meta={
           <>
             <span className="inline-flex items-center gap-1.5">
@@ -82,14 +89,27 @@ export default async function ContactPage({
       />
       <RecordLayout
         main={
-          <Panel title="Contact details" divided={false}>
-            {canWrite ? (
-              <ContactForm slug={slug} contact={record} customers={customers} />
-            ) : (
-              <p className="text-sm whitespace-pre-wrap">{record.notes || "No notes."}</p>
-            )}
-            {archiveForm ? <div className="mt-5 border-t pt-4">{archiveForm}</div> : null}
-          </Panel>
+          <>
+            <Panel title="Contact details" divided={false}>
+              {canWrite ? (
+                <ContactForm slug={slug} contact={record} customers={customers} />
+              ) : (
+                <p className="text-sm whitespace-pre-wrap">{record.notes || "No notes."}</p>
+              )}
+              {archiveForm ? <div className="mt-5 border-t pt-4">{archiveForm}</div> : null}
+            </Panel>
+            {workspace.permissions.includes("privacy.manage") ? (
+              <Panel title="Privacy" divided={false}>
+                <PrivacyPanel
+                  slug={slug}
+                  contactId={id}
+                  fullName={record.full_name}
+                  exportHref={`${path}/export`}
+                  erasedAt={record.erased_at ?? null}
+                />
+              </Panel>
+            ) : null}
+          </>
         }
         aside={
           <ActivitySection

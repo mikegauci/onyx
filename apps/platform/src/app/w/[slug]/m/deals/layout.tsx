@@ -21,7 +21,10 @@ export default async function DealsLayout({ children, params }: Props) {
     path,
   );
   const workspace = requireOk(await getWorkspace(slug), path);
-  const sections = [{ href: dealsPath(slug, "board"), label: "Deals" }];
+  const sections = [
+    { href: dealsPath(slug, "board"), label: "Deals" },
+    { href: dealsPath(slug, "finance"), label: "Finance" },
+  ];
   if (workspace.permissions.includes("deals.manage")) {
     sections.push({ href: dealsPath(slug, "settings"), label: "Settings" });
   }

@@ -82,3 +82,15 @@ Insights shows deals (new, sold, collected, cancelled, open) and customer upload
 
 Automatic customer reminders with a fresh upload link, through an approved WhatsApp utility
 template, once Meta approves the document template (owner decision, 2026-11-25).
+
+## Finance (VA-006)
+
+Deals → Finance has the estimate calculator (Ventur's formula: simple interest plus an
+onboarding fee and a yearly financing & maintenance fee) and the finance applications. An
+application records the applicant type, marital status, the requested figures with their
+estimate, and optionally the employer and income. Income is visible only with
+`finance.manage`, and staff record Ventur's decision.
+
+Linking an application to a deal makes the deal financed and switches its checklist to that
+applicant type's documents. The figures, terms, disclaimer and the KYC and CCR PDFs are under
+Deals → Settings. Plan: `docs/plans/va-006-finance-prequalification.md`.

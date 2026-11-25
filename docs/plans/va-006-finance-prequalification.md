@@ -131,3 +131,17 @@ Status: **approved 2026-11-25** · 2026-11-25 · Roadmap: `docs/roadmap-addition
 
 - Submitting to a finance provider electronically, credit checks, e-signatures, payment
   schedules (VA-008).
+
+## Changes during implementation (part 1)
+
+- **Permission:** `finance.manage` (owners and admins). It shows the income details and decision
+  notes, records approvals and declines, and reopens closed applications.
+- **Rates:** stored as basis points (650 = 6.5%). The estimate is worked out in exact decimals
+  and rounded half up to the cent at the end. A test reproduces the website's example: €16,500
+  with €3,000 down over 5 years gives €318.38 a month.
+- **Terms:** in half years, 6 to 120 months by default; owners can change the range.
+- **Checklist items:** a financed deal with an application gets the applicant type's documents
+  (`fin_…` keys, and the spouse's when married). They replace the generic "Finance papers" item.
+  The KYC and CCR items link to the blank forms, both on the deal and on the customer upload page.
+- **Privacy:** export includes finance applications. Erasing a person clears their employer,
+  income, notes and decision note, and keeps the figures.

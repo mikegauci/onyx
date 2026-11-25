@@ -97,6 +97,14 @@ export default async function DealPage({ params }: Props) {
                       </Badge>
                     </p>
                     {doc.note ? <p className="text-muted-foreground text-xs">{doc.note}</p> : null}
+                    {doc.form_kind ? (
+                      <a
+                        className={`${LINK} self-start text-xs`}
+                        href={dealsPath(slug, "finance", "forms", doc.form_kind)}
+                      >
+                        Download the blank form
+                      </a>
+                    ) : null}
                     {doc.rejection_reason ? (
                       <p className="text-destructive text-xs">Rejected: {doc.rejection_reason}</p>
                     ) : null}
@@ -246,6 +254,22 @@ export default async function DealPage({ params }: Props) {
               ]}
             />
           </Panel>
+          {deal.finance_application_id || (canWrite && open) ? (
+            <Panel title="Finance" as="h3" divided={false}>
+              {deal.finance_application_id ? (
+                <Link
+                  className={LINK}
+                  href={dealsPath(slug, "finance", deal.finance_application_id)}
+                >
+                  Open the finance application
+                </Link>
+              ) : (
+                <Link className={LINK} href={`${dealsPath(slug, "finance", "new")}?deal_id=${id}`}>
+                  Start a finance application
+                </Link>
+              )}
+            </Panel>
+          ) : null}
           {canWrite && open ? (
             <Panel title="Customer upload link" as="h3" divided={false}>
               <RequestDocuments

@@ -7,7 +7,13 @@ import { useRef, useState, useTransition } from "react";
 export type UploadPage = {
   business_name: string;
   expires_at: string;
-  needed: { id: string; label: string; note: string | null; rejected_reason: string | null }[];
+  needed: {
+    id: string;
+    label: string;
+    note: string | null;
+    rejected_reason: string | null;
+    form_kind?: string | null;
+  }[];
   received: number;
 };
 
@@ -137,6 +143,14 @@ function Item({
       <div className="flex flex-col gap-1">
         <p className="font-medium">{item.label}</p>
         {item.note ? <p className="text-muted-foreground text-sm">{item.note}</p> : null}
+        {item.form_kind ? (
+          <a
+            className="text-brand self-start text-sm underline-offset-4 hover:underline"
+            href={`${apiUrl}/v1/public/uploads/${token}/forms/${item.form_kind}`}
+          >
+            Download the blank form, fill it in and upload it here
+          </a>
+        ) : null}
         {item.rejected_reason ? (
           <p className="text-destructive text-sm">Please send it again: {item.rejected_reason}</p>
         ) : null}

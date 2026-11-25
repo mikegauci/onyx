@@ -34,6 +34,7 @@ from app.core.tenancy.models import MembershipRole
 from app.modules.automotive import public as automotive
 from app.modules.crm import public as crm
 from app.modules.deals import schemas, uploads
+from app.modules.deals.finance_rules import FinanceItem
 from app.modules.deals.lifecycle import (
     ACTIVE_STAGES,
     FINAL_STAGES,
@@ -48,7 +49,14 @@ from app.modules.deals.lifecycle import (
     check_move,
     sniff,
 )
-from app.modules.deals.models import Deal, DealDocument, DealEvent, DealSettings, DealUploadLink
+from app.modules.deals.models import (
+    Deal,
+    DealDocument,
+    DealEvent,
+    DealSettings,
+    DealUploadLink,
+    FinanceApplication,
+)
 from app.modules.quotations import public as quotations
 
 MAX_LISTED = 200
@@ -251,6 +259,46 @@ class DealService:
             )
         )
 
+    async def apply_finance_checklist(self, deal: Deal, items: list[FinanceItem]) -> None:
+        """A financed deal's checklist follows its finance application (VA-006).
+
+        Adds the applicant type's documents (and the blank forms' links), and removes the
+        generic finance item and finance items that no longer apply, if nothing was received
+        for them yet.
+        """
+        existing = {d.key: d for d in await self._items(deal)}
+        wanted = {i.key for i in items}
+        for key, doc in existing.items():
+            stale = key == "finance_papers" or (key.startswith("fin_") and key not in wanted)
+            if stale and doc.state is DealDocumentState.MISSING:
+                await self.db.delete(doc)
+        position = max((d.position for d in existing.values()), default=0) + 1
+        for item in items:
+            if item.key in existing:
+                continue
+            self.db.add(
+                DealDocument(
+                    organization_id=self.org,
+                    deal_id=deal.id,
+                    key=item.key,
+                    label=item.label,
+                    required=item.required,
+                    position=position,
+                    state=DealDocumentState.MISSING,
+                    form_kind=item.form_kind,
+                )
+            )
+            position += 1
+        await self.db.flush()
+
+    async def _finance_application_id(self, deal_id: uuid.UUID) -> uuid.UUID | None:
+        return await self.db.scalar(
+            select(FinanceApplication.id).where(
+                FinanceApplication.organization_id == self.org,
+                FinanceApplication.deal_id == deal_id,
+            )
+        )
+
     async def update(self, deal_id: uuid.UUID, body: schemas.DealUpdate) -> schemas.DealDetail:
         deal = await self._deal(deal_id, lock=True)
         if deal.stage in FINAL_STAGES:
@@ -279,7 +327,11 @@ class DealService:
         """Add items that now apply; remove untouched ones that no longer do."""
         template = template_from(await self._settings_row())
         existing = {d.key: d for d in await self._items(deal)}
+        # With a finance application, its own documents replace the generic finance item.
+        has_application = await self._finance_application_id(deal.id) is not None
         for position, item in enumerate(template):
+            if has_application and item.when is ChecklistCondition.FINANCED:
+                continue
             wanted = applies(
                 item,
                 financed=deal.financed,
@@ -684,6 +736,7 @@ class DealService:
         link = await uploads.active_link(self.db, self.org, deal.id)
         return schemas.DealDetail(
             **summary.model_dump(),
+            finance_application_id=await self._finance_application_id(deal.id),
             upload_link=schemas.UploadLinkOut(
                 expires_at=link.expires_at,
                 upload_count=link.upload_count,
@@ -722,6 +775,7 @@ class DealService:
                     received_from=d.received_from,
                     verified_at=d.verified_at,
                     file_deleted_at=d.file_deleted_at,
+                    form_kind=d.form_kind,
                 )
                 for d in items
             ],

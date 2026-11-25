@@ -16,20 +16,22 @@ describe("web design service page", () => {
     }
     expect(packages.getByText(/year including vat/i)).toBeVisible();
 
-    for (const [name, technology, website] of [
-      ["Pantrila", "LangGraph", "https://pantrila.com/"],
-      ["QTM Detailing", "Motion", "https://www.qtmdetailing.mt/"],
-      ["MaltaGuns", "Tiptap", "https://www.maltaguns.com/"],
-      ["Rotta", "Supabase", "https://rotta.mt/"],
-      ["Malta Detailing Academy", "Next.js", "https://mda.mt/"],
-      ["Jam Weddings", "Mailjet", "https://jam.mt/"],
-      ["Thrust Studio", "Astro", "https://www.thruststudio.co/"],
-      ["Beachaven", "React", "https://www.beachavencomplex.com/"],
-      ["Motor Element", "Shopify", "https://www.motorelement.com/"],
+    const clients = within(screen.getByRole("region", { name: "Clients we worked with" }));
+    for (const [name, technology, website, packageName] of [
+      ["Pantrila", "LangGraph", "https://pantrila.com/", "Onyx"],
+      ["QTM Detailing", "Motion", "https://www.qtmdetailing.mt/", "Gold"],
+      ["MaltaGuns", "Tiptap", "https://www.maltaguns.com/", "Onyx"],
+      ["Rotta", "Supabase", "https://rotta.mt/", "Gold"],
+      ["Malta Detailing Academy", "Next.js", "https://mda.mt/", "Gold"],
+      ["Jam Weddings", "Mailjet", "https://jam.mt/", "Bronze"],
+      ["Thrust Studio", "Astro", "https://www.thruststudio.co/", "Bronze"],
+      ["Beachaven", "React", "https://www.beachavencomplex.com/", "Silver"],
+      ["Motor Element", "Shopify", "https://www.motorelement.com/", "Gold"],
     ] as const) {
-      const project = within(screen.getByRole("article", { name }));
+      const project = within(clients.getByRole("article", { name }));
       expect(project.getByRole("heading", { name })).toBeVisible();
       expect(project.getByRole("img")).toBeVisible();
+      expect(project.getByText(packageName, { exact: true })).toBeVisible();
       for (const label of [
         `${name} screenshot — visit website (opens in a new tab)`,
         `Visit website — ${name} (opens in a new tab)`,

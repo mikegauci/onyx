@@ -9,6 +9,7 @@ import {
   webDesignPath,
   webDesignPhone,
   webDesignProjects,
+  type WebDesignPackageName,
 } from "@/content/web-design";
 import { siteEnv } from "@/lib/env";
 
@@ -37,12 +38,12 @@ const section = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const heading = "text-3xl font-light tracking-tight sm:text-5xl";
 const eyebrow = "text-brand font-mono text-xs tracking-[0.18em] uppercase";
 
-const packageAccents = [
-  "border-t-[#bb8564]",
-  "border-t-[#bdc4d5]",
-  "border-t-[#e5bd64]",
-  "border-t-brand",
-];
+const packageAccents = {
+  Bronze: "[--package-accent:#bb8564]",
+  Silver: "[--package-accent:#bdc4d5]",
+  Gold: "[--package-accent:#e5bd64]",
+  Onyx: "[--package-accent:var(--brand)]",
+} satisfies Record<WebDesignPackageName, string>;
 
 export default function WebDesignPage() {
   const { platformUrl } = siteEnv();
@@ -105,10 +106,10 @@ export default function WebDesignPage() {
             </p>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {webDesignPackages.map(({ name, price, type, description, features }, index) => (
+            {webDesignPackages.map(({ name, price, type, description, features }) => (
               <article
                 key={name}
-                className={`flex flex-col rounded-2xl border border-t-2 border-white/10 bg-white/[0.035] p-5 xl:p-6 ${packageAccents[index]}`}
+                className={`flex flex-col rounded-2xl border border-t-2 border-white/10 [border-top-color:var(--package-accent)] bg-white/[0.035] p-5 xl:p-6 ${packageAccents[name]}`}
               >
                 <h3 className="text-xl font-medium">{name}</h3>
                 <p className="mt-4 flex flex-wrap items-baseline gap-x-2">
@@ -158,38 +159,44 @@ export default function WebDesignPage() {
         >
           <div className={section}>
             <h2 id="work-heading" className={heading}>
-              Selected work
+              Clients we worked with
             </h2>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {webDesignProjects.map(
-                ({ name, type, description, screenshot, technologies, website }) => (
+                ({ name, type, description, screenshot, technologies, website, packageName }) => (
                   <article
                     key={name}
                     aria-label={name}
-                    className="portfolio-card bg-background flex flex-col overflow-hidden rounded-2xl border border-white/10"
+                    className={`portfolio-card bg-background flex flex-col overflow-hidden rounded-2xl border ${packageAccents[packageName]}`}
                   >
-                    <a
-                      href={website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${name} screenshot — visit website (opens in a new tab)`}
-                      className="portfolio-image group focus-visible:outline-ring relative block aspect-[8/5] overflow-hidden border-b border-white/10 focus-visible:outline-2 focus-visible:-outline-offset-3"
-                    >
-                      <Image
-                        src={screenshot.src}
-                        alt={screenshot.alt}
-                        width={1280}
-                        height={screenshot.height}
-                        sizes="(min-width: 1152px) 352px, (min-width: 768px) 32vw, 100vw"
-                        className="portfolio-image-content h-full w-full object-contain"
-                      />
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute right-3 bottom-3 z-10 rounded-full bg-black/85 px-3 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 motion-safe:transition-opacity"
+                    <div className="relative">
+                      <a
+                        href={website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${name} screenshot — visit website (opens in a new tab)`}
+                        className="portfolio-image group focus-visible:outline-ring relative block aspect-[8/5] overflow-hidden border-b border-white/10 focus-visible:outline-2 focus-visible:-outline-offset-3"
                       >
-                        Visit website ↗
+                        <Image
+                          src={screenshot.src}
+                          alt={screenshot.alt}
+                          width={1280}
+                          height={screenshot.height}
+                          sizes="(min-width: 1152px) 352px, (min-width: 768px) 32vw, 100vw"
+                          className="portfolio-image-content h-full w-full object-contain"
+                        />
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute top-3 right-3 z-10 rounded-full bg-black/85 px-3 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 motion-safe:transition-opacity"
+                        >
+                          Visit website ↗
+                        </span>
+                      </a>
+                      <span className="portfolio-package pointer-events-none absolute right-3 bottom-3 z-10 rounded-full border bg-[#100d0b] px-3 py-1.5 text-xs font-semibold">
+                        <span className="sr-only">Package: </span>
+                        {packageName}
                       </span>
-                    </a>
+                    </div>
                     <div className="flex flex-1 flex-col p-5 sm:p-6">
                       <header>
                         <p className={eyebrow}>{type}</p>

@@ -19,11 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth.deps import WorkspaceAccess
 from app.core.db.context import TenantContext
 from app.modules.inbox import schemas
+from app.modules.inbox.channels.whatsapp import window_open
 from app.modules.inbox.ingest import set_status
 from app.modules.inbox.models import (
     BODY_MAX_LENGTH,
     REASON_MAX_LENGTH,
     AuthorKind,
+    Channel,
+    ChannelKind,
     Conversation,
     ConversationStatus,
     DeliveryStatus,
@@ -270,17 +273,31 @@ async def whatsapp_template(
 
 
 async def whatsapp_conversation_for_contact(
-    db: AsyncSession, workspace: WorkspaceAccess, contact_id: uuid.UUID, channel_id: uuid.UUID
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    contact_id: uuid.UUID,
+    channel_id: uuid.UUID | None,
 ) -> uuid.UUID | None:
-    """The contact's latest conversation on this WhatsApp channel, reopened if it was closed.
+    """The contact's latest conversation on this WhatsApp channel (``None``: on any WhatsApp
+    channel), reopened if it was closed.
 
-    None if they never wrote on it. Used to send a car alert (VA-005) into their thread.
+    None if they never wrote there. Used to send a car alert or follow-up (VA-005).
     """
+    org = workspace.tenant.organization_id
+    on_channel = (
+        Conversation.channel_id == channel_id
+        if channel_id is not None
+        else Conversation.channel_id.in_(
+            select(Channel.id).where(
+                Channel.organization_id == org, Channel.kind == ChannelKind.WHATSAPP
+            )
+        )
+    )
     conversation = await db.scalar(
         select(Conversation)
         .where(
-            Conversation.organization_id == workspace.tenant.organization_id,
-            Conversation.channel_id == channel_id,
+            Conversation.organization_id == org,
+            on_channel,
             Conversation.contact_id == contact_id,
         )
         .order_by(Conversation.last_message_at.desc().nulls_last(), Conversation.created_at.desc())
@@ -316,3 +333,48 @@ async def mark_waiting_after_reply(
     set_status(db, conversation, ConversationStatus.WAITING_ON_CUSTOMER, None, reason="reply_sent")
     await db.flush()
     return True
+
+
+async def is_whatsapp(db: AsyncSession, tenant: TenantContext, conversation_id: uuid.UUID) -> bool:
+    """Whether the conversation is on a WhatsApp channel."""
+    kind = await db.scalar(
+        select(Channel.kind)
+        .join(
+            Conversation,
+            (Conversation.organization_id == Channel.organization_id)
+            & (Conversation.channel_id == Channel.id),
+        )
+        .where(
+            Conversation.organization_id == tenant.organization_id,
+            Conversation.id == conversation_id,
+        )
+    )
+    return kind is ChannelKind.WHATSAPP
+
+
+async def reopen_for_reply(
+    db: AsyncSession, workspace: WorkspaceAccess, conversation_id: uuid.UUID
+) -> uuid.UUID:
+    """Reopen a closed conversation so a staff-sent follow-up (VA-005) can be posted in it."""
+    conversation = await db.scalar(
+        select(Conversation)
+        .where(
+            Conversation.organization_id == workspace.tenant.organization_id,
+            Conversation.id == conversation_id,
+        )
+        .with_for_update()
+    )
+    if conversation is not None and conversation.status is ConversationStatus.CLOSED:
+        set_status(
+            db, conversation, ConversationStatus.OPEN, workspace.user.id, reason="car_follow_up"
+        )
+        await db.flush()
+    return conversation_id
+
+
+async def whatsapp_window_open(
+    db: AsyncSession, workspace: WorkspaceAccess, conversation_id: uuid.UUID
+) -> bool:
+    """Whether free-form WhatsApp text may be sent now (the customer wrote in the last 24h)."""
+    service = InboxService(db, workspace)
+    return window_open(await service._last_whatsapp_inbound(conversation_id), datetime.now(UTC))

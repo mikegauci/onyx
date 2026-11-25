@@ -21,6 +21,7 @@ async def is_enabled(db: AsyncSession, workspace: WorkspaceAccess) -> bool:
 
 @dataclass(frozen=True)
 class VehicleInfo:
+    id: uuid.UUID
     stock_number: str | None
     title: str
     year: int | None
@@ -66,6 +67,7 @@ async def search_available(
     )
     return [
         VehicleInfo(
+            id=v.id,
             stock_number=v.stock_number,
             title=v.title,
             year=v.year,
@@ -126,6 +128,8 @@ async def set_held_status(
         _set_status(
             vehicle, VehicleStatus.SOLD if sold else VehicleStatus.RESERVED, f"deal:{deal_id}"
         )
+        if sold:
+            await _sold(db, tenant, vehicle.id)
 
 
 async def release_vehicle(
@@ -145,6 +149,8 @@ async def release_vehicle(
         return
     vehicle.held_by_deal_id = None
     _set_status(vehicle, VehicleStatus.SOLD if sold else VehicleStatus.AVAILABLE, f"deal:{deal_id}")
+    if sold:
+        await _sold(db, tenant, vehicle.id)
 
 
 async def vehicle_titles(
@@ -175,9 +181,48 @@ async def _held(
     )
 
 
+async def _sold(db: AsyncSession, tenant: TenantContext, vehicle_id: uuid.UUID) -> None:
+    """A deal sold the car: its other recent enquirers get a follow-up (VA-005)."""
+    from app.modules.automotive import followups  # here: followups reaches CRM and inbox
+
+    await db.flush()
+    await followups.on_sold(db, tenant, [vehicle_id])
+
+
 def _set_status(vehicle: Vehicle, status: VehicleStatus, source: str) -> None:
     vehicle.status = status.value
     vehicle.field_sources = {
         **vehicle.field_sources,
         "status": {"source": source, "at": datetime.now(UTC).isoformat()},
     }
+
+
+# --- stock-match alerts (VA-005) -----------------------------------------------------------
+
+
+async def note_assistant_findings(
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    *,
+    contact_id: uuid.UUID | None,
+    lead_id: uuid.UUID | None,
+    conversation_id: uuid.UUID,
+    vehicle_ids: Iterable[uuid.UUID],
+    wanted: dict[str, object] | None,
+) -> None:
+    """After an assistant run: the cars it found for the customer, and its suggested criteria."""
+    from app.modules.automotive import followups
+    from app.modules.automotive.models import InterestSource
+
+    ids = list(vehicle_ids)
+    if contact_id is not None and ids:
+        await followups.record_interest(
+            db,
+            workspace.tenant,
+            contact_id=contact_id,
+            vehicle_ids=ids,
+            conversation_id=conversation_id,
+            source=InterestSource.ASSISTANT,
+        )
+    if lead_id is not None and wanted:
+        await followups.suggest_wanted(db, workspace, lead_id, dict(wanted))

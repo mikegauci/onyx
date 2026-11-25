@@ -1,6 +1,6 @@
 # VA-005 — Stock-match alerts and sold-car follow-up
 
-Status: part 1 built 2026-11-25. Depends on VA-001 (vehicles), PR-019 (WhatsApp) and PR-021
+Status: part 1 merged (#88); part 2 built 2026-11-25. Depends on VA-001 (vehicles), PR-019 (WhatsApp) and PR-021
 (scheduler), all merged.
 
 ## Owner decisions (2026-11-25)
@@ -126,6 +126,15 @@ a marketing template, after its consent check.
   provider.
 
 ## Part 2 — assistant suggestions, vehicle interest and sold-car follow-up
+
+As built:
+
+- Interest comes from the assistant (every available car its `search_vehicles` returned for
+  the contact's conversation) and from staff (link a car on the lead). Deals are not needed:
+  anyone with a deal on the sold car is excluded instead.
+- Follow-ups are created when a car becomes sold, either through a website import or a deal
+  (sold or collected). No scheduler is needed.
+- Without the alert template, the free-form reply goes in the contact's latest WhatsApp thread.
 
 - `automotive_vehicle_interests` (`contact_id`, `vehicle_id`, `conversation_id`, `source`,
   `last_at`) is recorded when the assistant's reply cites a car (the `search_vehicles` hits used

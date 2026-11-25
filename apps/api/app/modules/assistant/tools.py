@@ -247,10 +247,48 @@ async def search_vehicles(
         for c in cars
     ]
     deps.trace.seen_vehicles.update(h.listing_url for h in hits if h.listing_url)
+    deps.trace.seen_vehicle_ids.update(c.id for c in cars)
     deps.trace.calls.append(
         {"tool": "search_vehicles", "stock_numbers": [h.stock_number for h in hits]}
     )
     return VehicleResults(found=bool(hits), vehicles=hits)
+
+
+class WantedNoted(BaseModel):
+    ok: bool
+    note: str
+
+
+async def suggest_wanted(
+    ctx: RunContext[AssistantDeps],
+    make: str | None = None,
+    model: str | None = None,
+    max_price_eur: int | None = None,
+    min_year: int | None = None,
+    max_mileage_km: int | None = None,
+    fuel: str | None = None,
+) -> WantedNoted:
+    """Note what kind of car the customer is looking for, so staff can alert them later.
+
+    Use only values the customer stated in their messages; leave the rest out. Never guess.
+    Staff confirm it before it is used. Do not mention this to the customer.
+    """
+    criteria: dict[str, object] = {
+        "make": make[:100] if make else None,
+        "model": model[:100] if model else None,
+        "price_max_cents": max_price_eur * 100 if max_price_eur and max_price_eur > 0 else None,
+        "year_min": min_year,
+        "mileage_max_km": max_mileage_km,
+        "fuel": fuel[:64] if fuel else None,
+    }
+    if all(v is None for v in criteria.values()):
+        return WantedNoted(ok=False, note="Nothing to note.")
+    ctx.deps.trace.wanted_suggestion = criteria
+    ctx.deps.trace.calls.append({"tool": "suggest_wanted"})
+    return WantedNoted(ok=True, note="Noted for staff to confirm.")
+
+
+WANTED_TOOL: Tool[AssistantDeps] = Tool(suggest_wanted, takes_ctx=True, sequential=True)
 
 
 class FinanceEstimateResult(BaseModel):
@@ -333,7 +371,7 @@ def tools_for(
     if knowledge_enabled:
         tools.append(KNOWLEDGE_TOOL)
     if automotive_enabled:
-        tools.append(VEHICLE_TOOL)
+        tools.extend([VEHICLE_TOOL, WANTED_TOOL])
     if finance_enabled:
         tools.append(FINANCE_TOOL)
     return tools

@@ -124,6 +124,20 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE m.organization_id = :org AND m.contact_id = :c ORDER BY m.created_at",
     ),
     (
+        "cars_asked_about",
+        "SELECT v.title AS vehicle, i.source, i.last_at FROM automotive_interests i "
+        "JOIN automotive_vehicles v ON v.organization_id = i.organization_id "
+        "AND v.id = i.vehicle_id WHERE i.organization_id = :org AND i.contact_id = :c "
+        "ORDER BY i.last_at",
+    ),
+    (
+        "sold_car_follow_ups",
+        "SELECT v.title AS sold_vehicle, f.status, f.created_at, f.decided_at "
+        "FROM automotive_followups f JOIN automotive_vehicles v "
+        "ON v.organization_id = f.organization_id AND v.id = f.sold_vehicle_id "
+        "WHERE f.organization_id = :org AND f.contact_id = :c ORDER BY f.created_at",
+    ),
+    (
         "deal_documents",
         "SELECT d.deal_id, d.label, d.state, d.received_at, d.received_from, d.verified_at, "
         "d.file_deleted_at, f.filename, f.content_type, f.size_bytes FROM deal_documents d "
@@ -173,6 +187,8 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "marketing_consents": "crm",
         "wanted_cars": "automotive",
         "car_alerts": "automotive",
+        "cars_asked_about": "automotive",
+        "sold_car_follow_ups": "automotive",
     }
     for name, sql in EXPORT_QUERIES:
         module = skip.get(name)
@@ -272,10 +288,11 @@ async def erase_contact(
     # Consent records and wanted criteria (VA-005) go entirely.
     params = {"org": org, "c": contact_id}
     if await _module_on(db, org, "automotive"):
-        await db.execute(
-            text("DELETE FROM automotive_matches WHERE organization_id = :org AND contact_id = :c"),
-            params,
-        )
+        for table in ("automotive_matches", "automotive_followups", "automotive_interests"):
+            await db.execute(
+                text(f"DELETE FROM {table} WHERE organization_id = :org AND contact_id = :c"),  # noqa: S608 - fixed names
+                params,
+            )
         await db.execute(
             text("DELETE FROM automotive_wanted WHERE organization_id = :org AND contact_id = :c"),
             params,

@@ -221,6 +221,17 @@ class AssistantService:
             run.model = f"{result.usage.provider}:{result.usage.model}"
             run.cost_usd_micros = result.usage.cost_usd_micros
 
+        if result is not None and (deps.trace.seen_vehicle_ids or deps.trace.wanted_suggestion):
+            await automotive.note_assistant_findings(
+                self.db,
+                self.workspace,
+                contact_id=thread.contact_id,
+                lead_id=thread.lead_id,
+                conversation_id=thread.conversation_id,
+                vehicle_ids=deps.trace.seen_vehicle_ids,
+                wanted=deps.trace.wanted_suggestion,
+            )
+
         if result is not None and result.output.action == "finance":
             return await self._finance(thread, run, result.output, deps, finance_enabled)
 

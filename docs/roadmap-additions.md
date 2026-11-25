@@ -11,7 +11,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | VA-002   | Ventur     | Auto-send policy for low-risk AI replies      | PR-015, PR-016                | 12–20h     | Paused by the owner 2026-11-23; partial work reverted                                  |
 | VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                                       |
 | VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | Merged ([#64](https://github.com/mikegauci/onyx/pull/64)); go-live needs a +356 number |
-| VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Part 1 in review; part 2 (assistant suggestions, sold-car follow-up) next              |
+| VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Part 1 merged (#88); part 2 (sold-car follow-up) in review                             |
 | VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Merged (#85, #86)                                                                      |
 | VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Parts 1–3 merged; customer reminders wait for the template                             |
 | VA-008   | Ventur     | In-house finance schedules and reminders      | VA-007                        | 14–24h     | Approved 2026-11-19, not started; payment record source unknown                        |

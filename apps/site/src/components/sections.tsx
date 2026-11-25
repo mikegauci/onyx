@@ -78,11 +78,9 @@ export function SiteNav({ platformUrl, innerPage = false }: SiteChromeProps) {
           >
             Sign in
           </a>
-          <span data-magnetic className="magnetic inline-block">
-            <Button asChild size="sm" variant="brand" className="btn-sweep rounded-full px-4">
-              <a href={innerPage ? "#enquiry" : "#contact"}>Start a project</a>
-            </Button>
-          </span>
+          <Button asChild size="sm" variant="brand" className="btn-sweep rounded-full px-4">
+            <a href={innerPage ? "#enquiry" : "#contact"}>Start a project</a>
+          </Button>
         </div>
       </nav>
     </header>
@@ -421,14 +419,11 @@ export function Faq() {
   return (
     <section id="faq" aria-labelledby="faq-title" className={`${container} scroll-mt-24 py-28`}>
       <div className="grid gap-12 lg:grid-cols-[22rem_1fr]">
-        <div>
-          <Eyebrow>FAQ</Eyebrow>
-          <RevealHeading
-            id="faq-title"
-            text="Fair questions."
-            className="mt-6 text-4xl font-light tracking-tight"
-          />
-        </div>
+        <RevealHeading
+          id="faq-title"
+          text="Frequently Asked Questions"
+          className="text-4xl font-light tracking-tight"
+        />
         <div className="border-t border-white/10">
           {faq.map((f) => (
             <details key={f.q} className="faq group border-b border-white/10">
@@ -475,16 +470,14 @@ export function Contact() {
           the most time. We reply within two working days.
         </p>
         <div className="mt-10 flex justify-center">
-          <span data-magnetic className="magnetic inline-block">
-            <Button
-              asChild
-              size="lg"
-              variant="brand"
-              className="btn-sweep h-14 rounded-full px-9 text-base"
-            >
-              <a href={`mailto:${site.contactEmail}`}>Email {site.contactEmail}</a>
-            </Button>
-          </span>
+          <Button
+            asChild
+            size="lg"
+            variant="brand"
+            className="btn-sweep h-14 rounded-full px-9 text-base"
+          >
+            <a href={`mailto:${site.contactEmail}`}>Email {site.contactEmail}</a>
+          </Button>
         </div>
       </div>
     </section>

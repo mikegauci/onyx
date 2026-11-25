@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "24 November 2026";
+const UPDATED = "25 November 2026";
 
 const PROVIDERS: { name: string; purpose: string; where: string }[] = [
   { name: "Supabase", purpose: "Database, sign-in and file storage", where: "EU (Frankfurt)" },
@@ -112,7 +112,8 @@ export default function PrivacyPage() {
         <ul>
           <li>
             <strong>Website enquiries:</strong> the name, email address and project details you send
-            us, plus any business name or package choice you provide.
+            us, plus any business name or package choice you provide. If you arrive from a tagged
+            ad, we may include the campaign label with your enquiry.
           </li>
           <li>
             <strong>Account data:</strong> name, work email and role of the staff who use Onyx
@@ -147,7 +148,7 @@ export default function PrivacyPage() {
           </li>
           <li>To sign people in, secure accounts and prevent abuse.</li>
           <li>To bill our business customers.</li>
-          <li>To answer enquiries sent to us.</li>
+          <li>To answer enquiries and see which campaigns lead people to contact us.</li>
         </ul>
         <p>
           The legal bases are the contract with our customer, our legitimate interest in running a

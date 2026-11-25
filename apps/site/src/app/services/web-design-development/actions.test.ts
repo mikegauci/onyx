@@ -40,6 +40,27 @@ describe("website enquiries", () => {
     expect(new Headers(send.mock.calls[1]?.[1]?.headers).get("Idempotency-Key")).toBe(key);
   });
 
+  it("labels recognised campaigns and keeps untrusted labels out of enquiry emails", async () => {
+    vi.stubEnv("ONYX_SITE_RESEND_API_KEY", "fake-key");
+    const send = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", send);
+
+    const form = validEnquiry();
+    form.set("campaign", "website_design_300");
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+    form.set("campaign", "unknown\nInjected label");
+    expect(await sendWebEnquiry(initialState, form)).toMatchObject({ status: "sent" });
+
+    const [tagged, ignored] = send.mock.calls.map(([, request]) => request!);
+    expect(JSON.parse(tagged?.body as string).text).toContain(
+      "Campaign: Facebook paid ad · Website design €300 (website_design_300)",
+    );
+    expect(JSON.parse(ignored?.body as string).text).not.toMatch(/Campaign:|Injected label/);
+    expect(new Headers(tagged?.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(ignored?.headers).get("Idempotency-Key"),
+    );
+  });
+
   it.each([
     ["email", "visitor@example.com,other@example.com"],
     ["package", "Unknown"],

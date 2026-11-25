@@ -1,8 +1,15 @@
 import { render, screen, within } from "@testing-library/react";
+import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation";
 
 import WebDesignPage from "./page";
 
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useSearchParams: vi.fn(),
+}));
+
 describe("web design service page", () => {
+  beforeEach(() => vi.mocked(useSearchParams).mockReturnValue(new ReadonlyURLSearchParams()));
   it("publishes all VAT-inclusive packages, selected work and an enquiry form", () => {
     render(<WebDesignPage />);
 
@@ -65,4 +72,35 @@ describe("web design service page", () => {
       expect(screen.getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
   });
+
+  it.each([
+    ["facebook", "paid_social", "website_design_300", true],
+    ["facebook", "organic", "website_design_300", false],
+    ["instagram", "paid_social", "website_design_300", false],
+    ["facebook", "paid_social", "unknown", false],
+  ])(
+    "attributes only the exact Facebook campaign (%s/%s/%s)",
+    (source, medium, campaign, match) => {
+      const query = new ReadonlyURLSearchParams({
+        utm_source: source,
+        utm_medium: medium,
+        utm_campaign: campaign,
+      });
+      vi.mocked(useSearchParams).mockReturnValue(query);
+      render(<WebDesignPage />);
+
+      const form = screen.getByRole("form", { name: "Web project enquiry" });
+      const data = new FormData(form as HTMLFormElement);
+      expect(data.get("campaign")).toBe(match ? "website_design_300" : null);
+      const whatsApp = new URL(
+        screen.getByRole("link", { name: /whatsapp/i }).getAttribute("href")!,
+      );
+      expect(whatsApp.origin + whatsApp.pathname).toBe("https://wa.me/35699256511");
+      expect(whatsApp.searchParams.get("text")).toBe(
+        match
+          ? "Hi Onyx Studio! I saw your Facebook ad for websites from €300 and would like to know more."
+          : null,
+      );
+    },
+  );
 });

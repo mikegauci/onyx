@@ -8,7 +8,7 @@ needed, nothing else. Uploads are checked like staff uploads (type from the byte
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Request
+from fastapi import APIRouter, Path, Request, Response
 
 from app.core.errors import ErrorResponse, ServiceUnavailableError
 from app.core.storage.deps import ObjectStoreDep
@@ -39,7 +39,11 @@ def _out(page: UploadPage) -> schemas.PublicUploadPage:
         expires_at=page.expires_at,
         needed=[
             schemas.PublicUploadItem(
-                id=i.id, label=i.label, note=i.note, rejected_reason=i.rejected_reason
+                id=i.id,
+                form_kind=i.form_kind,
+                label=i.label,
+                note=i.note,
+                rejected_reason=i.rejected_reason,
             )
             for i in page.needed
         ],
@@ -69,3 +73,23 @@ async def upload_customer_document(
         token, document_id, filename=body.filename, data=data, store=store
     )
     return _out(page)
+
+
+@router.get(
+    "/{token}/forms/{kind}",
+    response_class=Response,
+    responses={**ERRORS, 200: {"content": {"application/pdf": {}}, "description": "The form"}},
+)
+async def download_customer_form(
+    token: Token,
+    kind: Annotated[str, Path(pattern="^(kyc|ccr)$")],
+    request: Request,
+    store: ObjectStoreDep,
+) -> Response:
+    filename, data = await _uploads(request).form(token, kind, store)
+    safe = "".join(c for c in filename if c.isalnum() or c in "._- ")[:120] or f"{kind}.pdf"
+    return Response(
+        content=data,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{safe}"'},
+    )

@@ -75,6 +75,7 @@ async def revoke_links(db: AsyncSession, org: uuid.UUID, deal_id: uuid.UUID) -> 
 @dataclass(frozen=True)
 class NeededItem:
     id: uuid.UUID
+    form_kind: str | None
     label: str
     note: str | None
     rejected_reason: str | None
@@ -143,6 +144,7 @@ class CustomerUploads:
             needed=[
                 NeededItem(
                     d.id,
+                    d.form_kind,
                     d.label,
                     d.note,
                     d.rejection_reason if d.state is DealDocumentState.REJECTED else None,
@@ -226,3 +228,16 @@ class CustomerUploads:
                 priority=TaskPriority.NORMAL,
             )
             return await self._page(db, link)
+
+    async def form(self, token: str, kind: str, store: ObjectStore) -> tuple[str, bytes]:
+        """A blank finance form (KYC or CCR) for a customer with a valid link."""
+        from app.modules.deals.finance import load_settings
+
+        link = await self._resolve(token)
+        async with worker_transaction(self.sessions, link.organization_id) as (db, tenant):
+            row = await load_settings(db, link.organization_id)
+            file_id = getattr(row, f"{kind}_form_file_id", None) if row else None
+            if file_id is None:
+                raise LinkNotValidError("This form is not available.")
+            content = await TenantFileService(db, tenant, store).read(file_id)
+            return content.file.filename, content.data

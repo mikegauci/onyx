@@ -457,3 +457,74 @@ async def email_conversation_for_contact(
     )
     await db.flush()
     return conversation.id
+
+
+@dataclass(frozen=True)
+class Delivered:
+    channel: str  # "whatsapp" or "email"
+    message_id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class TemplateChoice:
+    """An approved WhatsApp utility template and its values, for outside the 24-hour window."""
+
+    template_id: uuid.UUID
+    channel_id: uuid.UUID
+    values: Sequence[str]
+
+
+class NoChannelError(Exception):
+    """The contact has no WhatsApp thread we may write in, and no email address to use."""
+
+
+async def deliver_to_contact(
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    contact: crm.ContactSummary,
+    *,
+    text: str,
+    email_subject: str,
+    idempotency_key: str,
+    template: TemplateChoice | None,
+) -> Delivered:
+    """Send a staff-approved message to a contact (VA-009 review requests and reminders).
+
+    WhatsApp first: free-form ``text`` inside the 24-hour window, else ``template``. Then email,
+    in the contact's latest email thread or a new one. ``NoChannelError`` when neither works.
+    Opted-out or suppressed addresses are refused by ``send_reply`` (409), as are retries
+    (the key sends once).
+    """
+    if contact.phone:
+        conversation_id = await whatsapp_conversation_for_contact(
+            db, workspace, contact.id, template.channel_id if template else None
+        )
+        if conversation_id is not None:
+            if await whatsapp_window_open(db, workspace, conversation_id):
+                reply = await send_reply(
+                    db, workspace, conversation_id, text, idempotency_key=idempotency_key
+                )
+                return Delivered("whatsapp", reply.message_id)
+            if template is not None:
+                rendered = await render_template(
+                    db, workspace, conversation_id, template.template_id, template.values
+                )
+                reply = await send_reply(
+                    db,
+                    workspace,
+                    conversation_id,
+                    rendered.body,
+                    idempotency_key=idempotency_key,
+                    template=rendered,
+                )
+                return Delivered("whatsapp", reply.message_id)
+    if contact.email:
+        conversation_id = await email_conversation_for_contact(
+            db, workspace, contact.id, email_subject
+        )
+        if conversation_id is not None:
+            reply = await send_reply(
+                db, workspace, conversation_id, text, idempotency_key=idempotency_key
+            )
+            return Delivered("email", reply.message_id)
+    raise NoChannelError

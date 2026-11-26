@@ -13,6 +13,7 @@ import { ContactForm, ArchiveButton } from "../../_components/forms";
 import { ActivitySection } from "../../_components/activity-section";
 import { PrivacyPanel } from "../../_components/privacy-panel";
 import { ConsentPanel } from "../../../automotive/_components/alerts";
+import { CarsPanel } from "../../../automotive/_components/reminders";
 import { recordId, param, type SearchParams, customerOptions } from "../../data";
 export default async function ContactPage({
   params,
@@ -37,6 +38,11 @@ export default async function ContactPage({
   const consent = await withApi((api) =>
     api.GET("/v1/w/{slug}/crm/contacts/{contact_id}/consents/{purpose}", {
       params: { path: { slug, contact_id: id, purpose: "car_alerts" } },
+    }),
+  );
+  const cars = await withApi((api) =>
+    api.GET("/v1/w/{slug}/automotive/customer-cars", {
+      params: { path: { slug }, query: { contact_id: id } },
     }),
   );
   const customers = canWrite ? await customerOptions(slug) : [];
@@ -112,6 +118,16 @@ export default async function ContactPage({
                   consent={consent.data}
                   canWrite={canWrite && !record.archived_at}
                   timezone={workspace.timezone}
+                />
+              </Panel>
+            ) : null}
+            {cars.ok && !record.erased_at ? (
+              <Panel title="Cars" divided={false}>
+                <CarsPanel
+                  slug={slug}
+                  contactId={id}
+                  cars={cars.data.items}
+                  canWrite={canWrite && !record.archived_at}
                 />
               </Panel>
             ) : null}

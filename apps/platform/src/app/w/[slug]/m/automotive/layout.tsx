@@ -25,12 +25,14 @@ export default async function AutomotiveLayout({ children, params }: Props) {
   if (workspace.permissions.includes("crm.read")) {
     sections.push({ href: automotivePath(slug, "matches"), label: "Matches" });
     sections.push({ href: automotivePath(slug, "follow-ups"), label: "Sold-car follow-ups" });
+    sections.push({ href: automotivePath(slug, "reminders"), label: "Reminders" });
   }
   if (workspace.permissions.includes("catalogue.import")) {
     sections.push({ href: automotivePath(slug, "import"), label: "Import from website" });
   }
   if (workspace.permissions.includes("inbox.manage")) {
     sections.push({ href: automotivePath(slug, "alerts"), label: "Alert settings" });
+    sections.push({ href: automotivePath(slug, "reminder-settings"), label: "Reminder settings" });
   }
   return (
     <div className="flex flex-col gap-8">

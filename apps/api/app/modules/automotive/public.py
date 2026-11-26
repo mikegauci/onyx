@@ -3,7 +3,7 @@
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -226,3 +226,27 @@ async def note_assistant_findings(
         )
     if lead_id is not None and wanted:
         await followups.suggest_wanted(db, workspace, lead_id, dict(wanted))
+
+
+async def add_customer_car(
+    db: AsyncSession,
+    workspace: WorkspaceAccess,
+    *,
+    contact_id: uuid.UUID,
+    vehicle_id: uuid.UUID | None,
+    deal_id: uuid.UUID,
+    description: str,
+    collected_on: date,
+) -> None:
+    """A collected deal's car joins the customer's cars, for reminders (VA-009). Once per deal."""
+    from app.modules.automotive import reminders  # here: reminders reaches CRM and inbox
+
+    await reminders.add_from_deal(
+        db,
+        workspace,
+        contact_id=contact_id,
+        vehicle_id=vehicle_id,
+        deal_id=deal_id,
+        description=description,
+        collected_on=collected_on,
+    )

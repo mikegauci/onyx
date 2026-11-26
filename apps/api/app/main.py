@@ -50,6 +50,7 @@ from app.integrations.whatsapp.meta import MetaProvider
 from app.modules.assistant.routes import router as assistant_router
 from app.modules.automotive import fake_site
 from app.modules.automotive.alerts_routes import router as alerts_router
+from app.modules.automotive.reminders_routes import router as reminders_router
 from app.modules.automotive.routes import router as automotive_router
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.crm.routes import router as crm_router
@@ -322,6 +323,7 @@ def create_app(
     v1.include_router(assistant_router)
     v1.include_router(automotive_router)
     v1.include_router(alerts_router)
+    v1.include_router(reminders_router)
     v1.include_router(outbound_router)
     v1.include_router(knowledge_router)
     v1.include_router(finance_router)

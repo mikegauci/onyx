@@ -470,55 +470,35 @@ class ReviewService:
             if settings.template_ready and settings.template_id is not None
             else None
         )
-        if contact.phone:
-            conversation_id = await inbox.whatsapp_conversation_for_contact(
-                self.db, self.workspace, row.contact_id, template.channel_id if template else None
-            )
-            if conversation_id is not None:
-                if await inbox.whatsapp_window_open(self.db, self.workspace, conversation_id):
-                    reply = await inbox.send_reply(
-                        self.db, self.workspace, conversation_id, text_body, idempotency_key=key
-                    )
-                    return ReviewChannel.WHATSAPP, reply.message_id
-                if template is not None:
-                    values = {
-                        "first_name": _first_name(contact.full_name),
-                        "vehicle": car,
-                        "link": settings.google_review_url or "",
-                    }
-                    rendered = await inbox.render_template(
-                        self.db,
-                        self.workspace,
-                        conversation_id,
-                        template.id,
-                        [values[k] for k in settings.params],
-                    )
-                    reply = await inbox.send_reply(
-                        self.db,
-                        self.workspace,
-                        conversation_id,
-                        rendered.body,
-                        idempotency_key=key,
-                        template=rendered,
-                    )
-                    return ReviewChannel.WHATSAPP, reply.message_id
-        if contact.email:
-            subject = render(
-                settings.email_subject,
-                name=_first_name(contact.full_name),
-                car=car,
-                link="",
-                workspace=workspace_name,
-            )
-            conversation_id = await inbox.email_conversation_for_contact(
-                self.db, self.workspace, row.contact_id, subject
-            )
-            if conversation_id is not None:
-                reply = await inbox.send_reply(
-                    self.db, self.workspace, conversation_id, text_body, idempotency_key=key
+        values = {
+            "first_name": _first_name(contact.full_name),
+            "vehicle": car,
+            "link": settings.google_review_url or "",
+        }
+        subject = render(
+            settings.email_subject,
+            name=_first_name(contact.full_name),
+            car=car,
+            link="",
+            workspace=workspace_name,
+        )
+        try:
+            delivered = await inbox.deliver_to_contact(
+                self.db,
+                self.workspace,
+                contact,
+                text=text_body,
+                email_subject=subject,
+                idempotency_key=key,
+                template=inbox.TemplateChoice(
+                    template.id, template.channel_id, [values[k] for k in settings.params]
                 )
-                return ReviewChannel.EMAIL, reply.message_id
-        raise _SkipError("no_channel")
+                if template is not None
+                else None,
+            )
+        except inbox.NoChannelError as exc:
+            raise _SkipError("no_channel") from exc
+        return ReviewChannel(delivered.channel), delivered.message_id
 
 
 class _SkipError(Exception):

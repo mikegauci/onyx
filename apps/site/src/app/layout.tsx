@@ -38,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${GeistSans.variable} ${GeistMono.variable} dark`}
       style={{ colorScheme: "dark" }}
     >

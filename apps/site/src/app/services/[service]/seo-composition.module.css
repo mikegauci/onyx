@@ -1,0 +1,251 @@
+.composition {
+  --ink: #f6f1ee;
+  --ice: #9bdfff;
+  --edge: #9cc7e545;
+  --panel: #172939;
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  max-width: 29rem;
+  min-height: clamp(16.5rem, 34vw, 24rem);
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2.25rem) 0 1.25rem;
+  color: var(--ink);
+}
+
+.map {
+  position: absolute;
+  z-index: -1;
+  inset: 9% 1% 4% 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 62% 35%, #5cb7da50, transparent 54%),
+    repeating-linear-gradient(0deg, transparent 0 27px, #7db9db4b 28px 29px),
+    repeating-linear-gradient(90deg, transparent 0 35px, #7db9db4b 36px 37px);
+  mask-image: radial-gradient(ellipse, #000 31%, transparent 75%);
+  transform: rotate(-10deg) skewX(-7deg);
+}
+
+.street {
+  position: absolute;
+  top: 35%;
+  left: 1%;
+  width: 110%;
+  height: 4px;
+  background: #7ab3d481;
+  transform: rotate(-30deg);
+}
+
+.street:nth-child(2) {
+  top: 61%;
+  left: -6%;
+  transform: rotate(33deg);
+}
+
+.street:nth-child(3) {
+  top: 66%;
+  left: -6%;
+}
+
+.ring {
+  position: absolute;
+  top: 10%;
+  right: 12%;
+  width: 42%;
+  aspect-ratio: 1;
+  border: 1px solid #9bdfff75;
+  border-radius: 50%;
+  box-shadow:
+    0 0 25px #79c9fe40,
+    inset 0 0 25px #79c9fe40;
+}
+
+.query,
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--edge);
+  background: var(--panel);
+  box-shadow: 0 14px 32px #05080d50;
+}
+
+.query {
+  width: 88%;
+  margin-left: 3%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 100px;
+  font-size: 0.875rem;
+}
+
+.queryTerm {
+  width: fit-content;
+}
+
+.magnifier {
+  position: relative;
+  z-index: 0;
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: none;
+  border: 1px solid var(--ice);
+  border-radius: 50%;
+}
+
+.magnifier::after {
+  position: absolute;
+  bottom: -0.16rem;
+  right: -0.21rem;
+  width: 0.33rem;
+  height: 1px;
+  background: var(--ice);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.location {
+  display: grid;
+  width: fit-content;
+  justify-items: center;
+  gap: 0.3rem;
+  margin-left: 59%;
+}
+
+.pin,
+.resultIcon {
+  display: grid;
+  place-items: center;
+}
+
+.pin {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 24px #fb833b4d;
+}
+
+.pin > span {
+  position: relative;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1.5px solid #27160e;
+  border-radius: 50% 50% 0 50%;
+  transform: translateY(-1px) rotate(45deg);
+}
+
+.pin > span::before {
+  position: absolute;
+  inset: 27%;
+  border: 1px solid #27160e;
+  border-radius: 50%;
+  content: "";
+}
+
+.place {
+  padding: 1px 0.5rem;
+  border-radius: 20px;
+  background: #0c1d29;
+  font-size: 0.75rem;
+}
+
+.result {
+  width: 83%;
+  margin-left: 4%;
+  padding: 0.8rem;
+  border-radius: 14px;
+}
+
+.resultIcon {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+  border-radius: 10px;
+  background: #254459;
+}
+
+.globe {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--ice);
+  border-radius: 50%;
+}
+
+.globe::before {
+  position: absolute;
+  inset: -1px 3px;
+  border: 1px solid var(--ice);
+  border-radius: 50%;
+  content: "";
+}
+
+.globe::after {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--ice);
+  content: "";
+}
+
+.resultCopy {
+  display: grid;
+  gap: 0.12rem;
+  line-height: 1.3;
+}
+
+.resultCopy > span:first-child {
+  color: var(--ice);
+  font-size: 0.7rem;
+}
+
+.resultCopy > strong {
+  font-size: clamp(0.9rem, 2vw, 1.125rem);
+  font-weight: 550;
+}
+
+.resultCopy > span:last-child {
+  color: #b5b9c1;
+  font-size: 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .queryTerm {
+    animation: type-query 490ms steps(16, end) both;
+  }
+
+  .location {
+    animation: reveal-result 480ms 570ms ease-out both;
+  }
+
+  .result {
+    animation: reveal-result 480ms 790ms ease-out both;
+  }
+}
+
+@keyframes type-query {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes reveal-result {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

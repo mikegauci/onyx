@@ -135,14 +135,15 @@ them into chat.
       page. Without it the summary goes by email only.
 - [ ] **Facebook and Instagram:** grant Onyx page access in Meta (a follow-up item). Until then
       the summary shows them as "not connected".
-- [ ] **Production migration 0043**, after the PR merges (it needs your approval).
+- [x] **Production migration 0043:** applied 2026-11-26.
 
 ## Later Ventur items: questions to ask them
 
 - [ ] **VA-008 finance schedules:** where payment records live today (a spreadsheet,
       accounting software or paper).
-- [ ] **VA-013 site rebuild:** the pages, branding, photos and domain access needed for the
-      new ventur.com.mt.
+- [ ] **VA-013 site rebuild:** see the owner actions in `docs/plans/va-013-ventur-site.md`
+      (approval, logo and colours, contact details, DNS access, hosting plan, Resend and
+      Turnstile keys, Search Console).
 
 ## Platform and business
 

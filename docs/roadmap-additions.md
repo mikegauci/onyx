@@ -6,20 +6,20 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | -------- | ---------- | --------------------------------------------- | ----------------------------- | ---------- | -------------------------------------------------------------------------------------- |
 | DF-001   | Foundation | Design foundation: research, tokens, base UI  | PR-001                        | 6–10h      | Merged [mikegauci/onyx#2](https://github.com/mikegauci/onyx/pull/2)                    |
 | SITE-001 | Marketing  | Build the Onyx Studio landing page (onyx.mt)  | DF-001 (and PR-002 to deploy) | 20–32h     | Landing page live on onyx.mt 2026-11-23; copy awaits owner review                      |
-| SITE-002 | Marketing  | Onyx Studio web design service page           | SITE-001                      | 8–14h      | Approved 2026-11-24                                                                    |
+| SITE-002 | Marketing  | Onyx Studio web design service page           | SITE-001                      | 8–14h      | Merged (#68), with later service pages                                                 |
 | VA-001   | Ventur     | Vehicle stock extension and WordPress import  | PR-010                        | 16–28h     | Merged (#42, #43, #44); live import awaits Ventur sold-field mapping                   |
 | VA-002   | Ventur     | Auto-send policy for low-risk AI replies      | PR-015, PR-016                | 12–20h     | Paused by the owner 2026-11-23; partial work reverted                                  |
-| VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | In review; plan in `docs/plans/va-010-daily-owner-summary.md`                          |
+| VA-003   | Ventur     | Web chat channel and embeddable widget        | PR-011, VA-002                | 16–28h     | Approved 2026-11-19, not started                                                       |
 | VA-004   | Ventur     | Missed-call text-back                         | PR-019                        | 8–14h      | Merged ([#64](https://github.com/mikegauci/onyx/pull/64)); go-live needs a +356 number |
 | VA-005   | Ventur     | Stock-match alerts and sold-car follow-up     | VA-001, PR-019, PR-021        | 14–24h     | Merged (#88, #90)                                                                      |
 | VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Merged (#85, #86)                                                                      |
 | VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Parts 1–3 merged; customer reminders wait for the template                             |
 | VA-008   | Ventur     | In-house finance schedules and reminders      | VA-007                        | 14–24h     | Merged (#94, #96)                                                                      |
 | VA-009   | Ventur     | Review requests and service/renewal reminders | VA-007, PR-021                | 14–22h     | Merged (#91, #92)                                                                      |
-| VA-010   | Ventur     | Daily owner summary                           | VA-001, VA-008                | 10–18h     | Approved 2026-11-19, not started                                                       |
+| VA-010   | Ventur     | Daily owner summary                           | VA-001, VA-008                | 10–18h     | Merged (#97)                                                                           |
 | VA-011   | Ventur     | Voice agent with phone menu                   | VA-004, VA-001, VA-002        | 30–55h     | Needs separate approval after VA-004                                                   |
 | VA-012   | Ventur     | Website audit; redevelopment if justified     | VA-001                        | audit 3–5h | Replaced by VA-013 (owner, 2026-11-24)                                                 |
-| VA-013   | Ventur     | Rebuild ventur.com.mt on Onyx stock           | VA-001                        | 30–50h     | Approved 2026-11-24, not started; needs a plan                                         |
+| VA-013   | Ventur     | Rebuild ventur.com.mt on Onyx stock           | VA-001                        | 30–50h     | Planned in `docs/plans/va-013-ventur-site.md`; built in the `ventur` repo              |
 
 ### DF-001 — Design foundation
 

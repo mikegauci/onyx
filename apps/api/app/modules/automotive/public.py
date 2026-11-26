@@ -12,7 +12,7 @@ from app.core.auth.deps import WorkspaceAccess
 from app.core.db.context import TenantContext
 from app.core.modules.access import module_enabled
 from app.core.modules.registry import ModuleKey
-from app.modules.automotive.models import Vehicle, VehicleStatus
+from app.modules.automotive.models import Vehicle, VehicleStatus, status_event
 
 
 async def is_enabled(db: AsyncSession, workspace: WorkspaceAccess) -> bool:
@@ -109,7 +109,7 @@ async def hold_vehicle(
         return None
     if vehicle.held_by_deal_id is not None or vehicle.status != VehicleStatus.AVAILABLE.value:
         raise VehicleUnavailableError
-    _set_status(vehicle, VehicleStatus.RESERVED, f"deal:{deal_id}")
+    _set_status(db, vehicle, VehicleStatus.RESERVED, f"deal:{deal_id}")
     vehicle.held_by_deal_id = deal_id
     return HeldVehicle(vehicle.id, vehicle.title, vehicle.price_cents)
 
@@ -126,7 +126,7 @@ async def set_held_status(
     vehicle = await _held(db, tenant, vehicle_id, deal_id)
     if vehicle is not None:
         _set_status(
-            vehicle, VehicleStatus.SOLD if sold else VehicleStatus.RESERVED, f"deal:{deal_id}"
+            db, vehicle, VehicleStatus.SOLD if sold else VehicleStatus.RESERVED, f"deal:{deal_id}"
         )
         if sold:
             await _sold(db, tenant, vehicle.id)
@@ -148,7 +148,9 @@ async def release_vehicle(
     if vehicle is None:
         return
     vehicle.held_by_deal_id = None
-    _set_status(vehicle, VehicleStatus.SOLD if sold else VehicleStatus.AVAILABLE, f"deal:{deal_id}")
+    _set_status(
+        db, vehicle, VehicleStatus.SOLD if sold else VehicleStatus.AVAILABLE, f"deal:{deal_id}"
+    )
     if sold:
         await _sold(db, tenant, vehicle.id)
 
@@ -189,8 +191,12 @@ async def _sold(db: AsyncSession, tenant: TenantContext, vehicle_id: uuid.UUID) 
     await followups.on_sold(db, tenant, [vehicle_id])
 
 
-def _set_status(vehicle: Vehicle, status: VehicleStatus, source: str) -> None:
+def _set_status(db: AsyncSession, vehicle: Vehicle, status: VehicleStatus, source: str) -> None:
+    before = vehicle.status
     vehicle.status = status.value
+    event = status_event(vehicle, from_status=before, source="deal")
+    if event is not None:
+        db.add(event)
     vehicle.field_sources = {
         **vehicle.field_sources,
         "status": {"source": source, "at": datetime.now(UTC).isoformat()},

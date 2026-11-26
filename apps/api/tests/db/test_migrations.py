@@ -89,6 +89,9 @@ EXPECTED_TABLES = {
     "automotive_sources",
     "automotive_vehicles",
     "automotive_import_runs",
+    "automotive_vehicle_events",
+    "owner_summary_settings",
+    "owner_summaries",
 }
 
 

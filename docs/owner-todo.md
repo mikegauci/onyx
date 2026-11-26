@@ -123,7 +123,19 @@ them into chat.
       overdue payments. Choose them under Deals → Settings → Payment reminders. Without them,
       customers who have not written in 24 hours get the email instead. Agree the overdue
       wording with Ventur.
-- [ ] **Production migration 0042**, after the PR merges (it needs your approval).
+- [x] **Production migration 0042:** applied 2026-11-26.
+
+## Daily owner summary (VA-010)
+
+- [ ] **Turn it on:** Insights → Daily summary. Choose who gets it (up to five members), by
+      email and/or WhatsApp, and the time (default 19:00 Malta time). Use "Send me a test"
+      first.
+- [ ] **WhatsApp template (optional):** a **utility** template in WhatsApp Manager with the
+      summary as a value, for example "Daily summary for {{1}}: {{2}}". Choose it on the same
+      page. Without it the summary goes by email only.
+- [ ] **Facebook and Instagram:** grant Onyx page access in Meta (a follow-up item). Until then
+      the summary shows them as "not connected".
+- [ ] **Production migration 0043**, after the PR merges (it needs your approval).
 
 ## Later Ventur items: questions to ask them
 

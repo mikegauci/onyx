@@ -18,7 +18,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit.record import record_workspace_audit
 from app.core.auth.deps import WorkspaceAccess
-from app.modules.automotive.models import ImportRun, Source, Vehicle, VehicleStatus
+from app.modules.automotive.models import (
+    ImportRun,
+    Source,
+    Vehicle,
+    VehicleStatus,
+    status_event,
+)
 from app.modules.automotive.vehica import (
     DEFAULT_FIELD_MAP,
     ParsedVehicle,
@@ -208,9 +214,10 @@ async def apply_import(
     org = workspace.tenant.organization_id
     now = datetime.now(UTC)
     at = now.isoformat()
+    created: list[Vehicle] = []
     for item in plan.creates:
         wanted = _wanted(item)
-        db.add(
+        created.append(
             Vehicle(
                 organization_id=org,
                 source_ref=item.source_ref,
@@ -221,20 +228,28 @@ async def apply_import(
                 **wanted,
             )
         )
+    db.add_all(created)
+    await db.flush()  # ids for the listing events
+    events = [status_event(v, from_status=None, source="import") for v in created]
     for vehicle, item, changed in plan.updates:
         wanted = _wanted(item)
+        before = vehicle.status
         for name in changed:
             setattr(vehicle, name, wanted[name])
         vehicle.field_sources = {**vehicle.field_sources, **_sources(item, changed, at)}
         vehicle.source_modified_at = item.modified_at
         vehicle.updated_at = now
+        events.append(status_event(vehicle, from_status=before, source="import"))
     for vehicle in plan.withdrawals:
+        before = vehicle.status
         vehicle.status = VehicleStatus.WITHDRAWN.value
+        events.append(status_event(vehicle, from_status=before, source="import"))
         vehicle.field_sources = {
             **vehicle.field_sources,
             "status": {"source": "wordpress:no_longer_listed", "at": at},
         }
         vehicle.updated_at = now
+    db.add_all([e for e in events if e is not None])
     source.last_imported_at = now
     run = ImportRun(
         organization_id=org,

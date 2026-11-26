@@ -20,6 +20,7 @@ from app.core.config import Settings, get_settings
 from app.core.db.context import worker_transaction
 from app.core.db.rls import WORKER_ROLE
 from app.core.errors import NotAuthenticatedError, NotFoundError, ServiceUnavailableError
+from app.core.insights import summary as owner_summary
 from app.modules.automotive import reminders
 from app.modules.deals.jobs import run_deal_jobs
 
@@ -36,6 +37,7 @@ class RunSummary(BaseModel):
     reminders: int = 0
     payment_reminders: int = 0
     conversations_redacted: int = 0
+    owner_summaries: int = 0
     failed_tenants: int
 
 
@@ -95,14 +97,28 @@ async def run_scheduler(
             failed += 1
             logger.exception("scheduler job failed", extra={"organization_id": str(org)})
     redacted, retention_failed = await _conversation_retention(sessions)
+    summaries, summary_failed = await _owner_summaries(sessions, now)
     summary = RunSummary(
         tenants=len(tenants),
-        failed_tenants=failed + retention_failed,
+        failed_tenants=failed + retention_failed + summary_failed,
         conversations_redacted=redacted,
+        owner_summaries=summaries,
         **totals,
     )
     logger.info("scheduler run", extra=summary.model_dump())
     return summary
+
+
+async def _owner_summaries(sessions: Any, now: datetime) -> tuple[int, int]:
+    """Send each workspace's daily owner summary once it is due (VA-010)."""
+    sent = failed = 0
+    for org in await owner_summary.tenants(sessions):
+        try:
+            sent += int(await owner_summary.run_due(sessions, org, now))
+        except Exception:  # one tenant must not stop the others
+            failed += 1
+            logger.exception("owner summary failed", extra={"organization_id": str(org)})
+    return sent, failed
 
 
 RETENTION_BATCH = 200  # conversations per tenant per run; the next run continues

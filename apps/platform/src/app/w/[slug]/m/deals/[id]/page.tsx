@@ -49,6 +49,12 @@ export default async function DealPage({ params }: Props) {
     path,
   );
   const zone = workspace.timezone;
+  const schedules = deal.financed
+    ? await withApi((api) =>
+        api.GET("/v1/w/{slug}/deals/finance/schedules", { params: { path: { slug } } }),
+      )
+    : null;
+  const schedule = schedules?.ok ? schedules.data.items.find((s) => s.deal_id === id) : undefined;
   const can = (p: string) => workspace.permissions.includes(p as never);
   const canWrite = can("deals.write");
   const canOpen = can("deals.documents");
@@ -268,6 +274,21 @@ export default async function DealPage({ params }: Props) {
                   Start a finance application
                 </Link>
               )}
+              {schedule ? (
+                <Link
+                  className={`${LINK} mt-2 block`}
+                  href={dealsPath(slug, "finance", "schedules", schedule.id)}
+                >
+                  Open the payment schedule
+                </Link>
+              ) : deal.financed && workspace.permissions.includes("finance.manage") ? (
+                <Link
+                  className={`${LINK} mt-2 block`}
+                  href={`${dealsPath(slug, "finance", "schedules", "new")}?deal_id=${id}`}
+                >
+                  Set up the payment schedule
+                </Link>
+              ) : null}
             </Panel>
           ) : null}
           {canWrite && open ? (

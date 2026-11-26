@@ -35,7 +35,8 @@ def _preview(api: TestClient, as_: As, who: str = MIA) -> dict[str, Any]:
 
 def _user_id(api: TestClient, as_: As, email: str) -> str:
     settings = api.get(f"{SUMMARY}/settings", headers=as_.seeded(OLIVIA)).json()
-    return next(m["user_id"] for m in settings["members"] if m["email"] == email)
+    found: str = next(m["user_id"] for m in settings["members"] if m["email"] == email)
+    return found
 
 
 def _save(api: TestClient, as_: As, who: str = OLIVIA, **body: Any) -> Any:

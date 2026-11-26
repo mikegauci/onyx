@@ -46,3 +46,20 @@ def test_states_around_the_due_date() -> None:
         InstallmentState.UPCOMING,
     ]
     assert allocate(rows, 150, TODAY)[1].state is InstallmentState.PART_PAID
+
+
+def test_reminders_before_the_due_date_and_once_overdue() -> None:
+    from app.modules.deals.schedule_rules import reminders_due
+
+    due = date(2027, 3, 10)
+
+    def kinds(today: date) -> list[str]:
+        return reminders_due(due, today, before_days=3, overdue_days=3)
+
+    assert kinds(date(2027, 3, 6)) == []
+    assert kinds(date(2027, 3, 7)) == ["before_due"]
+    assert kinds(date(2027, 3, 10)) == ["before_due"]
+    assert kinds(date(2027, 3, 12)) == []
+    assert kinds(date(2027, 3, 13)) == ["overdue"]
+    assert kinds(date(2027, 4, 12)) == ["overdue"]
+    assert kinds(date(2027, 4, 13)) == []

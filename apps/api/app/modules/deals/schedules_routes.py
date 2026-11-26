@@ -1,19 +1,31 @@
-"""Payment schedules under ``/v1/w/{slug}/deals/finance/schedules`` (VA-008), gated by ``deals``.
+"""Payment schedules and reminders under ``/v1/w/{slug}/deals/finance`` (VA-008), gated by
+``deals``.
 
-Everyone with deals access sees schedules. Creating or changing them and recording or voiding
-payments needs ``finance.manage`` (owners and admins).
+Everyone with deals access sees schedules and reminders, and can dismiss a reminder. Creating
+or changing schedules and recording or voiding payments needs ``finance.manage``; sending
+reminders needs ``outbound.approve``; reminder settings need ``deals.manage``.
 """
 
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
-from fastapi import status
+from fastapi import Query, status
 
 from app.core.auth.deps import DbDep, WorkspaceAccess, require_permission
 from app.core.auth.permissions import Permission
 from app.core.errors import ErrorResponse
 from app.core.modules.access import module_router
 from app.core.modules.registry import ModuleKey
+from app.modules.deals.payment_reminders import (
+    Kind,
+    PaymentReminderList,
+    PaymentReminderOut,
+    PaymentReminderSendRequest,
+    PaymentReminderSendResult,
+    PaymentReminderService,
+    PaymentReminderSettingsIn,
+    PaymentReminderSettingsOut,
+)
 from app.modules.deals.schedules import (
     InstallmentUpdate,
     PaymentIn,
@@ -24,6 +36,7 @@ from app.modules.deals.schedules import (
     ScheduleService,
     ScheduleStatus,
     ScheduleUpdate,
+    workspace_today,
 )
 
 router = module_router(ModuleKey.DEALS)
@@ -112,3 +125,60 @@ async def void_payment(
 ) -> ScheduleDetail:
     """Undo a payment recorded by mistake; it stays in the history with the reason."""
     return await ScheduleService(db, workspace).void_payment(schedule_id, payment_id, body)
+
+
+# --- payment reminders (VA-008 part 2) --------------------------------------------------------
+
+Writer = Annotated[WorkspaceAccess, require_permission(Permission.DEALS_WRITE)]
+Sender = Annotated[WorkspaceAccess, require_permission(Permission.OUTBOUND_APPROVE)]
+Settings = Annotated[WorkspaceAccess, require_permission(Permission.DEALS_MANAGE)]
+ReminderStatus = Literal["pending", "sent", "dismissed", "skipped"]
+
+
+def _reminders(db: DbDep, workspace: WorkspaceAccess) -> PaymentReminderService:
+    return PaymentReminderService(db, workspace, workspace_today(workspace))
+
+
+@router.get("/finance/reminders", response_model=PaymentReminderList)
+async def list_payment_reminders(
+    workspace: Reader,
+    db: DbDep,
+    status: ReminderStatus | None = None,
+    kind: Kind | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> PaymentReminderList:
+    return await _reminders(db, workspace).list(status, kind, limit, offset)
+
+
+@router.post(
+    "/finance/reminders/{reminder_id}/dismiss",
+    response_model=PaymentReminderOut,
+    responses=ERRORS,
+)
+async def dismiss_payment_reminder(
+    reminder_id: uuid.UUID, workspace: Writer, db: DbDep
+) -> PaymentReminderOut:
+    return await _reminders(db, workspace).dismiss(reminder_id)
+
+
+@router.post("/finance/reminders/send", response_model=PaymentReminderSendResult, responses=ERRORS)
+async def send_payment_reminders(
+    body: PaymentReminderSendRequest, workspace: Sender, db: DbDep
+) -> PaymentReminderSendResult:
+    """Send up to 50 reminders. Each is checked (still unpaid, not paused) and sent once."""
+    return await _reminders(db, workspace).send(body)
+
+
+@router.get("/finance/reminder-settings", response_model=PaymentReminderSettingsOut)
+async def get_payment_reminder_settings(workspace: Reader, db: DbDep) -> PaymentReminderSettingsOut:
+    return await _reminders(db, workspace).settings()
+
+
+@router.put(
+    "/finance/reminder-settings", response_model=PaymentReminderSettingsOut, responses=ERRORS
+)
+async def put_payment_reminder_settings(
+    body: PaymentReminderSettingsIn, workspace: Settings, db: DbDep
+) -> PaymentReminderSettingsOut:
+    return await _reminders(db, workspace).update_settings(body)

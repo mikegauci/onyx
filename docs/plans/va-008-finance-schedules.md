@@ -1,6 +1,6 @@
 # VA-008 — In-house finance schedules and reminders
 
-Status: part 1 built 2026-11-26; part 2 planned. Depends on VA-006 (finance applications) and VA-007 (deals), both
+Status: part 1 merged (#94); part 2 built 2026-11-26. Depends on VA-006 (finance applications) and VA-007 (deals), both
 merged.
 
 ## Owner decisions (2026-11-26)
@@ -62,6 +62,11 @@ a schedule for a customer who financed before Onyx.
 - The deal page: "Set up payment schedule" on a financed deal.
 
 ## Part 2 — reminders (migration 0042)
+
+As built: the before-due reminder can be created from the set number of days before the due
+date until the date itself, and the overdue one from the set number of days after it for 30
+days. The reminder list shows what is still owed now. Settings are under Deals → Settings
+(`deals.manage`). Sending needs `outbound.approve`. The scheduler uses the UTC date.
 
 - `finance_reminders`: one per installment and kind: `before_due`, created a set number of days
   before the due date (default 3), and `overdue`, created a set number of days after it

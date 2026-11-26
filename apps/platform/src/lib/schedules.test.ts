@@ -9,3 +9,11 @@ describe("schedules", () => {
     expect(paidPercent({ paid_cents: 0, total_cents: 0 })).toBe(0);
   });
 });
+
+describe("payment reminders", () => {
+  it("explains skip reasons", async () => {
+    const { paymentSkipReason } = await import("./schedules");
+    expect(paymentSkipReason("paid")).toMatch(/paid/);
+    expect(paymentSkipReason(undefined)).toBeNull();
+  });
+});

@@ -440,3 +440,90 @@ class FinancePayment(Base):
     voided_by_user_id: Mapped[uuid.UUID | None] = _user()
     void_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
     created_at: Mapped[datetime] = created_at_column()
+
+
+class FinanceReminder(Base):
+    """A before-due or overdue reminder for an installment (VA-008). One per installment, kind."""
+
+    __tablename__ = "finance_reminders"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "installment_id",
+            "kind",
+            name="uq_finance_reminders_installment_kind",
+        ),
+        _same_tenant("finance_reminders", "schedule_id", "finance_schedules"),
+        _same_tenant("finance_reminders", "installment_id", "finance_installments"),
+        _same_tenant("finance_reminders", "contact_id", "crm_contacts"),
+        CheckConstraint("kind IN ('before_due', 'overdue')", name="kind"),
+        CheckConstraint("status IN ('pending', 'sent', 'dismissed', 'skipped')", name="status"),
+        CheckConstraint(
+            "(status = 'skipped') = (skip_reason IS NOT NULL) AND "
+            "(status = 'sent') = (message_id IS NOT NULL) AND "
+            "(status = 'sent') = (channel IS NOT NULL) AND "
+            "(channel IS NULL OR channel IN ('whatsapp', 'email'))",
+            name="outcome",
+        ),
+        Index("ix_finance_reminders_status", "organization_id", "status", "due_on"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    schedule_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    installment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    due_on: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    channel: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    skip_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    decided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class FinanceReminderSettings(Base):
+    __tablename__ = "finance_reminder_settings"
+    __table_args__ = (
+        CheckConstraint(
+            "before_days BETWEEN 1 AND 30 AND overdue_days BETWEEN 1 AND 60", name="days"
+        ),
+        CheckConstraint(
+            "jsonb_typeof(before_params) = 'array' AND jsonb_typeof(overdue_params) = 'array'",
+            name="params",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "before_template_id"],
+            ["inbox_whatsapp_templates.organization_id", "inbox_whatsapp_templates.id"],
+            name="fk_finance_reminder_settings_before_template",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "overdue_template_id"],
+            ["inbox_whatsapp_templates.organization_id", "inbox_whatsapp_templates.id"],
+            name="fk_finance_reminder_settings_overdue_template",
+            ondelete="RESTRICT",
+        ),
+    )
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="RESTRICT"), primary_key=True
+    )
+    before_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="3")
+    overdue_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="3")
+    before_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    overdue_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    before_template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    before_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    overdue_template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    overdue_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    updated_by_user_id: Mapped[uuid.UUID | None] = _user()
+    updated_at: Mapped[datetime] = updated_at_column()

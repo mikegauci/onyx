@@ -1609,6 +1609,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/deals/finance/reminder-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Payment Reminder Settings */
+        get: operations["get_payment_reminder_settings"];
+        /** Put Payment Reminder Settings */
+        put: operations["put_payment_reminder_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Payment Reminders */
+        get: operations["list_payment_reminders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/reminders/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Payment Reminders
+         * @description Send up to 50 reminders. Each is checked (still unpaid, not paused) and sent once.
+         */
+        post: operations["send_payment_reminders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/reminders/{reminder_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Payment Reminder */
+        post: operations["dismiss_payment_reminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/deals/finance/schedules": {
         parameters: {
             query?: never;
@@ -5500,29 +5572,6 @@ export interface components {
          * @enum {string}
          */
         InvitationState: "pending" | "accepted" | "revoked" | "expired";
-        /** KindSettingsIn */
-        KindSettingsIn: {
-            /**
-             * Days
-             * @description Days before the due date it is listed
-             */
-            days: number;
-            /**
-             * Message
-             * @description Email and free-form WhatsApp: {name}, {car}, {registration}, {due}
-             */
-            message?: string | null;
-            /**
-             * Params
-             * @description What fills each template value, in order: first_name, vehicle, registration, due_date
-             */
-            params?: string[];
-            /**
-             * Template Id
-             * @description An approved WhatsApp utility template, used outside 24h
-             */
-            template_id?: string | null;
-        };
         /** KindSettingsOut */
         KindSettingsOut: {
             /** Days */
@@ -6157,6 +6206,108 @@ export interface components {
             void_reason: string | null;
             /** Voided */
             voided: boolean;
+        };
+        /** PaymentReminderList */
+        PaymentReminderList: {
+            /** Items */
+            items: components["schemas"]["PaymentReminderOut"][];
+            /** Total */
+            total: number;
+        };
+        /** PaymentReminderOut */
+        PaymentReminderOut: {
+            /** Channel */
+            channel: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /** Contact Name */
+            contact_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+            /** Has Email */
+            has_email: boolean;
+            /** Has Phone */
+            has_phone: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Installment Number */
+            installment_number: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "before_due" | "overdue";
+            /** Label */
+            label: string;
+            /**
+             * Owed Cents
+             * @description What is still unpaid on the installment now
+             */
+            owed_cents: number;
+            /**
+             * Schedule Id
+             * Format: uuid
+             */
+            schedule_id: string;
+            /** Skip Reason */
+            skip_reason: string | null;
+            /**
+             * Status
+             * @description pending, sent, dismissed or skipped
+             */
+            status: string;
+        };
+        /** PaymentReminderSendRequest */
+        PaymentReminderSendRequest: {
+            /** Reminder Ids */
+            reminder_ids: string[];
+        };
+        /** PaymentReminderSendResult */
+        PaymentReminderSendResult: {
+            /** Sent */
+            sent: string[];
+            /** Skipped */
+            skipped: components["schemas"]["PaymentReminderSkip"][];
+        };
+        /** PaymentReminderSettingsIn */
+        PaymentReminderSettingsIn: {
+            before_due: components["schemas"]["app__modules__deals__payment_reminders__KindSettingsIn"];
+            overdue: components["schemas"]["app__modules__deals__payment_reminders__KindSettingsIn"];
+        };
+        /** PaymentReminderSettingsOut */
+        PaymentReminderSettingsOut: {
+            before_due: components["schemas"]["KindSettingsOut"];
+            overdue: components["schemas"]["KindSettingsOut"];
+            /** Param Keys */
+            param_keys: string[];
+        };
+        /** PaymentReminderSkip */
+        PaymentReminderSkip: {
+            /** Message */
+            message: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Reminder Id
+             * Format: uuid
+             */
+            reminder_id: string;
         };
         /** PaymentVoid */
         PaymentVoid: {
@@ -6811,9 +6962,9 @@ export interface components {
         };
         /** ReminderSettingsIn */
         ReminderSettingsIn: {
-            insurance: components["schemas"]["KindSettingsIn"];
-            licence: components["schemas"]["KindSettingsIn"];
-            service: components["schemas"]["KindSettingsIn"];
+            insurance: components["schemas"]["app__modules__automotive__reminders__KindSettingsIn"];
+            licence: components["schemas"]["app__modules__automotive__reminders__KindSettingsIn"];
+            service: components["schemas"]["app__modules__automotive__reminders__KindSettingsIn"];
         };
         /** ReminderSettingsOut */
         ReminderSettingsOut: {
@@ -8138,6 +8289,29 @@ export interface components {
         app__api__admin_organizations__StatusChange: {
             status: components["schemas"]["OrganizationStatus"];
         };
+        /** KindSettingsIn */
+        app__modules__automotive__reminders__KindSettingsIn: {
+            /**
+             * Days
+             * @description Days before the due date it is listed
+             */
+            days: number;
+            /**
+             * Message
+             * @description Email and free-form WhatsApp: {name}, {car}, {registration}, {due}
+             */
+            message?: string | null;
+            /**
+             * Params
+             * @description What fills each template value, in order: first_name, vehicle, registration, due_date
+             */
+            params?: string[];
+            /**
+             * Template Id
+             * @description An approved WhatsApp utility template, used outside 24h
+             */
+            template_id?: string | null;
+        };
         /** SourceOut */
         app__modules__automotive__routes__SourceOut: {
             /** Base Url */
@@ -8173,6 +8347,26 @@ export interface components {
         app__modules__crm__schemas__ArchiveRequest: {
             /** Archived */
             archived: boolean;
+        };
+        /** KindSettingsIn */
+        app__modules__deals__payment_reminders__KindSettingsIn: {
+            /**
+             * Days
+             * @description Days before (before_due, max 30) or after (overdue)
+             */
+            days: number;
+            /**
+             * Message
+             * @description Email and free-form WhatsApp: {name}, {car}, {amount}, {due}
+             */
+            message?: string | null;
+            /**
+             * Params
+             * @description What fills each template value, in order: first_name, vehicle, amount, due_date
+             */
+            params?: string[];
+            /** Template Id */
+            template_id?: string | null;
         };
         /** StatusChange */
         app__modules__inbox__schemas__StatusChange: {
@@ -16404,6 +16598,382 @@ export interface operations {
                 };
             };
             /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_payment_reminder_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReminderSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_payment_reminder_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentReminderSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReminderSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_payment_reminders: {
+        parameters: {
+            query?: {
+                status?: ("pending" | "sent" | "dismissed" | "skipped") | null;
+                kind?: ("before_due" | "overdue") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReminderList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_payment_reminders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentReminderSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReminderSendResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    dismiss_payment_reminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReminderOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
             403: {
                 headers: {
                     [name: string]: unknown;

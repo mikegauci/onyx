@@ -73,6 +73,8 @@ EXPECTED_TABLES = {
     "finance_schedules",
     "finance_installments",
     "finance_payments",
+    "finance_reminders",
+    "finance_reminder_settings",
     "automotive_customer_cars",
     "automotive_reminders",
     "automotive_reminder_settings",

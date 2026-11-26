@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { ServiceSlug } from "@/content/service-links";
 import { webDesignProjects } from "@/content/web-design";
 
+import workflow from "./ai-composition.module.css";
 import styles from "./brand-composition.module.css";
 import search from "./seo-composition.module.css";
 
@@ -23,6 +24,74 @@ const branding = {
 } as const;
 
 type BrandingProject = keyof typeof branding;
+
+function AiArtwork() {
+  return (
+    <div
+      role="img"
+      aria-label="Example workflow. A WhatsApp booking request reaches an AI assistant, which checks the calendar, updates the CRM and sends a booking confirmation."
+      className={workflow.composition}
+    >
+      <div aria-hidden="true" className={workflow.artwork}>
+        <span className={workflow.orbits} />
+        <span className={`${workflow.connector} ${workflow.incoming}`} />
+        <span className={`${workflow.connector} ${workflow.toCalendar}`} />
+        <span className={`${workflow.connector} ${workflow.toCrm}`} />
+        <span className={`${workflow.connector} ${workflow.outgoing}`} />
+
+        <div className={`${workflow.card} ${workflow.message}`}>
+          <span className={`${workflow.icon} ${workflow.mint}`}>
+            <svg viewBox="0 0 24 24">
+              <path d="M21 11.5a9 9 0 0 1-9.5 9 9 9 0 0 1-3.8-.9L3 21l1.4-4.7a9 9 0 0 1 7.1-13.8A9 9 0 0 1 21 11.5Z" />
+            </svg>
+          </span>
+          <span>
+            <small>WhatsApp</small>
+            <strong>Can I book Friday at 10:30?</strong>
+          </span>
+        </div>
+        <div className={`${workflow.card} ${workflow.assistant}`}>
+          <span className={`${workflow.icon} ${workflow.amber}`}>
+            <svg viewBox="0 0 24 24">
+              <path d="m9.5 2 1.9 5.6L17 9.5l-5.6 1.9L9.5 17l-1.9-5.6L2 9.5l5.6-1.9L9.5 2ZM19 13v8m-4-4h8" />
+            </svg>
+          </span>
+          <strong>AI assistant</strong>
+        </div>
+        <div className={`${workflow.card} ${workflow.calendar}`}>
+          <span className={`${workflow.icon} ${workflow.blue}`}>
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="16" rx="2" />
+              <path d="M16 3v4M8 3v4M3 10h18m-13 5h2m4 0h2" />
+            </svg>
+          </span>
+          Calendar
+        </div>
+        <div className={`${workflow.card} ${workflow.crm}`}>
+          <span className={`${workflow.icon} ${workflow.violet}`}>
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="3" width="15" height="18" rx="2" />
+              <path d="M3 7h3m-3 5h3m-3 5h3m3 1a4 4 0 0 1 8 0" />
+              <circle cx="13" cy="10" r="2" />
+            </svg>
+          </span>
+          CRM
+        </div>
+        <div className={`${workflow.card} ${workflow.confirmation}`}>
+          <span className={`${workflow.icon} ${workflow.mint}`}>
+            <svg viewBox="0 0 24 24">
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+          </span>
+          <span>
+            <strong>Booking confirmed</strong>
+            <small>Friday, 10:30 am · Reply sent</small>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SeoArtwork() {
   return (
@@ -112,38 +181,7 @@ export function ServiceVisual({ slug }: { slug: ServiceSlug }) {
     return <SeoArtwork />;
   }
 
-  const steps = [
-    ["Enquiry arrives", "WhatsApp, email or web chat"],
-    ["The assistant prepares a reply", "Uses your approved information"],
-    ["Your team takes it from here", "Review or hand off when needed"],
-  ];
-
-  return (
-    <div className="mx-auto w-full max-w-md rounded-3xl border border-white/10 bg-black/50 p-4 shadow-xl sm:p-6">
-      <p className="text-muted-foreground border-b border-white/10 pb-4 font-mono text-xs tracking-[0.14em] uppercase">
-        Example enquiry workflow
-      </p>
-      <ol className="mt-3 space-y-2.5">
-        {steps.map(([title, description], index) => (
-          <li
-            key={title}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-3 py-3 sm:px-4"
-          >
-            <span
-              aria-hidden
-              className="text-brand bg-brand/10 grid size-8 shrink-0 place-items-center rounded-full font-mono text-xs"
-            >
-              {index + 1}
-            </span>
-            <div>
-              <p className="text-sm font-medium">{title}</p>
-              <p className="text-muted-foreground mt-0.5 text-xs">{description}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
+  return <AiArtwork />;
 }
 
 export function BrandingWork() {

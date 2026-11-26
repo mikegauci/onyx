@@ -1,0 +1,223 @@
+.composition {
+  --wire: #da9a6670;
+
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 29.375rem;
+  height: clamp(20.125rem, 34vw, 21.875rem);
+  margin-inline: auto;
+  color: #f8eee6;
+}
+
+.artwork {
+  position: absolute;
+  inset: 0;
+}
+
+.orbits {
+  position: absolute;
+  z-index: -2;
+  inset: 1%;
+  background:
+    radial-gradient(ellipse at center, #fb843c36, transparent 56%),
+    repeating-radial-gradient(
+      ellipse,
+      transparent 0 30px,
+      #f6ab6632 31px 32px,
+      transparent 33px 51px
+    );
+  mask-image: radial-gradient(ellipse, #000 25%, transparent 70%);
+  transform: rotate(-13deg);
+}
+
+.connector {
+  position: absolute;
+  z-index: -1;
+  color: var(--wire);
+}
+
+.incoming {
+  top: 20%;
+  left: 50%;
+  height: 20%;
+  border-left: 1px solid;
+  --delay: 170ms;
+}
+
+.toCalendar {
+  top: 43%;
+  left: 18%;
+  width: 32%;
+  height: 20%;
+  border-top: 1px solid;
+  border-left: 1px solid;
+  border-top-left-radius: 20px;
+  --delay: 440ms;
+}
+
+.toCrm {
+  top: 43%;
+  right: 14%;
+  width: 36%;
+  height: 20%;
+  border-top: 1px solid;
+  border-right: 1px solid;
+  border-top-right-radius: 20px;
+  --delay: 510ms;
+}
+
+.outgoing {
+  top: 48%;
+  left: 50%;
+  height: 34%;
+  border-left: 1px dashed;
+  --delay: 820ms;
+}
+
+.card {
+  position: absolute;
+  display: flex;
+  min-height: 2.625rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #e6aa773d;
+  border-radius: 12px;
+  background: #241b18;
+  box-shadow: 0 10px 26px #05030256;
+}
+
+.card strong,
+.card small {
+  display: block;
+  line-height: 1.25;
+}
+
+.card strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.card small {
+  margin-block: 0.0625rem;
+  color: #c6b4a8;
+  font-size: 0.75rem;
+}
+
+.icon {
+  display: grid;
+  width: 1.8125rem;
+  height: 1.8125rem;
+  flex: none;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.icon svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mint {
+  background: #243e33;
+  color: #a9dfbf;
+}
+
+.amber {
+  background: #583626;
+  color: #ffad79;
+}
+
+.blue {
+  background: #293b48;
+  color: #b3d7ee;
+}
+
+.violet {
+  background: #44324b;
+  color: #e7c1f3;
+}
+
+.message,
+.assistant,
+.confirmation {
+  left: 50%;
+  width: max-content;
+  max-width: 92%;
+  transform: translateX(-50%);
+}
+
+.message {
+  top: 8%;
+  transform: translateX(-50%) rotate(-3deg);
+  --delay: 0ms;
+}
+
+.assistant {
+  top: 36%;
+  padding: 0.6875rem 0.75rem;
+  border-color: #c28053a0;
+  background: #35231c;
+  --delay: 300ms;
+}
+
+.calendar,
+.crm {
+  top: 58%;
+  font-size: 0.8125rem;
+}
+
+.calendar {
+  left: 0;
+  transform: rotate(-5deg);
+  --delay: 610ms;
+}
+
+.crm {
+  right: 1%;
+  transform: rotate(5deg);
+  --delay: 720ms;
+}
+
+.confirmation {
+  bottom: 7%;
+  --delay: 1030ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: card-arrive 390ms var(--delay) cubic-bezier(0.17, 0.66, 0.28, 1) both;
+  }
+
+  .connector {
+    animation: draw-connector 340ms var(--delay) ease-out both;
+  }
+}
+
+@keyframes card-arrive {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes draw-connector {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}

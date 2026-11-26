@@ -25,6 +25,7 @@ export default async function DealsLayout({ children, params }: Props) {
     { href: dealsPath(slug, "board"), label: "Deals" },
     { href: dealsPath(slug, "finance"), label: "Finance" },
     { href: dealsPath(slug, "finance", "schedules"), label: "Payment schedules" },
+    { href: dealsPath(slug, "finance", "reminders"), label: "Payment reminders" },
     { href: dealsPath(slug, "reviews"), label: "Reviews" },
   ];
   if (workspace.permissions.includes("deals.manage")) {

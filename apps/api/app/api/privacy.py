@@ -151,6 +151,11 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "AND s.contact_id = :c ORDER BY p.received_on",
     ),
     (
+        "payment_reminders",
+        "SELECT kind, due_on, status, channel, created_at, decided_at FROM finance_reminders "
+        "WHERE organization_id = :org AND contact_id = :c ORDER BY due_on",
+    ),
+    (
         "customer_cars",
         "SELECT description, registration, collected_on, licence_due_on, "
         "dealer_handles_licence, insurance_due_on, dealer_handles_insurance, last_service_on, "
@@ -218,6 +223,7 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "review_requests": "deals",
         "finance_schedules": "deals",
         "finance_payments": "deals",
+        "payment_reminders": "deals",
         "customer_cars": "automotive",
         "reminders": "automotive",
         "marketing_consents": "crm",
@@ -334,6 +340,14 @@ async def erase_contact(
                 "UPDATE finance_payments SET note = NULL WHERE organization_id = :org AND "
                 "schedule_id IN (SELECT id FROM finance_schedules WHERE organization_id = :org "
                 "AND contact_id = :c)"
+            ),
+            {"org": org, "c": contact_id},
+        )
+        await db.execute(
+            text(
+                "UPDATE finance_reminders SET status = 'skipped', skip_reason = 'erased', "
+                "updated_at = now() WHERE organization_id = :org AND contact_id = :c "
+                "AND status IN ('pending', 'skipped')"
             ),
             {"org": org, "c": contact_id},
         )

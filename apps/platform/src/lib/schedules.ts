@@ -45,3 +45,34 @@ export function paidPercent(s: Pick<ScheduleSummary, "paid_cents" | "total_cents
   if (s.total_cents <= 0) return 0;
   return Math.min(100, Math.round((s.paid_cents / s.total_cents) * 100));
 }
+
+export type PaymentReminder = components["schemas"]["PaymentReminderOut"];
+export type PaymentReminderSettings = components["schemas"]["PaymentReminderSettingsOut"];
+export type PaymentReminderKind = PaymentReminder["kind"];
+
+export const PAYMENT_REMINDER_KINDS: PaymentReminderKind[] = ["before_due", "overdue"];
+
+export const PAYMENT_REMINDER_LABEL: Record<PaymentReminderKind, string> = {
+  before_due: "Due soon",
+  overdue: "Overdue",
+};
+
+export const PAYMENT_PARAM_LABEL: Record<string, string> = {
+  first_name: "Customer’s first name",
+  vehicle: "The car",
+  amount: "Amount owed",
+  due_date: "Due date",
+};
+
+export const PAYMENT_SKIP_TEXT: Record<string, string> = {
+  paid: "The installment has been paid since.",
+  paused: "Reminders are paused, or the schedule is no longer active.",
+  no_channel: "No WhatsApp conversation or email address to send to.",
+  cannot_send: "Refused (for example, the customer opted out or the address is blocked).",
+  erased: "The customer’s data was erased.",
+};
+
+export function paymentSkipReason(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return PAYMENT_SKIP_TEXT[code] ?? code;
+}

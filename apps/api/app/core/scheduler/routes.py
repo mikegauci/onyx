@@ -34,6 +34,7 @@ class RunSummary(BaseModel):
     files_deleted: int
     review_requests: int = 0
     reminders: int = 0
+    payment_reminders: int = 0
     conversations_redacted: int = 0
     failed_tenants: int
 
@@ -71,6 +72,7 @@ async def run_scheduler(
         "files_deleted": 0,
         "review_requests": 0,
         "reminders": 0,
+        "payment_reminders": 0,
     }
     failed = 0
     for org in tenants:
@@ -81,7 +83,13 @@ async def run_scheduler(
                     text("SELECT app_module_enabled(:org, 'automotive')"), {"org": org}
                 ):
                     totals["reminders"] += await reminders.create_due(db, tenant, now.date())
-            for key in ("check_tasks", "chase_tasks", "files_deleted", "review_requests"):
+            for key in (
+                "check_tasks",
+                "chase_tasks",
+                "files_deleted",
+                "review_requests",
+                "payment_reminders",
+            ):
                 totals[key] += getattr(result, key)
         except Exception:  # one tenant must not stop the others
             failed += 1

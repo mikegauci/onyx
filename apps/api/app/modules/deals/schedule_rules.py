@@ -95,3 +95,19 @@ def allocate(
         left -= paid
         out.append(Allocated(number, due_on, amount, paid, state(due_on, amount, paid, today)))
     return out
+
+
+OVERDUE_GRACE_DAYS = 30  # an overdue reminder can still be created this long after it was due
+
+
+def reminders_due(due_on: date, today: date, *, before_days: int, overdue_days: int) -> list[str]:
+    """Which reminders an unpaid installment should have today: ``before_due`` from
+    ``before_days`` before the due date until the date itself; ``overdue`` from ``overdue_days``
+    after it, for ``OVERDUE_GRACE_DAYS``."""
+    kinds = []
+    if (due_on - today).days in range(0, before_days + 1):
+        kinds.append("before_due")
+    late = (today - due_on).days
+    if overdue_days <= late <= overdue_days + OVERDUE_GRACE_DAYS:
+        kinds.append("overdue")
+    return kinds

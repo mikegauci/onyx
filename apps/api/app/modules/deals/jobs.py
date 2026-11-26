@@ -24,7 +24,7 @@ from app.core.storage.files import StoredFileNotFoundError, TenantFileService
 from app.core.storage.store import ObjectStore
 from app.core.tasks.models import TaskAudience, TaskPriority
 from app.core.tasks.service import open_task
-from app.modules.deals import reviews
+from app.modules.deals import payment_reminders, reviews
 from app.modules.deals.lifecycle import FINAL_STAGES, OPEN_STAGES, DealDocumentState
 from app.modules.deals.models import Deal, DealDocument, DealEvent, DealSettings
 
@@ -38,6 +38,7 @@ class JobResult:
     chase_tasks: int = 0
     files_deleted: int = 0
     review_requests: int = 0
+    payment_reminders: int = 0
     errors: list[str] = field(default_factory=list)
 
 
@@ -48,6 +49,7 @@ async def run_deal_jobs(
     await _check_tasks(db, tenant, result)
     await _chase_tasks(db, tenant, now, result)
     result.review_requests = await reviews.create_due(db, tenant, now)
+    result.payment_reminders = await payment_reminders.create_due(db, tenant, now.date())
     if store is not None:
         await _retention(db, tenant, now, store, result)
     return result

@@ -7784,59 +7784,6 @@
         "title": "InvitationState",
         "type": "string"
       },
-      "KindSettingsIn": {
-        "additionalProperties": false,
-        "properties": {
-          "days": {
-            "description": "Days before the due date it is listed",
-            "maximum": 90.0,
-            "minimum": 1.0,
-            "title": "Days",
-            "type": "integer"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "maxLength": 1000,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Email and free-form WhatsApp: {name}, {car}, {registration}, {due}",
-            "title": "Message"
-          },
-          "params": {
-            "description": "What fills each template value, in order: first_name, vehicle, registration, due_date",
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 10,
-            "title": "Params",
-            "type": "array"
-          },
-          "template_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "An approved WhatsApp utility template, used outside 24h",
-            "title": "Template Id"
-          }
-        },
-        "required": [
-          "days"
-        ],
-        "title": "KindSettingsIn",
-        "type": "object"
-      },
       "KindSettingsOut": {
         "properties": {
           "days": {
@@ -9647,6 +9594,258 @@
         "title": "PaymentOut",
         "type": "object"
       },
+      "PaymentReminderList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentReminderOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaymentReminderList",
+        "type": "object"
+      },
+      "PaymentReminderOut": {
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "contact_id": {
+            "format": "uuid",
+            "title": "Contact Id",
+            "type": "string"
+          },
+          "contact_name": {
+            "title": "Contact Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "due_on": {
+            "format": "date",
+            "title": "Due On",
+            "type": "string"
+          },
+          "has_email": {
+            "title": "Has Email",
+            "type": "boolean"
+          },
+          "has_phone": {
+            "title": "Has Phone",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "installment_number": {
+            "title": "Installment Number",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "before_due",
+              "overdue"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "owed_cents": {
+            "description": "What is still unpaid on the installment now",
+            "title": "Owed Cents",
+            "type": "integer"
+          },
+          "schedule_id": {
+            "format": "uuid",
+            "title": "Schedule Id",
+            "type": "string"
+          },
+          "skip_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skip Reason"
+          },
+          "status": {
+            "description": "pending, sent, dismissed or skipped",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "due_on",
+          "status",
+          "channel",
+          "skip_reason",
+          "schedule_id",
+          "label",
+          "installment_number",
+          "owed_cents",
+          "contact_id",
+          "contact_name",
+          "has_phone",
+          "has_email",
+          "created_at",
+          "decided_at"
+        ],
+        "title": "PaymentReminderOut",
+        "type": "object"
+      },
+      "PaymentReminderSendRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reminder_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Reminder Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "reminder_ids"
+        ],
+        "title": "PaymentReminderSendRequest",
+        "type": "object"
+      },
+      "PaymentReminderSendResult": {
+        "properties": {
+          "sent": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Sent",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentReminderSkip"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sent",
+          "skipped"
+        ],
+        "title": "PaymentReminderSendResult",
+        "type": "object"
+      },
+      "PaymentReminderSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "before_due": {
+            "$ref": "#/components/schemas/app__modules__deals__payment_reminders__KindSettingsIn"
+          },
+          "overdue": {
+            "$ref": "#/components/schemas/app__modules__deals__payment_reminders__KindSettingsIn"
+          }
+        },
+        "required": [
+          "before_due",
+          "overdue"
+        ],
+        "title": "PaymentReminderSettingsIn",
+        "type": "object"
+      },
+      "PaymentReminderSettingsOut": {
+        "properties": {
+          "before_due": {
+            "$ref": "#/components/schemas/KindSettingsOut"
+          },
+          "overdue": {
+            "$ref": "#/components/schemas/KindSettingsOut"
+          },
+          "param_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Param Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "before_due",
+          "overdue",
+          "param_keys"
+        ],
+        "title": "PaymentReminderSettingsOut",
+        "type": "object"
+      },
+      "PaymentReminderSkip": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reminder_id": {
+            "format": "uuid",
+            "title": "Reminder Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reminder_id",
+          "reason",
+          "message"
+        ],
+        "title": "PaymentReminderSkip",
+        "type": "object"
+      },
       "PaymentVoid": {
         "additionalProperties": false,
         "properties": {
@@ -11424,13 +11623,13 @@
         "additionalProperties": false,
         "properties": {
           "insurance": {
-            "$ref": "#/components/schemas/KindSettingsIn"
+            "$ref": "#/components/schemas/app__modules__automotive__reminders__KindSettingsIn"
           },
           "licence": {
-            "$ref": "#/components/schemas/KindSettingsIn"
+            "$ref": "#/components/schemas/app__modules__automotive__reminders__KindSettingsIn"
           },
           "service": {
-            "$ref": "#/components/schemas/KindSettingsIn"
+            "$ref": "#/components/schemas/app__modules__automotive__reminders__KindSettingsIn"
           }
         },
         "required": [
@@ -15052,6 +15251,59 @@
         "title": "StatusChange",
         "type": "object"
       },
+      "app__modules__automotive__reminders__KindSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Days before the due date it is listed",
+            "maximum": 90.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email and free-form WhatsApp: {name}, {car}, {registration}, {due}",
+            "title": "Message"
+          },
+          "params": {
+            "description": "What fills each template value, in order: first_name, vehicle, registration, due_date",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Params",
+            "type": "array"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An approved WhatsApp utility template, used outside 24h",
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "KindSettingsIn",
+        "type": "object"
+      },
       "app__modules__automotive__routes__SourceOut": {
         "properties": {
           "base_url": {
@@ -15155,6 +15407,58 @@
           "archived"
         ],
         "title": "ArchiveRequest",
+        "type": "object"
+      },
+      "app__modules__deals__payment_reminders__KindSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Days before (before_due, max 30) or after (overdue)",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email and free-form WhatsApp: {name}, {car}, {amount}, {due}",
+            "title": "Message"
+          },
+          "params": {
+            "description": "What fills each template value, in order: first_name, vehicle, amount, due_date",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Params",
+            "type": "array"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "KindSettingsIn",
         "type": "object"
       },
       "app__modules__inbox__schemas__StatusChange": {
@@ -27159,6 +27463,566 @@
           }
         ],
         "summary": "Upload Finance Form",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/v1/w/{slug}/deals/finance/reminder-settings": {
+      "get": {
+        "operationId": "get_payment_reminder_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReminderSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Payment Reminder Settings",
+        "tags": [
+          "deals"
+        ]
+      },
+      "put": {
+        "operationId": "put_payment_reminder_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentReminderSettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReminderSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Needs finance.manage"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed in this state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Payment Reminder Settings",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/v1/w/{slug}/deals/finance/reminders": {
+      "get": {
+        "operationId": "list_payment_reminders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "sent",
+                    "dismissed",
+                    "skipped"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "before_due",
+                    "overdue"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReminderList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Payment Reminders",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/v1/w/{slug}/deals/finance/reminders/send": {
+      "post": {
+        "description": "Send up to 50 reminders. Each is checked (still unpaid, not paused) and sent once.",
+        "operationId": "send_payment_reminders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentReminderSendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReminderSendResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Needs finance.manage"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed in this state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Send Payment Reminders",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/v1/w/{slug}/deals/finance/reminders/{reminder_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_payment_reminder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reminder_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Reminder Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReminderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Needs finance.manage"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed in this state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dismiss Payment Reminder",
         "tags": [
           "deals"
         ]

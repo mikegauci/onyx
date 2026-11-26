@@ -155,6 +155,15 @@ class ScheduleList(BaseModel):
     items: list[ScheduleSummary]
 
 
+def workspace_today(workspace: WorkspaceAccess) -> date:
+    """Today's date in the workspace's timezone."""
+    try:
+        zone = ZoneInfo(workspace.organization.timezone)
+    except (KeyError, ValueError):  # pragma: no cover - timezones are validated on save
+        zone = ZoneInfo("UTC")
+    return datetime.now(zone).date()
+
+
 def _invalid(field: str, message: str) -> ValidationFailedError:
     return ValidationFailedError(
         message, details=[ErrorDetail(loc=["body", field], msg=message, type="invalid")]
@@ -169,11 +178,7 @@ class ScheduleService:
         self.org = workspace.tenant.organization_id
 
     def _today(self) -> date:
-        try:
-            zone = ZoneInfo(self.workspace.organization.timezone)
-        except (KeyError, ValueError):  # pragma: no cover - timezones are validated on save
-            zone = ZoneInfo("UTC")
-        return datetime.now(zone).date()
+        return workspace_today(self.workspace)
 
     async def _audit(self, action: str, target_id: uuid.UUID, **details: object) -> None:
         await record_workspace_audit(
@@ -453,6 +458,10 @@ class ScheduleService:
         s.updated_at = datetime.now(UTC)
         await self.db.flush()
         await self._refresh_status(s)
+        if s.reminders_paused or s.status != ScheduleStatus.ACTIVE.value:
+            from app.modules.deals.payment_reminders import dismiss_for_schedule
+
+            await dismiss_for_schedule(self.db, self.workspace, s.id)
         await self._audit(
             "finance.schedule.updated", s.id, status=s.status, reminders_paused=s.reminders_paused
         )

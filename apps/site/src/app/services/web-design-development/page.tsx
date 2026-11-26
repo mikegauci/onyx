@@ -14,6 +14,7 @@ import { siteEnv } from "@/lib/env";
 
 import { EnquiryContacts } from "./campaign-contact";
 import { EnquiryForm } from "./enquiry-form";
+import artwork from "./hero-artwork.module.css";
 
 const title = "Web design and development in Malta";
 const description =
@@ -45,6 +46,56 @@ const packageAccents = {
   Onyx: "[--package-accent:var(--brand)]",
 } satisfies Record<WebDesignPackageName, string>;
 
+function HeroArtwork() {
+  const abstractImage = (
+    <div className={artwork.abstractImage}>
+      <span />
+    </div>
+  );
+
+  return (
+    <div aria-hidden="true" className={artwork.composition}>
+      <div className={artwork.browser}>
+        <div className={artwork.browserBar}>
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className={artwork.browserLayout}>
+          <div className={artwork.copyLines}>
+            <span />
+            <span />
+            <span />
+            <span />
+            <span className={artwork.buttonShape} />
+          </div>
+          {abstractImage}
+          <div className={artwork.tiles}>
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </div>
+      <div className={artwork.phone}>
+        <div className={artwork.phoneLayout}>
+          <div className={artwork.copyLines}>
+            <span />
+            <span />
+            <span />
+          </div>
+          {abstractImage}
+          <span className={artwork.buttonShape} />
+          <div className={artwork.tiles}>
+            <span />
+            <span />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WebDesignPage() {
   const { platformUrl } = siteEnv();
 
@@ -58,30 +109,33 @@ export default function WebDesignPage() {
       </a>
       <SiteNav platformUrl={platformUrl} innerPage />
       <main id="main">
-        <section className="relative isolate overflow-hidden border-b border-white/10 pt-40 pb-20 sm:pt-48 sm:pb-28">
+        <section className="relative isolate overflow-hidden border-b border-white/10 pt-32 pb-14 sm:pt-40 sm:pb-20 lg:pt-44 lg:pb-24">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_85%_24%,color-mix(in_oklab,var(--brand)_20%,transparent),transparent_55%)]"
           />
-          <div className={section}>
-            <p className={eyebrow}>Onyx Studio · Malta</p>
-            <h1 className="mt-6 max-w-4xl text-[clamp(2.9rem,8vw,6.75rem)] leading-[0.98] font-light tracking-[-0.065em]">
-              Web design and development
-              <span className="text-brand block">in Malta.</span>
-            </h1>
-            <p className="text-muted-foreground mt-8 max-w-xl text-lg leading-relaxed">
-              From your first business website to an online shop or a custom web app, we handle the
-              design, build and launch. We can write the copy, set up SEO and look after your site
-              once it goes live.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild variant="brand" className="rounded-full px-6">
-                <a href="#enquiry">Get a quote</a>
-              </Button>
-              <Button asChild variant="outline" className="rounded-full px-6">
-                <a href="#packages">View packages</a>
-              </Button>
+          <div className={`${section} grid items-center gap-8 md:grid-cols-[1.05fr_1fr] lg:gap-10`}>
+            <div>
+              <p className={eyebrow}>Onyx Studio · Malta</p>
+              <h1 className="mt-6 text-[clamp(2.4rem,6.1vw,4.75rem)] leading-[0.98] font-light tracking-[-0.065em]">
+                Web design and development
+                <span className="text-brand block">in Malta.</span>
+              </h1>
+              <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">
+                From your first business website to an online shop or a custom web app, we handle
+                the design, build and launch. We can write the copy, set up SEO and look after your
+                site once it goes live.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild variant="brand" className="rounded-full px-6">
+                  <a href="#enquiry">Get a quote</a>
+                </Button>
+                <Button asChild variant="outline" className="rounded-full px-6">
+                  <a href="#packages">View packages</a>
+                </Button>
+              </div>
             </div>
+            <HeroArtwork />
           </div>
         </section>
 

@@ -80,7 +80,7 @@ them into chat.
 - [ ] **Forms:** once part 1 is live, upload the latest KYC & Loan Request and CCR PDFs under
       Deals → Settings.
 
-## Car alerts (VA-005, being built)
+## Car alerts (VA-005)
 
 - [ ] **Marketing template:** create and get approved in WhatsApp Manager a **marketing**
       template for new-car alerts, for example: "Hi {{1}}, a {{2}} just arrived at Ventur for
@@ -88,8 +88,20 @@ them into chat.
       it under Vehicles → Alert settings. Meta charges for each marketing conversation.
 - [ ] **Consent wording:** agree with Ventur how staff ask customers for consent to car alerts
       (in person, phone, WhatsApp), and add car alerts to Ventur's privacy notice.
-- [ ] **Production migrations 0037 and 0038**, after the PRs merge (they need your approval,
-      like the others).
+- [x] **Production migrations 0037 and 0038:** applied 2026-11-26 (with 0034–0036).
+
+## Google review requests (VA-009 part 1)
+
+- [ ] **Google review link:** in your Google Business Profile choose "Ask for reviews", copy
+      the link and paste it under Deals → Settings → Google review requests. Requests start
+      only once it is set.
+- [ ] **WhatsApp template (optional):** a **utility** template for customers who have not
+      written in the last 24 hours, for example: "Hi {{1}}, thank you for buying your car from
+      Ventur. Could you leave us a Google review? {{2}}". Without it, those customers get the
+      email instead.
+- [ ] **Email sending:** the inbox email channel must be connected (Resend, verified domain)
+      for the email fallback.
+- [ ] **Production migration 0039**, after the PR merges (it needs your approval).
 
 ## Later Ventur items: questions to ask them
 

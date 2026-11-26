@@ -31,6 +31,7 @@ class RunSummary(BaseModel):
     check_tasks: int
     chase_tasks: int
     files_deleted: int
+    review_requests: int = 0
     conversations_redacted: int = 0
     failed_tenants: int
 
@@ -62,7 +63,12 @@ async def run_scheduler(
             .scalars()
             .all()
         )
-    totals: dict[str, Any] = {"check_tasks": 0, "chase_tasks": 0, "files_deleted": 0}
+    totals: dict[str, Any] = {
+        "check_tasks": 0,
+        "chase_tasks": 0,
+        "files_deleted": 0,
+        "review_requests": 0,
+    }
     failed = 0
     for org in tenants:
         try:

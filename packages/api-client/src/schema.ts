@@ -1494,6 +1494,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/deals/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Review Requests */
+        get: operations["list_review_requests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/reviews/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Review Requests
+         * @description Send up to 50 requests. Each is checked and sent once; failures are listed per request.
+         */
+        post: operations["send_review_requests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/reviews/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Review Settings */
+        get: operations["get_review_settings"];
+        /**
+         * Put Review Settings
+         * @description The Google review link (null turns requests off), delay, message and template.
+         */
+        put: operations["put_review_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/reviews/{request_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Review Request */
+        post: operations["dismiss_review_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/deals/settings": {
         parameters: {
             query?: never;
@@ -6186,6 +6261,147 @@ export interface components {
             /** Unanswered */
             unanswered: number;
         };
+        /**
+         * ReviewChannel
+         * @enum {string}
+         */
+        ReviewChannel: "whatsapp" | "email";
+        /** ReviewRequestList */
+        ReviewRequestList: {
+            /** Items */
+            items: components["schemas"]["ReviewRequestOut"][];
+            /** Total */
+            total: number;
+        };
+        /** ReviewRequestOut */
+        ReviewRequestOut: {
+            channel: components["schemas"]["ReviewChannel"] | null;
+            /** Collected At */
+            collected_at: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /** Contact Name */
+            contact_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Deal Id
+             * Format: uuid
+             */
+            deal_id: string;
+            /** Deal Title */
+            deal_title: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Has Email */
+            has_email: boolean;
+            /** Has Phone */
+            has_phone: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Skip Reason */
+            skip_reason: string | null;
+            status: components["schemas"]["ReviewStatus"];
+        };
+        /** ReviewSendRequest */
+        ReviewSendRequest: {
+            /** Request Ids */
+            request_ids: string[];
+        };
+        /** ReviewSendResult */
+        ReviewSendResult: {
+            /** Sent */
+            sent: string[];
+            /** Skipped */
+            skipped: components["schemas"]["ReviewSkip"][];
+        };
+        /** ReviewSettingsIn */
+        ReviewSettingsIn: {
+            /**
+             * Delay Days
+             * @default 7
+             */
+            delay_days: number;
+            /** Email Subject */
+            email_subject?: string | null;
+            /**
+             * Google Review Url
+             * @description The Google review link; null turns it off
+             */
+            google_review_url?: string | null;
+            /**
+             * Message
+             * @description Email and free-form WhatsApp text: {name}, {car} and {link}
+             */
+            message?: string | null;
+            /**
+             * Params
+             * @description What fills each template value, in order: first_name, vehicle, link
+             */
+            params?: string[];
+            /**
+             * Template Id
+             * @description An approved WhatsApp utility template, used outside 24h
+             */
+            template_id?: string | null;
+        };
+        /** ReviewSettingsOut */
+        ReviewSettingsOut: {
+            /** Delay Days */
+            delay_days: number;
+            /** Email Subject */
+            email_subject: string;
+            /**
+             * Enabled
+             * @description A Google review link is set, so requests are created
+             */
+            enabled: boolean;
+            /** Google Review Url */
+            google_review_url: string | null;
+            /** Message */
+            message: string;
+            /** Param Keys */
+            param_keys: string[];
+            /** Params */
+            params: string[];
+            /** Template Body */
+            template_body: string | null;
+            /** Template Id */
+            template_id: string | null;
+            /** Template Name */
+            template_name: string | null;
+            /**
+             * Template Ready
+             * @description A usable template is chosen for outside 24h
+             */
+            template_ready: boolean;
+        };
+        /** ReviewSkip */
+        ReviewSkip: {
+            /** Message */
+            message: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+        };
+        /**
+         * ReviewStatus
+         * @enum {string}
+         */
+        ReviewStatus: "pending" | "sent" | "dismissed" | "skipped";
         /** RevisionCreate */
         RevisionCreate: {
             /**
@@ -14909,6 +15125,381 @@ export interface operations {
                 };
             };
             /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_review_requests: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ReviewStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewRequestList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_review_requests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSendResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Review request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_review_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_review_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Review request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    dismiss_review_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewRequestOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Review request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
             409: {
                 headers: {
                     [name: string]: unknown;

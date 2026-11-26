@@ -138,6 +138,24 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE f.organization_id = :org AND f.contact_id = :c ORDER BY f.created_at",
     ),
     (
+        "finance_schedules",
+        "SELECT s.id, s.label, s.status, s.total_cents, s.term_months, s.monthly_cents, "
+        "s.first_due_on, s.note, s.created_at FROM finance_schedules s "
+        "WHERE s.organization_id = :org AND s.contact_id = :c ORDER BY s.created_at",
+    ),
+    (
+        "finance_payments",
+        "SELECT p.schedule_id, p.amount_cents, p.received_on, p.method, p.note, p.voided_at "
+        "FROM finance_payments p JOIN finance_schedules s ON s.organization_id = "
+        "p.organization_id AND s.id = p.schedule_id WHERE p.organization_id = :org "
+        "AND s.contact_id = :c ORDER BY p.received_on",
+    ),
+    (
+        "payment_reminders",
+        "SELECT kind, due_on, status, channel, created_at, decided_at FROM finance_reminders "
+        "WHERE organization_id = :org AND contact_id = :c ORDER BY due_on",
+    ),
+    (
         "customer_cars",
         "SELECT description, registration, collected_on, licence_due_on, "
         "dealer_handles_licence, insurance_due_on, dealer_handles_insurance, last_service_on, "
@@ -203,6 +221,9 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "deal_documents": "deals",
         "finance_applications": "deals",
         "review_requests": "deals",
+        "finance_schedules": "deals",
+        "finance_payments": "deals",
+        "payment_reminders": "deals",
         "customer_cars": "automotive",
         "reminders": "automotive",
         "marketing_consents": "crm",
@@ -303,6 +324,30 @@ async def erase_contact(
                 "decision_note = NULL, vehicle_label = NULL, net_monthly_income_cents = NULL, "
                 "existing_commitments_cents = NULL, updated_at = now() "
                 "WHERE organization_id = :org AND contact_id = :c"
+            ),
+            {"org": org, "c": contact_id},
+        )
+        # Payment schedules (VA-008): amounts and dates stay, free-text notes go.
+        await db.execute(
+            text(
+                "UPDATE finance_schedules SET note = NULL, reminders_paused = true, "
+                "updated_at = now() WHERE organization_id = :org AND contact_id = :c"
+            ),
+            {"org": org, "c": contact_id},
+        )
+        await db.execute(
+            text(
+                "UPDATE finance_payments SET note = NULL WHERE organization_id = :org AND "
+                "schedule_id IN (SELECT id FROM finance_schedules WHERE organization_id = :org "
+                "AND contact_id = :c)"
+            ),
+            {"org": org, "c": contact_id},
+        )
+        await db.execute(
+            text(
+                "UPDATE finance_reminders SET status = 'skipped', skip_reason = 'erased', "
+                "updated_at = now() WHERE organization_id = :org AND contact_id = :c "
+                "AND status IN ('pending', 'skipped')"
             ),
             {"org": org, "c": contact_id},
         )

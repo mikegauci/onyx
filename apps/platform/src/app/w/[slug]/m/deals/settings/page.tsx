@@ -6,6 +6,7 @@ import { dealsPath } from "@/lib/deals";
 import { requireOk } from "@/lib/guards";
 
 import { FinanceSettingsForm, FormUpload } from "../_components/finance-forms";
+import { PaymentReminderSettingsForm } from "../_components/payment-reminders";
 import { ReviewSettingsForm } from "../_components/reviews";
 import { DealSettingsForm } from "./settings-form";
 
@@ -29,6 +30,12 @@ export default async function DealSettingsPage({ params }: Props) {
   const reviews = requireOk(
     await withApi((api) =>
       api.GET("/v1/w/{slug}/deals/reviews/settings", { params: { path: { slug } } }),
+    ),
+    path,
+  );
+  const paymentReminders = requireOk(
+    await withApi((api) =>
+      api.GET("/v1/w/{slug}/deals/finance/reminder-settings", { params: { path: { slug } } }),
     ),
     path,
   );
@@ -113,6 +120,24 @@ export default async function DealSettingsPage({ params }: Props) {
           staff to send. Nothing is sent automatically, and each sale gets one request at most.
         </p>
         <ReviewSettingsForm slug={slug} settings={reviews} templates={templates} />
+      </section>
+      <section
+        aria-labelledby="payment-reminder-settings-heading"
+        className="bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:p-6"
+      >
+        <h2 id="payment-reminder-settings-heading" className="text-base font-medium tracking-tight">
+          Payment reminders
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          When unpaid installments appear in the Payment reminders list, and what the reminders say.
+          Nothing is sent automatically. Outside WhatsApp’s 24-hour window a reminder needs an
+          approved <strong>utility</strong> template; without one it goes by email.
+        </p>
+        <PaymentReminderSettingsForm
+          slug={slug}
+          settings={paymentReminders}
+          templates={templates}
+        />
       </section>
     </div>
   );

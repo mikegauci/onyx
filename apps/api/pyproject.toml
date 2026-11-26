@@ -47,6 +47,8 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "A", "C4", "SIM", "RUF", "ASY
 # Reuses the assistant tests' fixtures (api, script) by importing them.
 "tests/api/test_assistant_finance.py" = ["F811"]
 "tests/api/test_car_alerts.py" = ["F811"]
+"tests/api/test_finance_schedules.py" = ["F811"]
+"tests/api/test_reminders.py" = ["F811"]
 "tests/api/test_assistant_cars.py" = ["F811"]
 # Migrations build DDL from module-level constants, never from input.
 "migrations/**" = ["S608"]

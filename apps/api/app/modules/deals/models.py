@@ -345,3 +345,98 @@ class ReviewRequest(Base):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class FinanceSchedule(Base):
+    """A customer's in-house repayment plan (VA-008). Staff record its payments."""
+
+    __tablename__ = "finance_schedules"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        _same_tenant("finance_schedules", "contact_id", "crm_contacts"),
+        _same_tenant("finance_schedules", "deal_id", "deals"),
+        _same_tenant("finance_schedules", "application_id", "finance_applications"),
+        CheckConstraint(
+            "total_cents > 0 AND monthly_cents > 0 AND term_months BETWEEN 1 AND 120",
+            name="amounts",
+        ),
+        CheckConstraint("status IN ('active', 'completed', 'cancelled')", name="status"),
+        Index(
+            "uq_finance_schedules_deal",
+            "organization_id",
+            "deal_id",
+            unique=True,
+            postgresql_where=text("deal_id IS NOT NULL"),
+        ),
+        Index("ix_finance_schedules_status", "organization_id", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    deal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    application_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    label: Mapped[str] = mapped_column(String(200), nullable=False)
+    total_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    term_months: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    monthly_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    first_due_on: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    reminders_paused: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by_user_id: Mapped[uuid.UUID | None] = _user()
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class FinanceInstallment(Base):
+    __tablename__ = "finance_installments"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        UniqueConstraint(
+            "organization_id", "schedule_id", "number", name="uq_finance_installments_number"
+        ),
+        _same_tenant("finance_installments", "schedule_id", "finance_schedules"),
+        CheckConstraint("number >= 1 AND amount_cents > 0", name="values"),
+        Index("ix_finance_installments_due", "organization_id", "due_on"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    schedule_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    number: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    due_on: Mapped[date] = mapped_column(Date, nullable=False)
+    amount_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class FinancePayment(Base):
+    """A payment staff recorded. Voided with a reason, never deleted."""
+
+    __tablename__ = "finance_payments"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        _same_tenant("finance_payments", "schedule_id", "finance_schedules"),
+        CheckConstraint("amount_cents > 0", name="amount"),
+        CheckConstraint(
+            "method IN ('cash', 'bank_transfer', 'card', 'cheque', 'other')", name="method"
+        ),
+        CheckConstraint("(voided_at IS NULL) = (void_reason IS NULL)", name="void"),
+        Index("ix_finance_payments_schedule", "organization_id", "schedule_id"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    schedule_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    amount_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    received_on: Mapped[date] = mapped_column(Date, nullable=False)
+    method: Mapped[str] = mapped_column(String(16), nullable=False)
+    note: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    recorded_by_user_id: Mapped[uuid.UUID | None] = _user()
+    voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    voided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    void_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = created_at_column()

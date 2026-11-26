@@ -1609,6 +1609,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/deals/finance/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Schedules */
+        get: operations["list_schedules"];
+        put?: never;
+        /**
+         * Create Schedule
+         * @description A repayment plan; amounts default to the deal's approved finance application.
+         */
+        post: operations["create_schedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/schedules/{schedule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Schedule */
+        get: operations["get_schedule"];
+        /** Update Schedule */
+        put: operations["update_schedule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/schedules/{schedule_id}/installments/{installment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Installment
+         * @description Move one installment's date or change its amount; the total follows.
+         */
+        put: operations["update_installment"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/schedules/{schedule_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Payment
+         * @description A payment received. It pays the oldest unpaid installments first.
+         */
+        post: operations["record_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/deals/finance/schedules/{schedule_id}/payments/{payment_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void Payment
+         * @description Undo a payment recorded by mistake; it stays in the history with the reason.
+         */
+        post: operations["void_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/deals/finance/settings": {
         parameters: {
             query?: never;
@@ -5285,6 +5384,41 @@ export interface components {
              */
             since: string;
         };
+        /** InstallmentOut */
+        InstallmentOut: {
+            /** Amount Cents */
+            amount_cents: number;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Paid Cents */
+            paid_cents: number;
+            state: components["schemas"]["InstallmentState"];
+        };
+        /**
+         * InstallmentState
+         * @enum {string}
+         */
+        InstallmentState: "paid" | "part_paid" | "overdue" | "due_today" | "upcoming";
+        /** InstallmentUpdate */
+        InstallmentUpdate: {
+            /** Amount Cents */
+            amount_cents: number;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+        };
         /** IntegrationStatus */
         IntegrationStatus: {
             ai_budget: components["schemas"]["AIBudgetStatus"] | null;
@@ -5978,6 +6112,56 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /** PaymentIn */
+        PaymentIn: {
+            /** Amount Cents */
+            amount_cents: number;
+            method: components["schemas"]["PaymentMethod"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Received On
+             * Format: date
+             */
+            received_on: string;
+        };
+        /**
+         * PaymentMethod
+         * @enum {string}
+         */
+        PaymentMethod: "cash" | "bank_transfer" | "card" | "cheque" | "other";
+        /** PaymentOut */
+        PaymentOut: {
+            /** Amount Cents */
+            amount_cents: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Note */
+            note: string | null;
+            /**
+             * Received On
+             * Format: date
+             */
+            received_on: string;
+            /** Void Reason */
+            void_reason: string | null;
+            /** Voided */
+            voided: boolean;
+        };
+        /** PaymentVoid */
+        PaymentVoid: {
+            /** Reason */
+            reason: string;
         };
         /**
          * Permission
@@ -6886,6 +7070,168 @@ export interface components {
             top_reasons: components["schemas"]["Count"][];
             /** Total */
             total: number;
+        };
+        /** ScheduleDetail */
+        ScheduleDetail: {
+            /** Application Id */
+            application_id: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /** Contact Name */
+            contact_name: string;
+            /** Deal Id */
+            deal_id: string | null;
+            /**
+             * First Due On
+             * Format: date
+             */
+            first_due_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Installments */
+            installments: components["schemas"]["InstallmentOut"][];
+            /** Label */
+            label: string;
+            /** Monthly Cents */
+            monthly_cents: number;
+            /** Next Due Cents */
+            next_due_cents: number | null;
+            /** Next Due On */
+            next_due_on: string | null;
+            /** Note */
+            note: string | null;
+            /** Outstanding Cents */
+            outstanding_cents: number;
+            /** Overdue Cents */
+            overdue_cents: number;
+            /** Overdue Count */
+            overdue_count: number;
+            /** Paid Cents */
+            paid_cents: number;
+            /** Payments */
+            payments: components["schemas"]["PaymentOut"][];
+            /** Reminders Paused */
+            reminders_paused: boolean;
+            status: components["schemas"]["ScheduleStatus"];
+            /** Term Months */
+            term_months: number;
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** ScheduleIn */
+        ScheduleIn: {
+            /**
+             * Application Id
+             * @description Defaults to the deal's approved finance application
+             */
+            application_id?: string | null;
+            /**
+             * Contact Id
+             * @description Needed without a deal
+             */
+            contact_id?: string | null;
+            /**
+             * Deal Id
+             * @description Prefills the contact, car and amounts from the deal
+             */
+            deal_id?: string | null;
+            /**
+             * First Due On
+             * Format: date
+             */
+            first_due_on: string;
+            /**
+             * Label
+             * @description The car; defaults to the deal title
+             */
+            label?: string | null;
+            /** Monthly Cents */
+            monthly_cents?: number | null;
+            /** Note */
+            note?: string | null;
+            /** Term Months */
+            term_months?: number | null;
+            /**
+             * Total Cents
+             * @description Amount to repay; defaults to the application's estimate
+             */
+            total_cents?: number | null;
+        };
+        /** ScheduleList */
+        ScheduleList: {
+            /** Items */
+            items: components["schemas"]["ScheduleSummary"][];
+        };
+        /**
+         * ScheduleStatus
+         * @enum {string}
+         */
+        ScheduleStatus: "active" | "completed" | "cancelled";
+        /** ScheduleSummary */
+        ScheduleSummary: {
+            /** Application Id */
+            application_id: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /** Contact Name */
+            contact_name: string;
+            /** Deal Id */
+            deal_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Monthly Cents */
+            monthly_cents: number;
+            /** Next Due Cents */
+            next_due_cents: number | null;
+            /** Next Due On */
+            next_due_on: string | null;
+            /** Outstanding Cents */
+            outstanding_cents: number;
+            /** Overdue Cents */
+            overdue_cents: number;
+            /** Overdue Count */
+            overdue_count: number;
+            /** Paid Cents */
+            paid_cents: number;
+            /** Reminders Paused */
+            reminders_paused: boolean;
+            status: components["schemas"]["ScheduleStatus"];
+            /** Term Months */
+            term_months: number;
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** ScheduleUpdate */
+        ScheduleUpdate: {
+            /**
+             * Cancelled
+             * @description Cancel (or reopen) the schedule
+             * @default false
+             */
+            cancelled: boolean;
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Reminders Paused
+             * @default false
+             */
+            reminders_paused: boolean;
         };
         /** SearchHit */
         SearchHit: {
@@ -16058,6 +16404,559 @@ export interface operations {
                 };
             };
             /** @description Income details and decisions need finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_schedules: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ScheduleStatus"] | null;
+                overdue?: boolean;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_installment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: string;
+                installment_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstallmentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    record_payment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    void_payment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: string;
+                payment_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentVoid"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Needs finance.manage */
             403: {
                 headers: {
                     [name: string]: unknown;

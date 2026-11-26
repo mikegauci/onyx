@@ -109,7 +109,15 @@ them into chat.
 - [ ] **Existing customers:** ask Ventur which customers want Ventur to handle their licence
       or insurance, with the due dates and last service, and add their cars on each contact
       page (Cars panel).
-- [ ] **Production migrations 0039 and 0040**, after the PRs merge (they need your approval).
+- [x] **Production migrations 0039 and 0040:** applied 2026-11-26.
+
+## In-house finance schedules (VA-008)
+
+- [ ] **Payment records:** find out where Ventur keeps them today (a spreadsheet, accounting
+      software or paper). If it is a spreadsheet or an export, Onyx can import it later.
+- [ ] **Existing schedules:** enter each customer who is paying Ventur in instalments under
+      Deals → Payment schedules → New schedule, then record the payments already received.
+- [ ] **Production migration 0041**, after the PR merges (it needs your approval).
 
 ## Later Ventur items: questions to ask them
 

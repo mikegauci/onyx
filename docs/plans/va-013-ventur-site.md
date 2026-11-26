@@ -5,8 +5,9 @@ Depends on VA-001 (vehicles in Onyx), which is merged.
 
 The site is built in a **new repository, `ventur`**
 (`/Users/michaelgauci/GitHub/ventur`, GitHub `mikegauci/ventur`, private). Onyx supplies the
-stock. A small Onyx-side part (part 0) adds the public stock and enquiry endpoints in the
-`onyx` repo; the site never reaches into Onyx in any other way.
+stock, and is where Ventur adds and edits cars from now on (owner decision 2026-11-26). The
+Onyx-side work (part 0) is built in the `onyx` repo; the site only reads Onyx's public stock
+API and never reaches into Onyx in any other way.
 
 ## Goal
 
@@ -16,6 +17,7 @@ a car that is sold or reserved in Onyx changes on the site without anyone editin
 
 Acceptance (from the roadmap):
 
+- Ventur adds and edits cars, photos and prices in Onyx, and WordPress is retired.
 - Sold and reserved cars update on the site without manual edits (within 5 minutes).
 - Stock search with filters, and a vehicle page with photos and specs.
 - Enquiries reach Ventur (the Onyx inbox once allowed; see Enquiries).
@@ -42,7 +44,7 @@ WordPress with the Vehica theme, Elementor and WooCommerce. From its sitemaps (2
   `/12-reasons-to-choose-ventur-auto-imports/`.
 
 **Car photos are hosted on the WordPress site** (`/wp-content/uploads/...`). They must be copied
-before WordPress is switched off, or every photo breaks (part 0).
+before WordPress is switched off, or every photo breaks (part 0a).
 
 ## Decisions
 
@@ -53,8 +55,8 @@ before WordPress is switched off, or every photo breaks (part 0).
 - **Same URLs where possible:**
   - Vehicle pages stay at `/listing/{slug}/` and make pages at `/search/{make}/`, so most links
     and search rankings carry over with no redirect.
-  - A car imported from WordPress keeps its WordPress slug. A car added in Onyx later gets a
-    new slug.
+  - A car imported from WordPress keeps its WordPress slug. A car added in Onyx gets a new
+    slug, and a slug never changes once the car is listed.
 - **Content for the non-stock pages:**
   - It lives in the repo as typed content files (TS or MDX); there is no CMS in v1.
   - The draft copy is taken from Ventur's own current pages and rewritten, and Ventur approves
@@ -75,14 +77,58 @@ before WordPress is switched off, or every photo breaks (part 0).
     cars, and it appears on `/sold/`. After 30 days it redirects to its make page.
   - `withdrawn`: its page redirects to its make page.
 
-## Part 0 — Onyx side (in the `onyx` repo, its own PR)
+## Part 0 — Onyx side (in the `onyx` repo)
 
-This is built in the onyx repo with the normal Onyx flow (plan, branch, PR, preview migration).
-It is not built by the `ventur` repo session.
+Owner decision (2026-11-26, option A): **Onyx becomes the one place where Ventur manages its
+stock.** WordPress is imported once more at launch, then retired. Today Onyx can only import
+cars from WordPress; it has no screen to add or edit a car. Part 0 adds that, plus the public
+API the website reads.
+
+It is built in the onyx repo with the normal Onyx flow (plan, branch, PR, preview migration,
+production migration on approval), as three PRs. The `ventur` repo session does not build it.
+
+### 0a — Stock management in Onyx (about 16–24h)
+
+- **Add and edit a car** under Automotive → Vehicles:
+  - the same fields the import fills: title, make, model, variant, year, mileage, engine size,
+    fuel, transmission, body, colour, doors, condition, price (or "price on request"),
+    features, video link and stock number;
+  - the VIN, which stays internal.
+- **Photos:**
+  - upload several at once (JPEG, PNG, WebP, HEIC from phones), reorder them by dragging,
+    choose the cover photo and delete;
+  - Onyx stores the original and makes resized web versions (WebP, for example 400, 800 and
+    1600 px wide);
+  - size and type limits, and an image check (a file must really be an image);
+  - photos sit in a public bucket, because they appear on the public website.
+- **Status:** available, reserved, sold or withdrawn, changed by staff.
+  - A car held by an open deal keeps the status the deal gives it, as today (VA-007).
+  - Every change is audited and written as a vehicle event, so the daily summary (VA-010)
+    keeps counting listings.
+- **Where each car came from:** a new `origin` (`import` or `manual`).
+  - The WordPress import only updates or withdraws cars it imported. A car added in Onyx is
+    never withdrawn because it is missing from WordPress.
+  - A switch turns the WordPress source off at launch, so nothing is imported after that.
+- **One-off photo copy:** copy each current car's photos from WordPress into Onyx storage, so
+  they keep working after WordPress is switched off.
+  - "Current" means available and reserved cars, and cars sold in the last 30 days. Most of
+    the ~850 WordPress listings are old sold cars, and copying all of them would not fit the
+    free storage plan.
+- **Permissions:** owners and admins manage stock (a new `vehicles.manage` permission), and
+  members can read it. This is checked in the API.
+- Tests:
+  - creating, editing and changing the status of a car, with every change audited;
+  - photo upload limits, ordering and the cover photo;
+  - a car added in Onyx surviving an import;
+  - a held car keeping its status;
+  - a two-tenant negative test on every endpoint.
+
+### 0b — Public stock API for the website (about 8–14h)
 
 - Migration:
   - `automotive_vehicles.slug`: unique per tenant. It is filled from the last part of each
-    vehicle's WordPress `listing_url`, and generated from make, model and year for new cars.
+    vehicle's WordPress `listing_url`, and generated from make, model and year for cars added
+    in Onyx. Editing a car never changes its slug, so its URL stays the same.
   - `automotive_site_keys`: a per-tenant **publishable** site key (read-only, revocable), its
     allowed origins, and an optional revalidation webhook URL and secret.
 - **Public stock API** (no user session; the key is in `X-Onyx-Site-Key`; read-only; rate
@@ -97,20 +143,29 @@ It is not built by the `ventur` repo session.
   - Fields: `slug`, `stock_number`, `title`, `make`, `model`, `variant`, `year`, `mileage_km`,
     `engine_cc`, `fuel`, `transmission`, `body_type`, `colour`, `doors`, `condition`,
     `price_cents` (null means price on request), `currency`, `features`, `photos` (Onyx-hosted
-    URLs), `video_url`, `status`, `updated_at`.
-- **Photos:** copy each vehicle's photos from WordPress into Onyx storage (public bucket, resized
-  web versions), and serve those URLs. Re-imports copy only new photos.
-- **Revalidation:** when a vehicle's status, price or photos change, Onyx calls the site's
-  revalidation URL with the slug, signed with the key's secret, as a retried outbox job.
-- **Public enquiries:** `POST /v1/public/stock/enquiries` takes the name, phone and/or email,
-  message, vehicle slug and consent. It is protected by the site key, the allowed origin, a
-  rate limit, a honeypot field and Cloudflare Turnstile. It creates an inbox conversation and a
-  lead.
-- Tests: a two-tenant negative test (a key never sees another tenant's cars), the fields never
-  include VIN or deal data, rate limits, origin checks and the sold/withdrawn rules.
+    URLs of the web versions), `video_url`, `status`, `updated_at`.
+- **Revalidation:** when a car is added, or its status, price, details or photos change, Onyx
+  calls the site's revalidation URL with the slug, signed with the key's secret, as a retried
+  outbox job. The site then updates within seconds, with the 5-minute refresh as the backstop.
+- Tests:
+  - a two-tenant negative test: a key never sees another tenant's cars;
+  - the fields never include the VIN, the deal or anything internal;
+  - rate limits and origin checks;
+  - the sold and withdrawn rules, and slugs that never change.
 
-Until part 0 is live, the site runs on a **fixture adapter**: a JSON snapshot of the stock in
-the same shape as the API, chosen by an environment variable.
+### 0c — Public enquiries (later, about 6–10h)
+
+`POST /v1/public/stock/enquiries` takes the name, phone and/or email, message, vehicle slug and
+consent.
+
+- It is protected by the site key, the allowed origin, a rate limit, a honeypot field and
+  Cloudflare Turnstile.
+- It creates an inbox conversation and a lead.
+- It is built only once client personal data is allowed in Onyx production (see Enquiries).
+
+Until 0b is live, the site runs on a **fixture adapter**: a JSON snapshot of the stock in the
+same shape as the API, chosen by an environment variable. So the site can be designed and built
+while part 0 is in progress.
 
 ## Enquiries
 
@@ -213,7 +268,9 @@ http://localhost:3000/`) for the homepage and brand pages.
 8. **SEO and migration:** metadata, structured data, sitemap, robots, the redirect map, the
    old-URL check script, and a Lighthouse CI budget.
 9. **Launch** (needs the owner's approval for each step):
-   - part 0 live and `STOCK_SOURCE=onyx`;
+   - parts 0a and 0b live in Onyx production, and `STOCK_SOURCE=onyx`;
+   - a final WordPress import, the photo copy, then the WordPress source turned off in Onyx;
+   - Ventur's staff shown how to add cars in Onyx;
    - photos served from Onyx;
    - Ventur approves the content;
    - the DNS cut-over from WordPress to Vercel;
@@ -244,7 +301,13 @@ http://localhost:3000/`) for the homepage and brand pages.
 - [ ] Cloudflare Turnstile keys for the forms.
 - [ ] Google Search Console access for ventur.com.mt.
 - [ ] Before enquiries go into Onyx: Supabase on a paid plan and a DPA with Ventur.
-- [ ] Ventur's sold-field mapping for the WordPress import (still open from VA-001).
+- [ ] Ventur's sold-field mapping for the WordPress import (still open from VA-001), needed
+      for the import before launch.
+- [ ] Storage: check the photo volume after the copy. Supabase's free plan has 1 GB of
+      storage, and Ventur's current stock may need the paid plan (which client data needs
+      anyway).
+- [ ] Who at Ventur adds cars and photos in Onyx, and whether members may edit stock or only
+      owners and admins.
 
 ## Out of scope (v1)
 

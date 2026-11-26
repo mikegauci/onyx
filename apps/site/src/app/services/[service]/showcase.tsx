@@ -4,6 +4,7 @@ import type { ServiceSlug } from "@/content/service-links";
 import { webDesignProjects } from "@/content/web-design";
 
 import styles from "./brand-composition.module.css";
+import search from "./seo-composition.module.css";
 
 const branding = {
   "QTM Detailing": {
@@ -22,6 +23,43 @@ const branding = {
 } as const;
 
 type BrandingProject = keyof typeof branding;
+
+function SeoArtwork() {
+  return (
+    <div
+      role="img"
+      aria-label="Illustrative search for a physiotherapist in Mosta showing a map pin and a clinic website result."
+      className={search.composition}
+    >
+      <div aria-hidden="true" className={search.map}>
+        <span className={search.street} />
+        <span className={search.street} />
+        <span className={search.street} />
+        <span className={search.ring} />
+      </div>
+      <div aria-hidden="true" className={search.query}>
+        <span className={search.magnifier} />
+        <span className={search.queryTerm}>Physiotherapist in Mosta</span>
+      </div>
+      <div aria-hidden="true" className={search.location}>
+        <span className={search.pin}>
+          <span />
+        </span>
+        <span className={search.place}>Mosta</span>
+      </div>
+      <div aria-hidden="true" className={search.result}>
+        <span className={search.resultIcon}>
+          <span className={search.globe} />
+        </span>
+        <div className={search.resultCopy}>
+          <span>Website result</span>
+          <strong>Physiotherapy Clinic</strong>
+          <span>Treatments and appointments</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ServiceVisual({ slug }: { slug: ServiceSlug }) {
   if (slug === "app-development") {
@@ -70,23 +108,20 @@ export function ServiceVisual({ slug }: { slug: ServiceSlug }) {
     );
   }
 
-  const seo = slug === "seo";
-  const steps = seo
-    ? [
-        ["Find the gaps", "Audit pages and search visibility"],
-        ["Plan the fixes", "Prioritise technical and local SEO"],
-        ["Track progress", "Review search data and enquiries"],
-      ]
-    : [
-        ["Enquiry arrives", "WhatsApp, email or web chat"],
-        ["The assistant prepares a reply", "Uses your approved information"],
-        ["Your team takes it from here", "Review or hand off when needed"],
-      ];
+  if (slug === "seo") {
+    return <SeoArtwork />;
+  }
+
+  const steps = [
+    ["Enquiry arrives", "WhatsApp, email or web chat"],
+    ["The assistant prepares a reply", "Uses your approved information"],
+    ["Your team takes it from here", "Review or hand off when needed"],
+  ];
 
   return (
     <div className="mx-auto w-full max-w-md rounded-3xl border border-white/10 bg-black/50 p-4 shadow-xl sm:p-6">
       <p className="text-muted-foreground border-b border-white/10 pb-4 font-mono text-xs tracking-[0.14em] uppercase">
-        {seo ? "A typical SEO project" : "Example enquiry workflow"}
+        Example enquiry workflow
       </p>
       <ol className="mt-3 space-y-2.5">
         {steps.map(([title, description], index) => (

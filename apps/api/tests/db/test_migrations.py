@@ -68,6 +68,8 @@ EXPECTED_TABLES = {
     "deal_documents",
     "deal_settings",
     "deal_upload_links",
+    "deal_review_settings",
+    "deal_review_requests",
     "privacy_settings",
     "finance_settings",
     "finance_applications",

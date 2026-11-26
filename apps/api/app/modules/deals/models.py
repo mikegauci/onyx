@@ -4,6 +4,7 @@ References are composite ``(organization_id, id)`` foreign keys, so a deal never
 another tenant's contact, lead, quote, conversation, vehicle or file. Money is integer cents.
 """
 
+import enum
 import uuid
 from datetime import date, datetime
 from typing import Any
@@ -11,6 +12,7 @@ from typing import Any
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -267,5 +269,79 @@ class FinanceApplication(Base):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source: Mapped[str] = mapped_column(String(16), nullable=False, server_default="staff")
     created_by_user_id: Mapped[uuid.UUID | None] = _user()
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class ReviewStatus(enum.StrEnum):
+    PENDING = "pending"  # waiting for staff to send or dismiss
+    SENT = "sent"
+    DISMISSED = "dismissed"
+    SKIPPED = "skipped"  # could not be sent (no channel, opted out...)
+
+
+class ReviewChannel(enum.StrEnum):
+    WHATSAPP = "whatsapp"
+    EMAIL = "email"
+
+
+class ReviewSettings(Base):
+    """The Google review link and message (VA-009). No link: no review requests."""
+
+    __tablename__ = "deal_review_settings"
+    __table_args__ = (
+        _same_tenant("deal_review_settings", "template_id", "inbox_whatsapp_templates"),
+        CheckConstraint("delay_days BETWEEN 1 AND 60", name="delay_days"),
+        CheckConstraint(
+            "google_review_url IS NULL OR google_review_url LIKE 'https://%'", name="url"
+        ),
+        CheckConstraint("jsonb_typeof(params) = 'array'", name="params"),
+    )
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="RESTRICT"), primary_key=True
+    )
+    google_review_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    delay_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="7")
+    email_subject: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    updated_by_user_id: Mapped[uuid.UUID | None] = _user()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class ReviewRequest(Base):
+    """A Google review request for a collected deal (VA-009). At most one per deal."""
+
+    __tablename__ = "deal_review_requests"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "deal_id", name="uq_deal_review_requests_deal"),
+        _same_tenant("deal_review_requests", "deal_id", "deals"),
+        _same_tenant("deal_review_requests", "contact_id", "crm_contacts"),
+        CheckConstraint("status IN ('pending', 'sent', 'dismissed', 'skipped')", name="status"),
+        CheckConstraint(
+            "(status = 'skipped') = (skip_reason IS NOT NULL) AND "
+            "(status = 'sent') = (message_id IS NOT NULL) AND "
+            "(status = 'sent') = (channel IS NOT NULL) AND "
+            "(channel IS NULL OR channel IN ('whatsapp', 'email'))",
+            name="outcome",
+        ),
+        Index("ix_deal_review_requests_status", "organization_id", "status", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    deal_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    channel: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    skip_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    decided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = created_at_column()
     updated_at: Mapped[datetime] = updated_at_column()

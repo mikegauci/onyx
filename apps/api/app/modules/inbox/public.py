@@ -18,9 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.deps import WorkspaceAccess
 from app.core.db.context import TenantContext
+from app.modules.crm import public as crm
 from app.modules.inbox import schemas
 from app.modules.inbox.channels.whatsapp import window_open
-from app.modules.inbox.ingest import set_status
+from app.modules.inbox.ingest import record_event, set_status
 from app.modules.inbox.models import (
     BODY_MAX_LENGTH,
     REASON_MAX_LENGTH,
@@ -30,9 +31,12 @@ from app.modules.inbox.models import (
     Conversation,
     ConversationStatus,
     DeliveryStatus,
+    EventKind,
     Handler,
     Message,
     MessageDirection,
+    Participant,
+    ParticipantKind,
     TemplateCategory,
     WhatsAppTemplate,
 )
@@ -243,6 +247,7 @@ class TemplateInfo:
     language: str
     category: str
     usable_for_marketing: bool
+    usable_for_utility: bool
     param_count: int
     body: str | None
 
@@ -267,6 +272,7 @@ async def whatsapp_template(
         category=template.category.value,
         usable_for_marketing=template_usable(template, marketing=True)
         and template.category is TemplateCategory.MARKETING,
+        usable_for_utility=template_usable(template),
         param_count=template.param_count,
         body=template.body,
     )
@@ -378,3 +384,76 @@ async def whatsapp_window_open(
     """Whether free-form WhatsApp text may be sent now (the customer wrote in the last 24h)."""
     service = InboxService(db, workspace)
     return window_open(await service._last_whatsapp_inbound(conversation_id), datetime.now(UTC))
+
+
+async def email_conversation_for_contact(
+    db: AsyncSession, workspace: WorkspaceAccess, contact_id: uuid.UUID, subject: str
+) -> uuid.UUID | None:
+    """A thread to email the contact in: their latest one on a connected email channel
+    (reopened if closed), else a new one started by the signed-in user with ``subject``.
+
+    None when the contact has no email address or the workspace has no connected email
+    channel. Used for review requests and reminders (VA-009).
+    """
+    org = workspace.tenant.organization_id
+    contact = (await crm.get_contacts(db, workspace.tenant, [contact_id])).get(contact_id)
+    if contact is None or contact.archived or not contact.email:
+        return None
+    channels = select(Channel.id).where(
+        Channel.organization_id == org,
+        Channel.kind == ChannelKind.EMAIL,
+        Channel.disabled_at.is_(None),
+        Channel.inbound_token.is_not(None),
+    )
+    conversation = await db.scalar(
+        select(Conversation)
+        .where(
+            Conversation.organization_id == org,
+            Conversation.channel_id.in_(channels),
+            Conversation.contact_id == contact_id,
+            Conversation.redacted_at.is_(None),
+        )
+        .order_by(Conversation.last_message_at.desc().nulls_last(), Conversation.created_at.desc())
+        .limit(1)
+        .with_for_update()
+    )
+    if conversation is not None:
+        if conversation.status is ConversationStatus.CLOSED:
+            set_status(
+                db, conversation, ConversationStatus.OPEN, workspace.user.id, reason="staff_message"
+            )
+            await db.flush()
+        return conversation.id
+    channel_id = await db.scalar(channels.order_by(Channel.created_at).limit(1))
+    if channel_id is None:
+        return None
+    conversation = Conversation(
+        organization_id=org,
+        channel_id=channel_id,
+        subject=subject[:200],
+        status=ConversationStatus.OPEN,
+        handler=Handler.STAFF,
+        contact_id=contact_id,
+        created_by_user_id=workspace.user.id,
+    )
+    db.add(conversation)
+    await db.flush()
+    db.add(
+        Participant(
+            organization_id=org,
+            conversation_id=conversation.id,
+            kind=ParticipantKind.CONTACT,
+            contact_id=contact_id,
+            display_name=contact.full_name,
+            address=contact.email.lower(),
+        )
+    )
+    record_event(
+        db,
+        conversation,
+        EventKind.CREATED,
+        {"channel_id": str(channel_id), "contact_id": str(contact_id)},
+        workspace.user.id,
+    )
+    await db.flush()
+    return conversation.id

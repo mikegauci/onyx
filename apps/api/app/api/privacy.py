@@ -138,6 +138,12 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE f.organization_id = :org AND f.contact_id = :c ORDER BY f.created_at",
     ),
     (
+        "review_requests",
+        "SELECT r.deal_id, r.status, r.channel, r.created_at, r.decided_at "
+        "FROM deal_review_requests r WHERE r.organization_id = :org AND r.contact_id = :c "
+        "ORDER BY r.created_at",
+    ),
+    (
         "deal_documents",
         "SELECT d.deal_id, d.label, d.state, d.received_at, d.received_from, d.verified_at, "
         "d.file_deleted_at, f.filename, f.content_type, f.size_bytes FROM deal_documents d "
@@ -184,6 +190,7 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "deals": "deals",
         "deal_documents": "deals",
         "finance_applications": "deals",
+        "review_requests": "deals",
         "marketing_consents": "crm",
         "wanted_cars": "automotive",
         "car_alerts": "automotive",
@@ -282,6 +289,15 @@ async def erase_contact(
                 "decision_note = NULL, vehicle_label = NULL, net_monthly_income_cents = NULL, "
                 "existing_commitments_cents = NULL, updated_at = now() "
                 "WHERE organization_id = :org AND contact_id = :c"
+            ),
+            {"org": org, "c": contact_id},
+        )
+        # Review requests (VA-009): never send one to an erased contact.
+        await db.execute(
+            text(
+                "UPDATE deal_review_requests SET status = 'skipped', skip_reason = 'erased', "
+                "updated_at = now() WHERE organization_id = :org AND contact_id = :c "
+                "AND status IN ('pending', 'skipped')"
             ),
             {"org": org, "c": contact_id},
         )

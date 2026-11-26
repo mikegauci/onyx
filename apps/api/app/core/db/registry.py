@@ -6,6 +6,7 @@ from app.core.audit import models as audit_models
 from app.core.billing import models as billing_models
 from app.core.controls import models as control_models
 from app.core.db.base import Base
+from app.core.insights import models as insight_models
 from app.core.modules import models as module_models
 from app.core.outbox import models as outbox_models
 from app.core.privacy import models as privacy_models
@@ -36,6 +37,7 @@ __all__ = [
     "crm_models",
     "deal_models",
     "inbox_models",
+    "insight_models",
     "knowledge_models",
     "module_models",
     "outbound_models",

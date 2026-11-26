@@ -45,6 +45,16 @@ export default async function InsightsPage({ params, searchParams }: Props) {
         description={`How ${workspace.display_name ?? workspace.name} is handling enquiries over the last ${days} days. Worked out from the inbox, replies and quotes; no message text is used.`}
         actions={<RangePicker base={path} days={days} />}
       />
+      {workspace.permissions.includes("workspace.update") ? (
+        <p className="text-sm">
+          <Link
+            href={`${path}/daily-summary`}
+            className={cn("text-brand font-medium underline-offset-4 hover:underline", FOCUS)}
+          >
+            Daily summary by email or WhatsApp →
+          </Link>
+        </p>
+      ) : null}
       <Headline data={data} />
       <div className="grid gap-6 lg:grid-cols-2">
         {data.enquiries ? (

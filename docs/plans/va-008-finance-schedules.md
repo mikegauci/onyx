@@ -1,6 +1,6 @@
 # VA-008 — In-house finance schedules and reminders
 
-Status: part 1 merged (#94); part 2 built 2026-11-26. Depends on VA-006 (finance applications) and VA-007 (deals), both
+Status: merged (#94, #96). Depends on VA-006 (finance applications) and VA-007 (deals), both
 merged.
 
 ## Owner decisions (2026-11-26)

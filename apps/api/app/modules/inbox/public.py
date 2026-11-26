@@ -18,8 +18,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.deps import WorkspaceAccess
 from app.core.db.context import TenantContext
+from app.integrations import email as email_integration
+from app.integrations import whatsapp as whatsapp_integration
+from app.integrations.email import EmailProviderError, OutgoingEmail
+from app.integrations.whatsapp import OutgoingWhatsApp, TemplateUse, WhatsAppProviderError
 from app.modules.crm import public as crm
 from app.modules.inbox import schemas
+from app.modules.inbox.channels.email import FROM_LOCAL_PART
+from app.modules.inbox.channels.email import _html as email_html
 from app.modules.inbox.channels.whatsapp import window_open
 from app.modules.inbox.ingest import record_event, set_status
 from app.modules.inbox.models import (
@@ -528,3 +534,89 @@ async def deliver_to_contact(
             )
             return Delivered("email", reply.message_id)
     raise NoChannelError
+
+
+# --- staff notifications (VA-010 daily owner summary) --------------------------------------
+
+
+class StaffSendError(Exception):
+    """A staff notification could not be sent. ``reason`` is a short code, never content."""
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+        super().__init__(reason)
+
+
+async def send_staff_email(
+    *, from_name: str, to: str, subject: str, text: str, idempotency_key: str, tags: dict[str, str]
+) -> str:
+    """Email one of the workspace's own staff through the platform provider; not an inbox
+    conversation. Returns the provider id. Raises ``StaffSendError``."""
+    config = email_integration.current()
+    if config is None:
+        raise StaffSendError("email_not_configured")
+    safe_name = "".join(c for c in from_name if c not in '"<>\r\n').strip() or "Onyx"
+    sender = f'"{safe_name}" <{FROM_LOCAL_PART}@{config.from_domain}>'
+    try:
+        return await config.provider.send(
+            OutgoingEmail(
+                from_address=sender,
+                to=to,
+                subject=subject[:200],
+                text=text,
+                html=email_html(text),
+                reply_to=f"{FROM_LOCAL_PART}@{config.from_domain}",
+                idempotency_key=idempotency_key,
+                tags=tags,
+            )
+        )
+    except EmailProviderError as exc:
+        raise StaffSendError(f"email_{exc.code}") from exc
+
+
+async def send_staff_whatsapp(
+    db: AsyncSession,
+    tenant: TenantContext,
+    *,
+    template_id: uuid.UUID,
+    to: str,
+    params: Sequence[str],
+    callback_data: str,
+) -> str:
+    """Send an approved utility template to a staff member's number from the tenant's connected
+    WhatsApp number. Returns the provider's message id. Raises ``StaffSendError``."""
+    config = whatsapp_integration.current()
+    if config is None:
+        raise StaffSendError("whatsapp_not_configured")
+    row = (
+        await db.execute(
+            select(WhatsAppTemplate, Channel)
+            .join(
+                Channel,
+                (Channel.organization_id == WhatsAppTemplate.organization_id)
+                & (Channel.id == WhatsAppTemplate.channel_id),
+            )
+            .where(
+                WhatsAppTemplate.organization_id == tenant.organization_id,
+                WhatsAppTemplate.id == template_id,
+            )
+        )
+    ).first()
+    if row is None:
+        raise StaffSendError("no_template")
+    template, channel = row
+    if not template_usable(template) or template.param_count != len(params):
+        raise StaffSendError("no_template")
+    if channel.phone_number_id is None or channel.disabled_at is not None:
+        raise StaffSendError("whatsapp_not_connected")
+    try:
+        return await config.provider.send(
+            OutgoingWhatsApp(
+                phone_number_id=channel.phone_number_id,
+                to=to,
+                callback_data=callback_data,
+                template=TemplateUse(template.name, template.language, tuple(params)),
+            )
+        )
+    except WhatsAppProviderError as exc:
+        raise StaffSendError(f"whatsapp_{exc.code}") from exc

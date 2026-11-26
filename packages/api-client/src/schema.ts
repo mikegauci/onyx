@@ -2333,6 +2333,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/insights/daily-summary/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Summary History */
+        get: operations["read_summary_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/insights/daily-summary/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Summary */
+        get: operations["preview_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/insights/daily-summary/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Summary Settings */
+        get: operations["read_summary_settings"];
+        /** Update Summary Settings */
+        put: operations["update_summary_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/insights/daily-summary/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Test Summary
+         * @description Today's preview to the caller only: their recipient channels, or email if not listed.
+         */
+        post: operations["send_test_summary"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/integrations": {
         parameters: {
             query?: never;
@@ -7551,6 +7623,191 @@ export interface components {
             status: components["schemas"]["VehicleStatus"];
             /** Title */
             title: string;
+        };
+        /** SummaryDealsOut */
+        SummaryDealsOut: {
+            /** Reserved */
+            reserved: number;
+            /** Sold */
+            sold: number;
+        };
+        /** SummaryEnquiriesOut */
+        SummaryEnquiriesOut: {
+            /** By Channel */
+            by_channel: {
+                [key: string]: number;
+            };
+            /** Missed Calls */
+            missed_calls: number;
+            /** Total */
+            total: number;
+        };
+        /** SummaryFiguresOut */
+        SummaryFiguresOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            deals: components["schemas"]["SummaryDealsOut"] | null;
+            enquiries: components["schemas"]["SummaryEnquiriesOut"] | null;
+            listings: components["schemas"]["SummaryListingsOut"] | null;
+            /** Missing */
+            missing: {
+                [key: string]: string;
+            };
+            payments: components["schemas"]["SummaryPaymentsOut"] | null;
+        };
+        /** SummaryHistoryItem */
+        SummaryHistoryItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Results */
+            results: components["schemas"]["SummarySendResultOut"][];
+            /** Sent At */
+            sent_at: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Summary Date
+             * Format: date
+             */
+            summary_date: string;
+            /** Text */
+            text: string;
+        };
+        /** SummaryHistoryOut */
+        SummaryHistoryOut: {
+            /** Items */
+            items: components["schemas"]["SummaryHistoryItem"][];
+        };
+        /** SummaryListingsOut */
+        SummaryListingsOut: {
+            /** Added */
+            added: number;
+            /** Available */
+            available: number;
+            /** Removed */
+            removed: number;
+        };
+        /** SummaryMemberOut */
+        SummaryMemberOut: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** SummaryPaymentsOut */
+        SummaryPaymentsOut: {
+            /** Count */
+            count: number;
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** SummaryPreviewOut */
+        SummaryPreviewOut: {
+            figures: components["schemas"]["SummaryFiguresOut"];
+            /** Text */
+            text: string;
+        };
+        /** SummaryRecipientIn */
+        SummaryRecipientIn: {
+            /**
+             * Email
+             * @default true
+             */
+            email: boolean;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Whatsapp */
+            whatsapp?: string | null;
+        };
+        /** SummaryRecipientOut */
+        SummaryRecipientOut: {
+            /** Display Name */
+            display_name: string | null;
+            /**
+             * Email
+             * @default true
+             */
+            email: boolean;
+            /** Email Address */
+            email_address: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Whatsapp */
+            whatsapp?: string | null;
+        };
+        /** SummarySendResultOut */
+        SummarySendResultOut: {
+            /** Channel */
+            channel: string;
+            /** Reason */
+            reason: string | null;
+            /** Status */
+            status: string;
+            /** User Id */
+            user_id: string | null;
+        };
+        /** SummarySettingsIn */
+        SummarySettingsIn: {
+            /** Enabled */
+            enabled: boolean;
+            /** Params */
+            params?: ("workspace" | "date" | "summary")[];
+            /** Recipients */
+            recipients?: components["schemas"]["SummaryRecipientIn"][];
+            /**
+             * Send At
+             * Format: time
+             * @default 19:00:00
+             */
+            send_at: string;
+            /** Template Id */
+            template_id?: string | null;
+        };
+        /** SummarySettingsOut */
+        SummarySettingsOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Members */
+            members: components["schemas"]["SummaryMemberOut"][];
+            /** Params */
+            params: string[];
+            /** Recipients */
+            recipients: components["schemas"]["SummaryRecipientOut"][];
+            /**
+             * Send At
+             * Format: time
+             */
+            send_at: string;
+            /** Template Id */
+            template_id: string | null;
+            /** Template Ready */
+            template_ready: boolean;
+            /** Timezone */
+            timezone: string;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** SummaryTestOut */
+        SummaryTestOut: {
+            /** Results */
+            results: components["schemas"]["SummarySendResultOut"][];
         };
         /**
          * SuppressionCreate
@@ -20725,6 +20982,345 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InsightsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_summary_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryHistoryOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryPreviewOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_summary_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummarySettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_summary_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummarySettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummarySettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_test_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryTestOut"];
                 };
             };
             /** @description Not authenticated */

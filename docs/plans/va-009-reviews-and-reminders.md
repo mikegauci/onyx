@@ -44,6 +44,7 @@ Status: part 1 built 2026-11-26; part 2 planned. Depends on VA-007 (deals) and P
    It falls back to email when the contact has no WhatsApp conversation or the template is not
    set. It is skipped, with a reason, when neither channel works. A STOP or an email
    suppression blocks the send.
+
 4. The send key is `review-{id}`, so a retry never sends twice. Each send and dismissal is
    audited.
 5. Erasing a contact (privacy tools) skips their pending requests; export includes them.
@@ -73,6 +74,7 @@ thread or creates one on the workspace's email channel.
 
   Collecting a deal creates this record from the deal and its vehicle. Staff can also add a
   car by hand for customers who bought before Onyx.
+
 - `automotive_reminders`: `customer_car_id`, `kind` (`licence`, `insurance`, `service`),
   `due_on`, the same status, channel and outcome fields as review requests, and a unique key on
   (car, kind, due_on). That key means one reminder per due date; after a renewal, staff set the

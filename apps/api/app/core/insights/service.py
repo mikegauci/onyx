@@ -123,7 +123,7 @@ async def enquiries(db: AsyncSession, p: dict[str, Any]) -> Enquiries:
         SELECT ch.kind, count(*) FROM inbox_conversations c
         JOIN inbox_channels ch
           ON ch.organization_id = c.organization_id AND ch.id = c.channel_id
-        WHERE c.organization_id = :org AND c.created_at >= :since
+        WHERE c.organization_id = :org AND c.created_at >= :since AND c.created_at < :until
         GROUP BY ch.kind ORDER BY ch.kind
         """,
         p,
@@ -370,7 +370,7 @@ async def build(
     modules: frozenset[str],
 ) -> Insights:
     since = now - timedelta(days=days)
-    p = {"org": organization_id, "since": since}
+    p = {"org": organization_id, "since": since, "until": now}
     inbox_on = "inbox" in modules
     return Insights(
         days=days,

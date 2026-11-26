@@ -512,3 +512,47 @@ class ReminderSettings(Base):
     )
     updated_by_user_id: Mapped[uuid.UUID | None] = _user()
     updated_at: Mapped[datetime] = updated_at_column()
+
+
+class VehicleEventKind(enum.StrEnum):
+    LISTED = "listed"  # first seen (from_status is null)
+    STATUS = "status"  # the status changed
+
+
+class VehicleEvent(Base):
+    """A vehicle was listed or changed status (VA-010), so listings added and removed per day
+    can be counted. Written by the website import and the deal hooks; never changed."""
+
+    __tablename__ = "automotive_vehicle_events"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('listed', 'status') AND (kind = 'listed') = (from_status IS NULL)",
+            name="kind",
+        ),
+        CheckConstraint("source IN ('import', 'deal')", name="source"),
+        _same_tenant("automotive_vehicle_events", "vehicle_id", "automotive_vehicles"),
+        Index("ix_automotive_vehicle_events_day", "organization_id", "occurred_at"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    vehicle_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    from_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    to_status: Mapped[str] = mapped_column(String(16), nullable=False)
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    occurred_at: Mapped[datetime] = created_at_column()
+
+
+def status_event(vehicle: Vehicle, *, from_status: str | None, source: str) -> VehicleEvent | None:
+    """The event for a vehicle that was just listed (``from_status`` None) or changed status."""
+    if from_status == vehicle.status:
+        return None
+    return VehicleEvent(
+        organization_id=vehicle.organization_id,
+        vehicle_id=vehicle.id,
+        kind=VehicleEventKind.LISTED if from_status is None else VehicleEventKind.STATUS,
+        from_status=from_status,
+        to_status=vehicle.status,
+        source=source,
+    )

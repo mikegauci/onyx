@@ -3,49 +3,25 @@ import Image from "next/image";
 import type { ServiceSlug } from "@/content/service-links";
 import { webDesignProjects } from "@/content/web-design";
 
+import styles from "./brand-composition.module.css";
+
 const branding = {
   "QTM Detailing": {
-    mark: "qtm-detailing-mark",
-    dimensions: [300, 136],
-    markClass: "h-11 w-auto",
     title: "A performance-led identity",
     description: "A bold motorsport-inspired mark set against dark photography and vivid accents.",
   },
   MaltaGuns: {
-    mark: "maltaguns-mark",
-    dimensions: [410, 66],
-    markClass: "h-5 w-auto max-w-full sm:h-7",
     title: "An identity for a community",
     description:
       "A distinctive wordmark and an editorial presentation for a Maltese community platform.",
   },
   Pantrila: {
-    mark: "pantrila-mark",
-    dimensions: [280, 280],
-    markClass: "size-11 rounded-xl",
     title: "A recognisable app identity",
     description: "A chef-hat app icon and a green palette carried across the cooking experience.",
   },
 } as const;
 
 type BrandingProject = keyof typeof branding;
-
-function BrandMark({ name }: { name: BrandingProject }) {
-  const {
-    mark,
-    markClass,
-    dimensions: [width, height],
-  } = branding[name];
-  return (
-    <Image
-      src={`/portfolio/services/${mark}.webp`}
-      alt=""
-      width={width}
-      height={height}
-      className={`object-contain ${markClass}`}
-    />
-  );
-}
 
 export function ServiceVisual({ slug }: { slug: ServiceSlug }) {
   if (slug === "app-development") {
@@ -83,17 +59,14 @@ export function ServiceVisual({ slug }: { slug: ServiceSlug }) {
 
   if (slug === "branding-graphic-design") {
     return (
-      <ul aria-label="Selected brand identities" className="mx-auto grid w-full max-w-md gap-3">
-        {(["QTM Detailing", "MaltaGuns", "Pantrila"] as const).map((name) => (
-          <li
-            key={name}
-            className="flex min-h-20 min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#151318] px-4 py-3 sm:px-6"
-          >
-            <BrandMark name={name} />
-            <span className="text-muted-foreground text-sm font-medium">{name}</span>
-          </li>
-        ))}
-      </ul>
+      <div aria-hidden className={styles.composition}>
+        <span className={styles.aqua} />
+        <span className={styles.violet} />
+        <span className={styles.capital}>A</span>
+        <span className={styles.outline}>a</span>
+        <span className={styles.orange} />
+        <span className={styles.lowercase}>a</span>
+      </div>
     );
   }
 

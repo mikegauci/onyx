@@ -10,13 +10,12 @@ export const webDesignPackages = [
     name: "Bronze",
     price: "€300",
     type: "Small business website",
-    description: "Launch or refresh your business website with a choice of ready-made layouts.",
+    description: "A custom-designed website for your business, ready within 48 hours.",
     features: [
       "Up to five mobile-friendly pages",
       "Light editing of your supplied text and photos",
       "Basic SEO setup",
       "Enquiry form and click-to-WhatsApp",
-      "One round of revisions",
     ],
   },
   {

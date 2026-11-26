@@ -523,6 +523,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/w/{slug}/automotive/customer-cars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Customer Cars */
+        get: operations["list_customer_cars"];
+        put?: never;
+        /**
+         * Create Customer Car
+         * @description A car the customer owns, for example one bought before Onyx.
+         */
+        post: operations["create_customer_car"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/customer-cars/{car_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Customer Car
+         * @description Change dates or switches. A pending reminder for a date that changed is dismissed.
+         */
+        put: operations["update_customer_car"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/customer-cars/{car_id}/service": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Customer Car Service
+         * @description Record a service; the next one is due one interval later.
+         */
+        post: operations["record_customer_car_service"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/w/{slug}/automotive/followups": {
         parameters: {
             query?: never;
@@ -708,6 +769,78 @@ export interface paths {
         put?: never;
         /** Dismiss Match */
         post: operations["dismiss_match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/reminder-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Reminder Settings */
+        get: operations["get_reminder_settings"];
+        /** Put Reminder Settings */
+        put: operations["put_reminder_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reminders */
+        get: operations["list_reminders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/reminders/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Reminders
+         * @description Send up to 50 reminders. Each is checked and sent once; failures are listed.
+         */
+        post: operations["send_reminders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/w/{slug}/automotive/reminders/{reminder_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Reminder */
+        post: operations["dismiss_reminder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3624,6 +3757,136 @@ export interface components {
              */
             vat_rate_id: string;
         };
+        /** CustomerCarIn */
+        CustomerCarIn: {
+            /** Collected On */
+            collected_on?: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /**
+             * Dealer Handles Insurance
+             * @default false
+             */
+            dealer_handles_insurance: boolean;
+            /**
+             * Dealer Handles Licence
+             * @default false
+             */
+            dealer_handles_licence: boolean;
+            /** Description */
+            description: string;
+            /** Insurance Due On */
+            insurance_due_on?: string | null;
+            /** Last Service On */
+            last_service_on?: string | null;
+            /** Licence Due On */
+            licence_due_on?: string | null;
+            /** Registration */
+            registration?: string | null;
+            /**
+             * Reminders Paused
+             * @default false
+             */
+            reminders_paused: boolean;
+            /**
+             * Service Interval Months
+             * @default 12
+             */
+            service_interval_months: number;
+            /** Vehicle Id */
+            vehicle_id?: string | null;
+        };
+        /** CustomerCarList */
+        CustomerCarList: {
+            /** Items */
+            items: components["schemas"]["CustomerCarOut"][];
+        };
+        /** CustomerCarOut */
+        CustomerCarOut: {
+            /** Collected On */
+            collected_on: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deal Id */
+            deal_id: string | null;
+            /** Dealer Handles Insurance */
+            dealer_handles_insurance: boolean;
+            /** Dealer Handles Licence */
+            dealer_handles_licence: boolean;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Insurance Due On */
+            insurance_due_on: string | null;
+            /** Last Service On */
+            last_service_on: string | null;
+            /** Licence Due On */
+            licence_due_on: string | null;
+            /** Next Insurance On */
+            next_insurance_on: string | null;
+            /** Next Licence On */
+            next_licence_on: string | null;
+            /** Next Service On */
+            next_service_on: string | null;
+            /** Registration */
+            registration: string | null;
+            /** Reminders Paused */
+            reminders_paused: boolean;
+            /** Service Interval Months */
+            service_interval_months: number;
+            /** Vehicle Id */
+            vehicle_id: string | null;
+        };
+        /** CustomerCarUpdate */
+        CustomerCarUpdate: {
+            /** Collected On */
+            collected_on?: string | null;
+            /**
+             * Dealer Handles Insurance
+             * @default false
+             */
+            dealer_handles_insurance: boolean;
+            /**
+             * Dealer Handles Licence
+             * @default false
+             */
+            dealer_handles_licence: boolean;
+            /** Description */
+            description: string;
+            /** Insurance Due On */
+            insurance_due_on?: string | null;
+            /** Last Service On */
+            last_service_on?: string | null;
+            /** Licence Due On */
+            licence_due_on?: string | null;
+            /** Registration */
+            registration?: string | null;
+            /**
+             * Reminders Paused
+             * @default false
+             */
+            reminders_paused: boolean;
+            /**
+             * Service Interval Months
+             * @default 12
+             */
+            service_interval_months: number;
+        };
         /** CustomerCreate */
         CustomerCreate: {
             /** @default business */
@@ -5103,6 +5366,46 @@ export interface components {
          * @enum {string}
          */
         InvitationState: "pending" | "accepted" | "revoked" | "expired";
+        /** KindSettingsIn */
+        KindSettingsIn: {
+            /**
+             * Days
+             * @description Days before the due date it is listed
+             */
+            days: number;
+            /**
+             * Message
+             * @description Email and free-form WhatsApp: {name}, {car}, {registration}, {due}
+             */
+            message?: string | null;
+            /**
+             * Params
+             * @description What fills each template value, in order: first_name, vehicle, registration, due_date
+             */
+            params?: string[];
+            /**
+             * Template Id
+             * @description An approved WhatsApp utility template, used outside 24h
+             */
+            template_id?: string | null;
+        };
+        /** KindSettingsOut */
+        KindSettingsOut: {
+            /** Days */
+            days: number;
+            /** Message */
+            message: string;
+            /** Params */
+            params: string[];
+            /** Template Body */
+            template_body: string | null;
+            /** Template Id */
+            template_id: string | null;
+            /** Template Name */
+            template_name: string | null;
+            /** Template Ready */
+            template_ready: boolean;
+        };
         /** LeadCreate */
         LeadCreate: {
             /**
@@ -6248,6 +6551,106 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /**
+         * ReminderKind
+         * @enum {string}
+         */
+        ReminderKind: "licence" | "insurance" | "service";
+        /** ReminderList */
+        ReminderList: {
+            /** Items */
+            items: components["schemas"]["ReminderOut"][];
+            /** Total */
+            total: number;
+        };
+        /** ReminderOut */
+        ReminderOut: {
+            /** Car */
+            car: string;
+            /** Channel */
+            channel: string | null;
+            /**
+             * Contact Id
+             * Format: uuid
+             */
+            contact_id: string;
+            /** Contact Name */
+            contact_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Customer Car Id
+             * Format: uuid
+             */
+            customer_car_id: string;
+            /** Decided At */
+            decided_at: string | null;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+            /** Has Email */
+            has_email: boolean;
+            /** Has Phone */
+            has_phone: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ReminderKind"];
+            /** Registration */
+            registration: string | null;
+            /** Skip Reason */
+            skip_reason: string | null;
+            /**
+             * Status
+             * @description pending, sent, dismissed or skipped
+             */
+            status: string;
+        };
+        /** ReminderSendRequest */
+        ReminderSendRequest: {
+            /** Reminder Ids */
+            reminder_ids: string[];
+        };
+        /** ReminderSendResult */
+        ReminderSendResult: {
+            /** Sent */
+            sent: string[];
+            /** Skipped */
+            skipped: components["schemas"]["ReminderSkip"][];
+        };
+        /** ReminderSettingsIn */
+        ReminderSettingsIn: {
+            insurance: components["schemas"]["KindSettingsIn"];
+            licence: components["schemas"]["KindSettingsIn"];
+            service: components["schemas"]["KindSettingsIn"];
+        };
+        /** ReminderSettingsOut */
+        ReminderSettingsOut: {
+            insurance: components["schemas"]["KindSettingsOut"];
+            licence: components["schemas"]["KindSettingsOut"];
+            /** Param Keys */
+            param_keys: string[];
+            service: components["schemas"]["KindSettingsOut"];
+        };
+        /** ReminderSkip */
+        ReminderSkip: {
+            /** Message */
+            message: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Reminder Id
+             * Format: uuid
+             */
+            reminder_id: string;
+        };
         /** ResponseTimeOut */
         ResponseTimeOut: {
             /** Answered */
@@ -6571,6 +6974,14 @@ export interface components {
             name?: string | null;
             /** Phone */
             phone?: string | null;
+        };
+        /** ServiceRecord */
+        ServiceRecord: {
+            /**
+             * Serviced On
+             * Format: date
+             */
+            serviced_on: string;
         };
         /** SettingsOut */
         SettingsOut: {
@@ -9771,6 +10182,317 @@ export interface operations {
             };
         };
     };
+    list_customer_cars: {
+        parameters: {
+            query: {
+                contact_id: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerCarList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_customer_car: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerCarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerCarOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_customer_car: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                car_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerCarUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerCarOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    record_customer_car_service: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                car_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRecord"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerCarOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_followups: {
         parameters: {
             query?: {
@@ -10572,6 +11294,382 @@ export interface operations {
                 };
             };
             /** @description Not allowed in this state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_reminder_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_reminder_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderSettingsOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_reminders: {
+        parameters: {
+            query?: {
+                status?: ("pending" | "sent" | "dismissed" | "skipped") | null;
+                kind?: components["schemas"]["ReminderKind"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderList"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Workspace not found (or not a member) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_reminders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderSendResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid input */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication or database unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    dismiss_reminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied or module disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Already sent */
             409: {
                 headers: {
                     [name: string]: unknown;

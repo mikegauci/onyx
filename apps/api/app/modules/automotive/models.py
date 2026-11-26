@@ -2,13 +2,14 @@
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -348,4 +349,166 @@ class Followup(Base):
     decided_by_user_id: Mapped[uuid.UUID | None] = _user()
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class ReminderKind(enum.StrEnum):
+    LICENCE = "licence"  # only when the dealer handles the customer's licence renewal
+    INSURANCE = "insurance"  # only when the dealer handles the customer's insurance
+    SERVICE = "service"  # every service interval (12 months by default)
+
+
+class CustomerCar(Base):
+    """A car a customer owns (VA-009 part 2): from a collected deal or added by staff."""
+
+    __tablename__ = "automotive_customer_cars"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        _same_tenant("automotive_customer_cars", "contact_id", "crm_contacts"),
+        _same_tenant("automotive_customer_cars", "vehicle_id", "automotive_vehicles"),
+        _same_tenant("automotive_customer_cars", "deal_id", "deals"),
+        CheckConstraint("service_interval_months BETWEEN 1 AND 60", name="interval"),
+        Index(
+            "uq_automotive_customer_cars_deal",
+            "organization_id",
+            "deal_id",
+            unique=True,
+            postgresql_where=sql_text("deal_id IS NOT NULL"),
+        ),
+        Index("ix_automotive_customer_cars_contact", "organization_id", "contact_id"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    vehicle_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    deal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    description: Mapped[str] = mapped_column(String(200), nullable=False)
+    registration: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    collected_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    licence_due_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dealer_handles_licence: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    insurance_due_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dealer_handles_insurance: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    last_service_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    service_interval_months: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, server_default="12"
+    )
+    reminders_paused: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=sql_text("false")
+    )
+    created_by_user_id: Mapped[uuid.UUID | None] = _user()
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class Reminder(Base):
+    """A licence, insurance or service reminder due on a date. One per car, kind and date."""
+
+    __tablename__ = "automotive_reminders"
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "customer_car_id",
+            "kind",
+            "due_on",
+            name="uq_automotive_reminders_car_kind_due",
+        ),
+        _same_tenant("automotive_reminders", "customer_car_id", "automotive_customer_cars"),
+        _same_tenant("automotive_reminders", "contact_id", "crm_contacts"),
+        CheckConstraint("kind IN ('licence', 'insurance', 'service')", name="kind"),
+        CheckConstraint("status IN ('pending', 'sent', 'dismissed', 'skipped')", name="status"),
+        CheckConstraint(
+            "(status = 'skipped') = (skip_reason IS NOT NULL) AND "
+            "(status = 'sent') = (message_id IS NOT NULL) AND "
+            "(status = 'sent') = (channel IS NOT NULL) AND "
+            "(channel IS NULL OR channel IN ('whatsapp', 'email'))",
+            name="outcome",
+        ),
+        Index("ix_automotive_reminders_status", "organization_id", "status", "due_on"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    organization_id: Mapped[uuid.UUID] = _org()
+    customer_car_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    contact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    due_on: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    channel: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    skip_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    decided_by_user_id: Mapped[uuid.UUID | None] = _user()
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = created_at_column()
+    updated_at: Mapped[datetime] = updated_at_column()
+
+
+class ReminderSettings(Base):
+    """Per kind: days before the due date, the message and an optional WhatsApp template."""
+
+    __tablename__ = "automotive_reminder_settings"
+    __table_args__ = (
+        CheckConstraint(
+            "(licence_days IS NULL OR licence_days BETWEEN 1 AND 90) AND "
+            "(insurance_days IS NULL OR insurance_days BETWEEN 1 AND 90) AND "
+            "(service_days IS NULL OR service_days BETWEEN 1 AND 90)",
+            name="days",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(licence_params) = 'array' AND "
+            "jsonb_typeof(insurance_params) = 'array' AND "
+            "jsonb_typeof(service_params) = 'array'",
+            name="params",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "licence_template_id"],
+            ["inbox_whatsapp_templates.organization_id", "inbox_whatsapp_templates.id"],
+            name="fk_automotive_reminder_settings_licence_template",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "insurance_template_id"],
+            ["inbox_whatsapp_templates.organization_id", "inbox_whatsapp_templates.id"],
+            name="fk_automotive_reminder_settings_insurance_template",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "service_template_id"],
+            ["inbox_whatsapp_templates.organization_id", "inbox_whatsapp_templates.id"],
+            name="fk_automotive_reminder_settings_service_template",
+            ondelete="RESTRICT",
+        ),
+    )
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="RESTRICT"), primary_key=True
+    )
+    licence_days: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    licence_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    licence_template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    licence_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=sql_text("'[]'::jsonb")
+    )
+    insurance_days: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    insurance_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    insurance_template_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    insurance_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=sql_text("'[]'::jsonb")
+    )
+    service_days: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    service_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    service_template_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    service_params: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=sql_text("'[]'::jsonb")
+    )
+    updated_by_user_id: Mapped[uuid.UUID | None] = _user()
     updated_at: Mapped[datetime] = updated_at_column()

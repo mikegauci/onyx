@@ -2833,6 +2833,418 @@
         "title": "CustomLineCreate",
         "type": "object"
       },
+      "CustomerCarIn": {
+        "additionalProperties": false,
+        "properties": {
+          "collected_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collected On"
+          },
+          "contact_id": {
+            "format": "uuid",
+            "title": "Contact Id",
+            "type": "string"
+          },
+          "dealer_handles_insurance": {
+            "default": false,
+            "title": "Dealer Handles Insurance",
+            "type": "boolean"
+          },
+          "dealer_handles_licence": {
+            "default": false,
+            "title": "Dealer Handles Licence",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "insurance_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Due On"
+          },
+          "last_service_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Service On"
+          },
+          "licence_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Due On"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration"
+          },
+          "reminders_paused": {
+            "default": false,
+            "title": "Reminders Paused",
+            "type": "boolean"
+          },
+          "service_interval_months": {
+            "default": 12,
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Service Interval Months",
+            "type": "integer"
+          },
+          "vehicle_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Id"
+          }
+        },
+        "required": [
+          "description",
+          "contact_id"
+        ],
+        "title": "CustomerCarIn",
+        "type": "object"
+      },
+      "CustomerCarList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerCarOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "CustomerCarList",
+        "type": "object"
+      },
+      "CustomerCarOut": {
+        "properties": {
+          "collected_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collected On"
+          },
+          "contact_id": {
+            "format": "uuid",
+            "title": "Contact Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deal_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deal Id"
+          },
+          "dealer_handles_insurance": {
+            "title": "Dealer Handles Insurance",
+            "type": "boolean"
+          },
+          "dealer_handles_licence": {
+            "title": "Dealer Handles Licence",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "insurance_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Due On"
+          },
+          "last_service_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Service On"
+          },
+          "licence_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Due On"
+          },
+          "next_insurance_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Insurance On"
+          },
+          "next_licence_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Licence On"
+          },
+          "next_service_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service On"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration"
+          },
+          "reminders_paused": {
+            "title": "Reminders Paused",
+            "type": "boolean"
+          },
+          "service_interval_months": {
+            "title": "Service Interval Months",
+            "type": "integer"
+          },
+          "vehicle_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Id"
+          }
+        },
+        "required": [
+          "id",
+          "contact_id",
+          "vehicle_id",
+          "deal_id",
+          "description",
+          "registration",
+          "collected_on",
+          "licence_due_on",
+          "dealer_handles_licence",
+          "insurance_due_on",
+          "dealer_handles_insurance",
+          "last_service_on",
+          "service_interval_months",
+          "reminders_paused",
+          "next_licence_on",
+          "next_insurance_on",
+          "next_service_on",
+          "created_at"
+        ],
+        "title": "CustomerCarOut",
+        "type": "object"
+      },
+      "CustomerCarUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "collected_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collected On"
+          },
+          "dealer_handles_insurance": {
+            "default": false,
+            "title": "Dealer Handles Insurance",
+            "type": "boolean"
+          },
+          "dealer_handles_licence": {
+            "default": false,
+            "title": "Dealer Handles Licence",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "insurance_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Due On"
+          },
+          "last_service_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Service On"
+          },
+          "licence_due_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Due On"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration"
+          },
+          "reminders_paused": {
+            "default": false,
+            "title": "Reminders Paused",
+            "type": "boolean"
+          },
+          "service_interval_months": {
+            "default": 12,
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Service Interval Months",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "CustomerCarUpdate",
+        "type": "object"
+      },
       "CustomerCreate": {
         "additionalProperties": false,
         "properties": {
@@ -7300,6 +7712,127 @@
         "title": "InvitationState",
         "type": "string"
       },
+      "KindSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Days before the due date it is listed",
+            "maximum": 90.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Email and free-form WhatsApp: {name}, {car}, {registration}, {due}",
+            "title": "Message"
+          },
+          "params": {
+            "description": "What fills each template value, in order: first_name, vehicle, registration, due_date",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Params",
+            "type": "array"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An approved WhatsApp utility template, used outside 24h",
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "KindSettingsIn",
+        "type": "object"
+      },
+      "KindSettingsOut": {
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "params": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Params",
+            "type": "array"
+          },
+          "template_body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Body"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Name"
+          },
+          "template_ready": {
+            "title": "Template Ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "days",
+          "message",
+          "template_id",
+          "template_name",
+          "template_body",
+          "params",
+          "template_ready"
+        ],
+        "title": "KindSettingsOut",
+        "type": "object"
+      },
       "LeadCreate": {
         "additionalProperties": false,
         "properties": {
@@ -10493,6 +11026,271 @@
         "title": "RejectRequest",
         "type": "object"
       },
+      "ReminderKind": {
+        "enum": [
+          "licence",
+          "insurance",
+          "service"
+        ],
+        "title": "ReminderKind",
+        "type": "string"
+      },
+      "ReminderList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReminderOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "ReminderList",
+        "type": "object"
+      },
+      "ReminderOut": {
+        "properties": {
+          "car": {
+            "title": "Car",
+            "type": "string"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "contact_id": {
+            "format": "uuid",
+            "title": "Contact Id",
+            "type": "string"
+          },
+          "contact_name": {
+            "title": "Contact Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_car_id": {
+            "format": "uuid",
+            "title": "Customer Car Id",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "due_on": {
+            "format": "date",
+            "title": "Due On",
+            "type": "string"
+          },
+          "has_email": {
+            "title": "Has Email",
+            "type": "boolean"
+          },
+          "has_phone": {
+            "title": "Has Phone",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReminderKind"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration"
+          },
+          "skip_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skip Reason"
+          },
+          "status": {
+            "description": "pending, sent, dismissed or skipped",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "due_on",
+          "status",
+          "channel",
+          "skip_reason",
+          "customer_car_id",
+          "car",
+          "registration",
+          "contact_id",
+          "contact_name",
+          "has_phone",
+          "has_email",
+          "created_at",
+          "decided_at"
+        ],
+        "title": "ReminderOut",
+        "type": "object"
+      },
+      "ReminderSendRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reminder_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Reminder Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "reminder_ids"
+        ],
+        "title": "ReminderSendRequest",
+        "type": "object"
+      },
+      "ReminderSendResult": {
+        "properties": {
+          "sent": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Sent",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/ReminderSkip"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sent",
+          "skipped"
+        ],
+        "title": "ReminderSendResult",
+        "type": "object"
+      },
+      "ReminderSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "insurance": {
+            "$ref": "#/components/schemas/KindSettingsIn"
+          },
+          "licence": {
+            "$ref": "#/components/schemas/KindSettingsIn"
+          },
+          "service": {
+            "$ref": "#/components/schemas/KindSettingsIn"
+          }
+        },
+        "required": [
+          "licence",
+          "insurance",
+          "service"
+        ],
+        "title": "ReminderSettingsIn",
+        "type": "object"
+      },
+      "ReminderSettingsOut": {
+        "properties": {
+          "insurance": {
+            "$ref": "#/components/schemas/KindSettingsOut"
+          },
+          "licence": {
+            "$ref": "#/components/schemas/KindSettingsOut"
+          },
+          "param_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Param Keys",
+            "type": "array"
+          },
+          "service": {
+            "$ref": "#/components/schemas/KindSettingsOut"
+          }
+        },
+        "required": [
+          "licence",
+          "insurance",
+          "service",
+          "param_keys"
+        ],
+        "title": "ReminderSettingsOut",
+        "type": "object"
+      },
+      "ReminderSkip": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reminder_id": {
+            "format": "uuid",
+            "title": "Reminder Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reminder_id",
+          "reason",
+          "message"
+        ],
+        "title": "ReminderSkip",
+        "type": "object"
+      },
       "ResponseTimeOut": {
         "properties": {
           "answered": {
@@ -11380,6 +12178,21 @@
           }
         },
         "title": "Sender",
+        "type": "object"
+      },
+      "ServiceRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "serviced_on": {
+            "format": "date",
+            "title": "Serviced On",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviced_on"
+        ],
+        "title": "ServiceRecord",
         "type": "object"
       },
       "SettingsOut": {
@@ -16893,6 +17706,445 @@
         ]
       }
     },
+    "/v1/w/{slug}/automotive/customer-cars": {
+      "get": {
+        "operationId": "list_customer_cars",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCarList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Customer Cars",
+        "tags": [
+          "automotive"
+        ]
+      },
+      "post": {
+        "description": "A car the customer owns, for example one bought before Onyx.",
+        "operationId": "create_customer_car",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCarIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Customer Car",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/customer-cars/{car_id}": {
+      "put": {
+        "description": "Change dates or switches. A pending reminder for a date that changed is dismissed.",
+        "operationId": "update_customer_car",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "car_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Car Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCarUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Customer Car",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/customer-cars/{car_id}/service": {
+      "post": {
+        "description": "Record a service; the next one is due one interval later.",
+        "operationId": "record_customer_car_service",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "car_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Car Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Customer Car Service",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
     "/v1/w/{slug}/automotive/followups": {
       "get": {
         "operationId": "list_followups",
@@ -18116,6 +19368,562 @@
           }
         ],
         "summary": "Dismiss Match",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/reminder-settings": {
+      "get": {
+        "operationId": "get_reminder_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Reminder Settings",
+        "tags": [
+          "automotive"
+        ]
+      },
+      "put": {
+        "operationId": "put_reminder_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderSettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Reminder Settings",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/reminders": {
+      "get": {
+        "operationId": "list_reminders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "sent",
+                    "dismissed",
+                    "skipped"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ReminderKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Workspace not found (or not a member)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Reminders",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/reminders/send": {
+      "post": {
+        "description": "Send up to 50 reminders. Each is checked and sent once; failures are listed.",
+        "operationId": "send_reminders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderSendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderSendResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Send Reminders",
+        "tags": [
+          "automotive"
+        ]
+      }
+    },
+    "/v1/w/{slug}/automotive/reminders/{reminder_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_reminder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reminder_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Reminder Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied or module disabled"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Already sent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or database unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dismiss Reminder",
         "tags": [
           "automotive"
         ]

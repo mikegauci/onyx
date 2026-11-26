@@ -138,6 +138,18 @@ EXPORT_QUERIES: list[tuple[str, str]] = [
         "WHERE f.organization_id = :org AND f.contact_id = :c ORDER BY f.created_at",
     ),
     (
+        "customer_cars",
+        "SELECT description, registration, collected_on, licence_due_on, "
+        "dealer_handles_licence, insurance_due_on, dealer_handles_insurance, last_service_on, "
+        "service_interval_months, reminders_paused, created_at FROM automotive_customer_cars "
+        "WHERE organization_id = :org AND contact_id = :c ORDER BY created_at",
+    ),
+    (
+        "reminders",
+        "SELECT kind, due_on, status, channel, created_at, decided_at FROM automotive_reminders "
+        "WHERE organization_id = :org AND contact_id = :c ORDER BY due_on",
+    ),
+    (
         "review_requests",
         "SELECT r.deal_id, r.status, r.channel, r.created_at, r.decided_at "
         "FROM deal_review_requests r WHERE r.organization_id = :org AND r.contact_id = :c "
@@ -191,6 +203,8 @@ async def export_contact(contact_id: uuid.UUID, workspace: Owner, db: DbDep) -> 
         "deal_documents": "deals",
         "finance_applications": "deals",
         "review_requests": "deals",
+        "customer_cars": "automotive",
+        "reminders": "automotive",
         "marketing_consents": "crm",
         "wanted_cars": "automotive",
         "car_alerts": "automotive",
@@ -304,7 +318,13 @@ async def erase_contact(
     # Consent records and wanted criteria (VA-005) go entirely.
     params = {"org": org, "c": contact_id}
     if await _module_on(db, org, "automotive"):
-        for table in ("automotive_matches", "automotive_followups", "automotive_interests"):
+        for table in (
+            "automotive_reminders",
+            "automotive_customer_cars",
+            "automotive_matches",
+            "automotive_followups",
+            "automotive_interests",
+        ):
             await db.execute(
                 text(f"DELETE FROM {table} WHERE organization_id = :org AND contact_id = :c"),  # noqa: S608 - fixed names
                 params,

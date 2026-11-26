@@ -398,6 +398,16 @@ class DealService:
                     deal.id,
                     sold=body.stage is DealStage.SOLD,
                 )
+        if body.stage is DealStage.COLLECTED and await self._automotive_on():
+            await automotive.add_customer_car(
+                self.db,
+                self.workspace,
+                contact_id=deal.contact_id,
+                vehicle_id=deal.vehicle_id,
+                deal_id=deal.id,
+                description=deal.title,
+                collected_on=now.date(),
+            )
         details: dict[str, Any] = {}
         if move.overridden:
             details = {"override": True, "reason": body.reason, "unverified": move.missing}

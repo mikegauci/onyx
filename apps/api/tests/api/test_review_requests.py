@@ -20,6 +20,7 @@ from sqlalchemy.pool import NullPool
 from app.core.config import Settings
 from app.main import create_app
 from tests.api.conftest import As
+from tests.api.test_email_connector import SECRET as EMAIL_WEBHOOK_SECRET
 from tests.api.test_email_connector import FakeProvider as FakeEmail
 from tests.api.test_whatsapp_connector import (
     APP_SECRET,
@@ -68,7 +69,7 @@ def api(
         whatsapp_verify_token=VERIFY_TOKEN,
         whatsapp_access_token="test-token",  # noqa: S106 - a test value
         resend_api_key="re_test",
-        resend_webhook_secret="whsec_dGVzdC1zZWNyZXQtZm9yLXJldmlld3MtMDEyMw==",  # noqa: S106
+        resend_webhook_secret=EMAIL_WEBHOOK_SECRET,
         email_inbound_domain="in.onyx.test",
         email_from_domain="reply.onyx.test",
         scheduler_secret=SECRET,

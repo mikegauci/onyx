@@ -15,7 +15,7 @@ This file lists work the owner approved **outside** the 28 numbered PRs in `PR_R
 | VA-006   | Ventur     | Finance pre-qualification intake              | PR-015                        | 8–14h      | Merged (#85, #86)                                                                      |
 | VA-007   | Ventur     | Deals and document chasing                    | VA-001, PR-021                | 24–40h     | Parts 1–3 merged; customer reminders wait for the template                             |
 | VA-008   | Ventur     | In-house finance schedules and reminders      | VA-007                        | 14–24h     | Approved 2026-11-19, not started; payment record source unknown                        |
-| VA-009   | Ventur     | Review requests and service/renewal reminders | VA-007, PR-021                | 14–22h     | Part 1 (Google review requests) in review; part 2 (reminders) planned                  |
+| VA-009   | Ventur     | Review requests and service/renewal reminders | VA-007, PR-021                | 14–22h     | Part 1 merged (#91); part 2 (reminders) in review                                      |
 | VA-010   | Ventur     | Daily owner summary                           | VA-001, VA-008                | 10–18h     | Approved 2026-11-19, not started                                                       |
 | VA-011   | Ventur     | Voice agent with phone menu                   | VA-004, VA-001, VA-002        | 30–55h     | Needs separate approval after VA-004                                                   |
 | VA-012   | Ventur     | Website audit; redevelopment if justified     | VA-001                        | audit 3–5h | Replaced by VA-013 (owner, 2026-11-24)                                                 |

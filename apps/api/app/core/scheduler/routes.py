@@ -20,6 +20,7 @@ from app.core.config import Settings, get_settings
 from app.core.db.context import worker_transaction
 from app.core.db.rls import WORKER_ROLE
 from app.core.errors import NotAuthenticatedError, NotFoundError, ServiceUnavailableError
+from app.modules.automotive import reminders
 from app.modules.deals.jobs import run_deal_jobs
 
 logger = logging.getLogger("onyx.scheduler")
@@ -32,6 +33,7 @@ class RunSummary(BaseModel):
     chase_tasks: int
     files_deleted: int
     review_requests: int = 0
+    reminders: int = 0
     conversations_redacted: int = 0
     failed_tenants: int
 
@@ -68,13 +70,18 @@ async def run_scheduler(
         "chase_tasks": 0,
         "files_deleted": 0,
         "review_requests": 0,
+        "reminders": 0,
     }
     failed = 0
     for org in tenants:
         try:
             async with worker_transaction(sessions, org) as (db, tenant):
                 result = await run_deal_jobs(db, tenant, now, store)
-            for key in totals:
+                if await db.scalar(
+                    text("SELECT app_module_enabled(:org, 'automotive')"), {"org": org}
+                ):
+                    totals["reminders"] += await reminders.create_due(db, tenant, now.date())
+            for key in ("check_tasks", "chase_tasks", "files_deleted", "review_requests"):
                 totals[key] += getattr(result, key)
         except Exception:  # one tenant must not stop the others
             failed += 1

@@ -1,6 +1,6 @@
 # VA-009 — Review requests and service/renewal reminders
 
-Status: part 1 built 2026-11-26; part 2 planned. Depends on VA-007 (deals) and PR-021 (scheduler), both merged.
+Status: part 1 merged (#91); part 2 built 2026-11-26. Depends on VA-007 (deals) and PR-021 (scheduler), both merged.
 
 ## Owner decisions (2026-11-26)
 
@@ -60,6 +60,19 @@ thread or creates one on the workspace's email channel.
 - Settings: `deals.manage` (Deals → Settings).
 
 ## Part 2 — customer cars and reminders
+
+As built:
+
+- The "Ventur handles" switches are `dealer_handles_licence` and `dealer_handles_insurance`, so
+  the core stays tenant-neutral.
+- The reminder windows run from the set number of days before the due date until 30 days after
+  it, so an overdue renewal still appears once.
+- The scheduler runs reminders for tenants with both deals and automotive enabled, using the UTC
+  date.
+- Reminders and the review requests share one inbox sender (`deliver_to_contact`): WhatsApp
+  first, then email.
+- Settings and the Reminders page live under Vehicles; customer cars are on the contact page.
+- Erasing a contact deletes their cars and reminders.
 
 ### Data (migration 0040)
 

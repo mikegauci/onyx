@@ -90,7 +90,7 @@ them into chat.
       (in person, phone, WhatsApp), and add car alerts to Ventur's privacy notice.
 - [x] **Production migrations 0037 and 0038:** applied 2026-11-26 (with 0034–0036).
 
-## Google review requests (VA-009 part 1)
+## Google review requests and reminders (VA-009)
 
 - [ ] **Google review link:** in your Google Business Profile choose "Ask for reviews", copy
       the link and paste it under Deals → Settings → Google review requests. Requests start
@@ -101,7 +101,15 @@ them into chat.
       email instead.
 - [ ] **Email sending:** the inbox email channel must be connected (Resend, verified domain)
       for the email fallback.
-- [ ] **Production migration 0039**, after the PR merges (it needs your approval).
+- [ ] **Reminder templates (optional):** three **utility** templates in WhatsApp Manager, for
+      road licence, insurance and service reminders, for example: "Hi {{1}}, the road licence
+      for your {{2}} is due on {{3}}. Reply here and we will renew it for you." Choose them under
+      Vehicles → Reminder settings. Without them, customers who have not written in 24 hours
+      get the email instead.
+- [ ] **Existing customers:** ask Ventur which customers want Ventur to handle their licence
+      or insurance, with the due dates and last service, and add their cars on each contact
+      page (Cars panel).
+- [ ] **Production migrations 0039 and 0040**, after the PRs merge (they need your approval).
 
 ## Later Ventur items: questions to ask them
 
